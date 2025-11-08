@@ -1,0 +1,41 @@
+services:
+  app:
+    container_name: petcare_app
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - db
+
+  web:
+    container_name: petcare_web
+    image: nginx:stable
+    volumes:
+      - ./src/public:/var/www/html/public
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./src:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+
+  db:
+    container_name: petcare_db
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: petcare
+      MYSQL_USER: petuser
+      MYSQL_PASSWORD: petpass
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3307:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:
