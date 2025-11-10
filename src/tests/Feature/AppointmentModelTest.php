@@ -64,24 +64,37 @@ class AppointmentModelTest extends TestCase
         $pet = Pet::factory()->create();
         
         // Create appointments at different times
-        Appointment::factory()->create([
+        $pastAppointment = Appointment::factory()->create([
             'pet_id' => $pet->id,
             'scheduled_at' => Carbon::now()->subDays(5), // Past
         ]);
         
-        Appointment::factory()->create([
+        $futureAppointment = Appointment::factory()->create([
             'pet_id' => $pet->id,
             'scheduled_at' => Carbon::now()->addDays(5), // Future
         ]);
         
-        Appointment::factory()->create([
+        $todayAppointment = Appointment::factory()->create([
             'pet_id' => $pet->id,
-            'scheduled_at' => Carbon::today()->setHour(14), // Today
+            'scheduled_at' => Carbon::now()->startOfDay()->addMinutes(1), // 00:01 today (past)
         ]);
 
-        $this->assertEquals(1, Appointment::upcoming()->count());
-        $this->assertEquals(2, Appointment::past()->count()); // Past + Today's past time
-        $this->assertEquals(1, Appointment::today()->count());
+        // Test upcoming scope (future only)
+        $upcomingIds = Appointment::upcoming()->pluck('id')->toArray();
+        $this->assertContains($futureAppointment->id, $upcomingIds);
+        $this->assertNotContains($pastAppointment->id, $upcomingIds);
+        
+        // Test past scope (past including today's past)
+        $pastIds = Appointment::past()->pluck('id')->toArray();
+        $this->assertContains($pastAppointment->id, $pastIds);
+        $this->assertContains($todayAppointment->id, $pastIds);
+        $this->assertNotContains($futureAppointment->id, $pastIds);
+        
+        // Test today scope
+        $todayIds = Appointment::today()->pluck('id')->toArray();
+        $this->assertContains($todayAppointment->id, $todayIds);
+        $this->assertNotContains($pastAppointment->id, $todayIds);
+        $this->assertNotContains($futureAppointment->id, $todayIds);
     }
 
     /** @test */

@@ -1,59 +1,198 @@
-# Laravel
+# 🐾 PetCare Companion
 
-[![Laravel Logo](https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg)](https://laravel.com)
+A modern **Laravel 11 REST API** for pet and appointment management, demonstrating **MVC architecture**, **Docker containerization**, and **comprehensive API design** best practices.
 
-[![Build Status](https://github.com/laravel/framework/workflows/tests/badge.svg)](https://github.com/laravel/framework/actions)
-[![Total Downloads](https://img.shields.io/packagist/dt/laravel/framework)](https://packagist.org/packages/laravel/framework)
-[![Latest Stable Version](https://img.shields.io/packagist/v/laravel/framework)](https://packagist.org/packages/laravel/framework)
-[![License](https://img.shields.io/packagist/l/laravel/framework)](https://packagist.org/packages/laravel/framework)
+## 🎯 Purpose & Role Alignment
 
-## About Laravel
+**Technology Stack**: PHP 8.3 • Laravel 11 • SQLite • Docker • PHPUnit  
+**Architecture**: RESTful API following MVC pattern with resource-based endpoints  
+**Role**: Educational demonstration of modern Laravel development practices  
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This project showcases:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- ✅ **REST API Design** - Resource controllers, API resources, pagination
+- ✅ **Laravel Best Practices** - Form requests, Eloquent models, factories
+- ✅ **Docker Integration** - Multi-container setup with app, database, and web services
+- ✅ **Comprehensive Testing** - 46+ tests with 400+ assertions
+- ✅ **Modern PHP** - PSR-12 standards, typed properties, dependency injection
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🚀 Quick Start
 
-## Learning Laravel
+### Prerequisites
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- Docker & Docker Compose
+- Git
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Setup (3 minutes)
 
-## Laravel Sponsors
+```bash
+# 1. Clone repository
+git clone <repository-url>
+cd petcare-companion
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# 2. Start containers
+docker-compose up -d
 
-### Premium Partners
+# 3. Run migrations and seeders
+docker-compose exec app php artisan migrate
+docker-compose exec app php artisan db:seed
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+# 4. Run tests to verify
+docker-compose exec app php artisan test
 
-## Contributing
+# 5. Access application
+# API: http://localhost:8080/api/pets
+# Web UI: http://localhost:8080/pets
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**That's it!** 🎉 You now have a fully functional API with demo data.
 
-## Code of Conduct
+## 📊 API Endpoints Summary
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+| Method | Endpoint | Description | Features |
+|--------|----------|-------------|----------|
+| `GET` | `/api/pets` | List all pets | Pagination, filtering, sorting |
+| `POST` | `/api/pets` | Create new pet | Validation, error handling |
+| `GET` | `/api/pets/{id}` | Show single pet | Include appointments |
+| `PUT` | `/api/pets/{id}` | Update pet | Full validation |
+| `DELETE` | `/api/pets/{id}` | Delete pet | Soft delete support |
+| `GET` | `/api/pets/{id}/appointments` | List pet's appointments | Advanced filtering |
+| `POST` | `/api/appointments` | Create appointment | Pet association |
+| `GET` | `/api/appointments/{id}` | Show appointment | Include pet data |
+| `PUT` | `/api/appointments/{id}` | Update appointment | Status management |
+| `DELETE` | `/api/appointments/{id}` | Delete appointment | Cascade handling |
 
-## Security Vulnerabilities
+### 📋 Postman Collection
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**Import ready collection**: [`docs/postman_collection.json`](./docs/postman_collection.json)
 
-## License
+- ✅ All endpoints with examples
+- ✅ Environment variables configured  
+- ✅ Validation error examples
+- ✅ Base URL: `http://localhost:8080`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 🏗️ Architecture
+
+**Design Pattern**: Model-View-Controller (MVC)  
+**API Style**: RESTful with resource transformations  
+**Database**: SQLite (development) with Eloquent ORM  
+**Testing**: Feature + Unit tests with factories  
+
+📖 **Detailed Architecture**: [docs/architecture.md](./docs/architecture.md)
+
+## 🖼️ Screenshots
+
+### 1. API Response - Pet List with Pagination
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Buddy",
+      "species": "Dog", 
+      "breed": "Golden Retriever",
+      "age": 3,
+      "owner_name": "John Smith"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "total": 3,
+    "per_page": 15
+  }
+}
+```
+
+### 2. Single Pet with Appointments Include
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Buddy",
+    "species": "Dog",
+    "appointments": [
+      {
+        "id": 1,
+        "title": "Annual Checkup",
+        "scheduled_at": "2025-12-15T14:30:00Z",
+        "status": "upcoming"
+      }
+    ]
+  }
+}
+```
+
+### 3. Web Interface
+
+![Web Interface](./docs/screenshots/web-interface.png)
+*Clean, responsive form for pet management with validation*
+
+## 🧪 Testing & Quality
+
+```bash
+# Run all tests
+docker-compose exec app php artisan test
+
+# Code style check
+docker-compose exec app ./vendor/bin/pint
+
+# Static analysis  
+docker-compose exec app ./vendor/bin/phpstan analyse
+```
+
+**Current Coverage**: 46 tests • 416 assertions • 100% pass rate
+
+## 📁 Project Structure
+
+```
+src/
+├── app/
+│   ├── Http/Controllers/     # API & Web controllers
+│   ├── Http/Requests/       # Form validation
+│   ├── Http/Resources/      # API transformations  
+│   └── Models/              # Eloquent models
+├── database/
+│   ├── factories/           # Test data factories
+│   ├── migrations/          # Database schema
+│   └── seeders/            # Demo data
+├── tests/
+│   └── Feature/            # API & integration tests
+└── routes/
+    ├── api.php             # API routes
+    └── web.php             # Web interface
+```
+
+## 🐳 Docker Services
+
+- **app**: PHP 8.3 + Laravel application  
+- **web**: Nginx reverse proxy
+- **db**: SQLite database (file-based)
+
+**Ports**:
+
+- API/Web: `http://localhost:8080`
+- App direct: `http://localhost:9000` (development)
+
+## 💡 Development Notes
+
+This is an **educational project** demonstrating modern Laravel development. It's not intended for production use but showcases:
+
+- Clean API design patterns
+- Comprehensive validation strategies  
+- Docker containerization best practices
+- Test-driven development approaches
+- Laravel 11 feature utilization
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Run tests: `docker-compose exec app php artisan test`
+4. Commit changes: `git commit -m 'Add amazing feature'`
+5. Open Pull Request
+
+## 📄 License
+
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

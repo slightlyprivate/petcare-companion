@@ -1,0 +1,510 @@
+{
+  "info": {
+    "_postman_id": "petcare-companion-api",
+    "name": "PetCare Companion API",
+    "description": "Complete API collection for PetCare Companion - a Laravel REST API for pet and appointment management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Pets",
+      "item": [
+        {
+          "name": "List All Pets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pets?page=1&per_page=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pets"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10",
+                  "description": "Number of items per page (max 100)"
+                },
+                {
+                  "key": "species",
+                  "value": "Dog",
+                  "description": "Filter by species",
+                  "disabled": true
+                },
+                {
+                  "key": "owner_name",
+                  "value": "John",
+                  "description": "Filter by owner name (partial match)",
+                  "disabled": true
+                },
+                {
+                  "key": "name",
+                  "value": "Buddy",
+                  "description": "Filter by pet name (partial match)",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "name",
+                  "description": "Sort field: name, species, owner_name, created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "direction",
+                  "value": "asc",
+                  "description": "Sort direction: asc or desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve a paginated list of all pets with optional filtering and sorting"
+          },
+          "response": []
+        },
+        {
+          "name": "Create New Pet",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bella\",\n  \"species\": \"Cat\",\n  \"breed\": \"Persian\",\n  \"birth_date\": \"2020-03-15\",\n  \"owner_name\": \"Sarah Johnson\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pets"
+              ]
+            },
+            "description": "Create a new pet with required fields (name, species, owner_name) and optional fields (breed, birth_date)"
+          },
+          "response": []
+        },
+        {
+          "name": "Show Single Pet (with appointments)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pets/1?include=appointments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pets",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "appointments",
+                  "description": "Include related appointments data"
+                }
+              ]
+            },
+            "description": "Retrieve a single pet by ID with optional appointment data included"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Pet",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bella Updated\",\n  \"species\": \"Cat\",\n  \"breed\": \"Maine Coon\",\n  \"birth_date\": \"2020-03-15\",\n  \"owner_name\": \"Sarah Johnson-Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pets/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pets",
+                "1"
+              ]
+            },
+            "description": "Update an existing pet's information"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Pet",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pets/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pets",
+                "1"
+              ]
+            },
+            "description": "Delete a pet by ID"
+          },
+          "response": []
+        }
+      ],
+      "description": "Pet management endpoints for CRUD operations"
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "List Appointments by Pet",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pets/1/appointments?page=1&per_page=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pets",
+                "1",
+                "appointments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number for pagination"
+                },
+                {
+                  "key": "per_page",
+                  "value": "10",
+                  "description": "Number of items per page"
+                },
+                {
+                  "key": "status",
+                  "value": "upcoming",
+                  "description": "Filter by status: upcoming, completed, cancelled",
+                  "disabled": true
+                },
+                {
+                  "key": "today",
+                  "value": "true",
+                  "description": "Filter appointments for today only",
+                  "disabled": true
+                },
+                {
+                  "key": "from",
+                  "value": "2024-11-01",
+                  "description": "Filter from date (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "2024-12-01",
+                  "description": "Filter to date (YYYY-MM-DD)",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "checkup",
+                  "description": "Search in title and notes",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "scheduled_at",
+                  "description": "Sort field: scheduled_at, title, created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "direction",
+                  "value": "asc",
+                  "description": "Sort direction: asc or desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Retrieve all appointments for a specific pet with filtering and sorting options"
+          },
+          "response": []
+        },
+        {
+          "name": "Create New Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pet_id\": 1,\n  \"title\": \"Annual Checkup\",\n  \"scheduled_at\": \"2025-12-15 14:30:00\",\n  \"notes\": \"Regular health examination and vaccinations\",\n  \"status\": \"upcoming\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/appointments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "appointments"
+              ]
+            },
+            "description": "Create a new appointment for a pet"
+          },
+          "response": []
+        },
+        {
+          "name": "Show Single Appointment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/appointments/1?include=pet",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "include",
+                  "value": "pet",
+                  "description": "Include related pet data"
+                }
+              ]
+            },
+            "description": "Retrieve a single appointment by ID with optional pet data"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Appointment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Checkup\",\n  \"scheduled_at\": \"2025-12-16 15:00:00\",\n  \"notes\": \"Updated appointment with additional tests\",\n  \"status\": \"completed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/appointments/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "1"
+              ]
+            },
+            "description": "Update an existing appointment"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Appointment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/appointments/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "appointments",
+                "1"
+              ]
+            },
+            "description": "Delete an appointment by ID"
+          },
+          "response": []
+        }
+      ],
+      "description": "Appointment management endpoints for CRUD operations"
+    },
+    {
+      "name": "Validation Examples",
+      "item": [
+        {
+          "name": "Pet Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"species\": \"InvalidSpecies\",\n  \"birth_date\": \"2030-01-01\",\n  \"owner_name\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pets"
+              ]
+            },
+            "description": "Example of validation errors when creating a pet with invalid data"
+          },
+          "response": []
+        },
+        {
+          "name": "Appointment Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pet_id\": 999,\n  \"title\": \"\",\n  \"scheduled_at\": \"invalid-date\",\n  \"status\": \"invalid-status\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/appointments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "appointments"
+              ]
+            },
+            "description": "Example of validation errors when creating an appointment with invalid data"
+          },
+          "response": []
+        }
+      ],
+      "description": "Examples demonstrating API validation and error responses"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string",
+      "description": "Base URL for the PetCare Companion API"
+    }
+  ]
+}

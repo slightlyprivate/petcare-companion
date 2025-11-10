@@ -115,7 +115,7 @@ class Pet extends Model
     public function getAgeCategoryAttribute(): ?string
     {
         $age = $this->age;
-        
+
         if ($age === null) {
             return null;
         }

@@ -22,7 +22,6 @@ class StoreAppointmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pet_id' => ['required', 'integer', 'exists:pets,id'],
             'title' => ['required', 'string', 'max:255'],
             'scheduled_at' => ['required', 'date', 'after:now'],
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -35,8 +34,6 @@ class StoreAppointmentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'pet_id.required' => 'Pet selection is required.',
-            'pet_id.exists' => 'Selected pet does not exist.',
             'title.required' => 'Appointment title is required.',
             'scheduled_at.required' => 'Appointment date and time is required.',
             'scheduled_at.after' => 'Appointment must be scheduled for a future date and time.',
