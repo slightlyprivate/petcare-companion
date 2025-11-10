@@ -1,31 +1,30 @@
 <?php
 
-use App\Http\Controllers\AppointmentCreateController;
-use App\Http\Controllers\AppointmentDeleteController;
-use App\Http\Controllers\AppointmentDirectCreateController;
-use App\Http\Controllers\AppointmentShowController;
-use App\Http\Controllers\AppointmentUpdateController;
-use App\Http\Controllers\PetAppointmentsController;
-use App\Http\Controllers\PetCreateController;
-use App\Http\Controllers\PetDeleteController;
-use App\Http\Controllers\PetListController;
-use App\Http\Controllers\PetShowController;
-use App\Http\Controllers\PetUpdateController;
+use App\Http\Controllers\Appointment\AppointmentController;
+use App\Http\Controllers\Pet\PetAppointmentController;
+use App\Http\Controllers\Pet\PetController;
 use Illuminate\Support\Facades\Route;
 
-// Pet endpoints
-Route::get('/pets', PetListController::class)->name('pets.index');
-Route::post('/pets', PetCreateController::class)->name('pets.store');
-Route::get('/pets/{pet}', PetShowController::class)->name('pets.show');
-Route::put('/pets/{pet}', PetUpdateController::class)->name('pets.update');
-Route::delete('/pets/{pet}', PetDeleteController::class)->name('pets.destroy');
+// TODO: Auth endpoints
 
-// Pet appointments endpoints
-Route::get('/pets/{pet}/appointments', PetAppointmentsController::class)->name('pets.appointments.index');
-Route::post('/pets/{pet}/appointments', AppointmentCreateController::class)->name('pets.appointments.store');
+// Pet endpoints
+Route::prefix('pets')->group(function () {
+  Route::get('/', [PetController::class, 'index'])->name('pets.index');
+  Route::post('/', [PetController::class, 'store'])->name('pets.store');
+  Route::get('/{pet}', [PetController::class, 'show'])->name('pets.show');
+  Route::put('/{pet}', [PetController::class, 'update'])->name('pets.update');
+  Route::delete('/{pet}', [PetController::class, 'destroy'])->name('pets.destroy');
+
+  // Pet appointments endpoints
+  Route::get('/{pet}/appointments', [PetAppointmentController::class, 'index'])->name('pets.appointments.index');
+  Route::post('/{pet}/appointments', [PetAppointmentController::class, 'store'])->name('pets.appointments.store');
+});
+
 
 // Appointment endpoints
-Route::post('/appointments', AppointmentDirectCreateController::class)->name('appointments.store');
-Route::get('/appointments/{appointment}', AppointmentShowController::class)->name('appointments.show');
-Route::put('/appointments/{appointment}', AppointmentUpdateController::class)->name('appointments.update');
-Route::delete('/appointments/{appointment}', AppointmentDeleteController::class)->name('appointments.destroy');
+Route::prefix('appointments')->group(function () {
+  Route::post('/', [AppointmentController::class, 'store'])->name('appointments.store');
+  Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
+  Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
+  Route::delete('/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+});

@@ -79,6 +79,37 @@ class Appointment extends Model
     }
 
     /**
+     * Scope a query to filter by status.
+     */
+    public function scopeByStatus($query, string $status)
+    {
+        if ($status === 'upcoming') {
+            return $query->upcoming();
+        }
+
+        if ($status === 'past' || $status === 'completed') {
+            return $query->past();
+        }
+
+        if ($status === 'today') {
+            return $query->today();
+        }
+
+        return $query;
+    }
+
+    /**
+     * Scope a query to search in title and notes.
+     */
+    public function scopeSearch($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+                ->orWhere('notes', 'like', "%{$search}%");
+        });
+    }
+
+    /**
      * Check if the appointment is upcoming.
      */
     public function isUpcoming(): bool

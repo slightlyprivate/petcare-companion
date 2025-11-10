@@ -2,15 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePetRequest;
+use App\Http\Requests\PetStoreRequest;
 use App\Models\Pet;
 
+/**
+ * Web controller for managing pets.
+ */
 class PetWebController extends Controller
 {
     /**
      * Display the pet management page.
      */
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $pets = Pet::latest()->get();
 
@@ -20,7 +23,7 @@ class PetWebController extends Controller
     /**
      * Store a new pet via the web interface.
      */
-    public function store(StorePetRequest $request)
+    public function store(PetStoreRequest $request): \Illuminate\Http\RedirectResponse
     {
         Pet::create($request->validated());
 
