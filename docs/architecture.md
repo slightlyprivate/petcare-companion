@@ -98,6 +98,88 @@ This document explains the system architecture and design decisions for **PetCar
 3. Include architecture diagram (`docs/architecture.png` or `.drawio`).
 4. Verify config cache and migrations run cleanly inside container.
 
+## Data Flow Diagram
+
+The following diagram illustrates the typical data flow for an API request in the PetCare Companion application:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Route
+    participant Controller
+    participant FormRequest
+    participant Model
+    participant Resource
+    participant Client
+
+    Client->>Route: HTTP Request (GET/POST/PUT/DELETE)
+    Route->>Controller: Route to Controller method
+    Controller->>FormRequest: Validate request data
+    FormRequest-->>Controller: Validated data or 422 error
+    Controller->>Model: Perform database operation
+    Model-->>Controller: Model instance(s)
+    Controller->>Resource: Transform to API Resource
+    Resource-->>Controller: JSON array
+    Controller-->>Client: JSON Response (200/201/404/etc.)
+```
+
+This flow ensures proper separation of concerns:
+
+- **Routes** handle URL mapping
+- **Controllers** orchestrate the request
+- **Form Requests** validate input
+- **Models** handle business logic and persistence
+- **Resources** format the output
+
+## Architecture Diagram
+
+The following diagram provides a high-level view of the PetCare Companion system architecture:
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        C[Client<br/>Browser/Mobile]
+    end
+
+    subgraph "Application Layer"
+        subgraph "Laravel Application"
+            R[Routes<br/>api.php]
+            Ctrl[Controllers<br/>PetController, etc.]
+            FR[Form Requests<br/>Validation]
+            M[Models<br/>Pet, Appointment]
+            Res[API Resources<br/>JSON Shaping]
+        end
+    end
+
+    subgraph "Infrastructure Layer"
+        subgraph "Docker Containers"
+            PHP[PHP-FPM<br/>App Container]
+            NG[Nginx<br/>Web Server]
+            DB[(MySQL<br/>Database)]
+        end
+    end
+
+    C --> R
+    R --> Ctrl
+    Ctrl --> FR
+    Ctrl --> M
+    M --> DB
+    Ctrl --> Res
+    Res --> C
+
+    PHP --> NG
+    NG --> C
+    DB --> PHP
+
+    classDef client fill:#e1f5fe
+    classDef app fill:#f3e5f5
+    classDef infra fill:#e8f5e8
+
+    class C client
+    class R,Ctrl,FR,M,Res app
+    class PHP,NG,DB infra
+```
+
 ## References
 
 - Laravel Documentation (Routing, Eloquent, Validation, Resources, Testing)
