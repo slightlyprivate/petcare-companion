@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 /**
  * Request class for updating a pet.
+ *
  * @group Pets
  */
 class PetUpdateRequest extends \Illuminate\Foundation\Http\FormRequest

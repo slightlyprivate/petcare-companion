@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Model representing a One-Time Password (OTP) for authentication.
+ *
  * @group Authentication
  */
 class Otp extends Model

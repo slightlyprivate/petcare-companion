@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 /**
  * Request class for listing appointments.
+ *
  * @group Appointments
  */
 class AppointmentListRequest extends \Illuminate\Foundation\Http\FormRequest

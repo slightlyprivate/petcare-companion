@@ -7,6 +7,7 @@ use App\Models\User;
 
 /**
  * Service for handling user authentication via OTP.
+ *
  * @group Authentication
  */
 class AuthUserService

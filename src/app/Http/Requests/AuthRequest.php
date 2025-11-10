@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 /**
  * Request class for authentication requests.
+ *
  * @group Authentication
  */
 class AuthRequest extends \Illuminate\Foundation\Http\FormRequest

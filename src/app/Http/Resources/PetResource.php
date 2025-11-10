@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Resource representation of a Pet.
+ *
  * @group Pets
  */
 class PetResource extends JsonResource
@@ -31,7 +32,7 @@ class PetResource extends JsonResource
             'appointments_count' => $this->whenCounted('appointments'),
             'upcoming_appointments_count' => $this->when(
                 $this->relationLoaded('upcomingAppointments'),
-                fn() => $this->upcomingAppointments->count()
+                fn () => $this->upcomingAppointments->count()
             ),
             'appointments' => AppointmentResource::collection($this->whenLoaded('appointments')),
         ];

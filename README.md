@@ -30,24 +30,60 @@ This project showcases:
 git clone <repository-url>
 cd petcare-companion
 
-# 2. Start containers
+# 2. Copy environment configuration
+cp .env.example .env
+
+# 3. Start containers
 docker-compose up -d
 
-# 3. Run migrations and seeders
+# 4. Run migrations and seeders
 docker-compose exec app php artisan migrate
 docker-compose exec app php artisan db:seed
 
-# 4. Run tests to verify
+# 5. Run tests to verify
 docker-compose exec app php artisan test
 
-# 5. Access application
+# 6. Access application
 # API: http://localhost:8080/api/pets
 # Web UI: http://localhost:8080/pets
 ```
 
 **That's it!** 🎉 You now have a fully functional API with demo data.
 
+### 📧 Mail Configuration (Development)
+
+The application uses **OTP-based authentication** for web access. Emails are configured to use Laravel's log driver for development:
+
+```bash
+# View OTP codes in logs
+docker-compose exec app tail -f storage/logs/laravel.log
+```
+
+**How to login via web interface:**
+
+1. Visit: `http://localhost:8080/login`
+2. Enter any email address (e.g., `test@example.com`)
+3. Check the application logs for the OTP code
+4. Enter the 6-digit code to login
+5. Access pet management at: `http://localhost:8080/pets`
+
+**Mail Configuration Details:**
+
+- **Driver**: Log (writes to `storage/logs/laravel.log`)
+- **From Address**: `noreply@petcare.local`
+- **No external mail server required** for development
+
 ## 📊 API Endpoints Summary
+
+### Authentication Endpoints
+
+| Method | Endpoint | Description | Features |
+|--------|----------|-------------|----------|
+| `POST` | `/api/auth/request` | Request OTP for authentication | Email validation |
+| `POST` | `/api/auth/verify` | Verify OTP and get token | JWT token response |
+| `GET` | `/api/auth/me` | Get authenticated user info | Token validation |
+
+### Pet Management Endpoints
 
 | Method | Endpoint | Description | Features |
 |--------|----------|-------------|----------|
@@ -56,8 +92,13 @@ docker-compose exec app php artisan test
 | `GET` | `/api/pets/{id}` | Show single pet | Include appointments |
 | `PUT` | `/api/pets/{id}` | Update pet | Full validation |
 | `DELETE` | `/api/pets/{id}` | Delete pet | Soft delete support |
+
+### Appointment Management Endpoints
+
+| Method | Endpoint | Description | Features |
+|--------|----------|-------------|----------|
 | `GET` | `/api/pets/{id}/appointments` | List pet's appointments | Advanced filtering |
-| `POST` | `/api/appointments` | Create appointment | Pet association |
+| `POST` | `/api/pets/{id}/appointments` | Create appointment | Pet association |
 | `GET` | `/api/appointments/{id}` | Show appointment | Include pet data |
 | `PUT` | `/api/appointments/{id}` | Update appointment | Status management |
 | `DELETE` | `/api/appointments/{id}` | Delete appointment | Cascade handling |
@@ -127,7 +168,7 @@ docker-compose exec app php artisan test
 ### 3. Web Interface
 
 ![Web Interface](./docs/screenshots/web-interface.jpeg)
-*Clean, responsive form for pet management with validation*
+*Clean, responsive web interface with OTP authentication and full CRUD operations for pets and appointments*
 
 ## 🧪 Testing & Quality
 

@@ -8,6 +8,7 @@ use App\Models\Pet;
 
 /**
  * Service for managing pet appointments.
+ *
  * @group Appointments
  */
 class PetAppointmentService

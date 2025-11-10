@@ -6,6 +6,7 @@ use App\Models\Otp;
 
 /**
  * Service for handling OTP operations.
+ *
  * @group Authentication
  */
 class OtpService

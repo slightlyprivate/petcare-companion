@@ -7,6 +7,7 @@ use App\Models\Appointment;
 
 /**
  * Service for managing appointments.
+ *
  * @group Appointments
  */
 class AppointmentService

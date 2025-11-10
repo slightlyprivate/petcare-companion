@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Model representing an appointment for a pet in the pet care companion application.
+ *
  * @group Appointments
  */
 class Appointment extends Model

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Model representing a pet in the pet care companion application.
+ *
  * @group Pets
  */
 class Pet extends Model
@@ -94,7 +95,7 @@ class Pet extends Model
      */
     public function scopeByOwner($query, string $ownerName)
     {
-        return $query->where('owner_name', 'like', '%' . $ownerName . '%');
+        return $query->where('owner_name', 'like', '%'.$ownerName.'%');
     }
 
     /**
@@ -102,7 +103,7 @@ class Pet extends Model
      */
     public function scopeByName($query, string $name)
     {
-        return $query->where('name', 'like', '%' . $name . '%');
+        return $query->where('name', 'like', '%'.$name.'%');
     }
 
     /**

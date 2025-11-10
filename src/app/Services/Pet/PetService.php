@@ -7,6 +7,7 @@ use App\Models\Pet;
 
 /**
  * Service for managing pets.
+ *
  * @group Pets
  */
 class PetService

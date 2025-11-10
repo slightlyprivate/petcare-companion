@@ -8,6 +8,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 /**
  * Model representing a user in the pet care companion application.
+ *
  * @group Authentication
  */
 class User extends Authenticatable
@@ -31,4 +32,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Get the name of the unique identifier for the user.
+     */
+    public function getAuthIdentifierName()
+    {
+        return 'email';
+    }
 }

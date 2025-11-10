@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 /**
  * Request class for updating an appointment.
+ *
  * @group Appointments
  */
 class AppointmentUpdateRequest extends \Illuminate\Foundation\Http\FormRequest
