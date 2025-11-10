@@ -2,12 +2,11 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
  * Request class for updating an appointment.
+ * @group Appointments
  */
-class AppointmentUpdateRequest extends FormRequest
+class AppointmentUpdateRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

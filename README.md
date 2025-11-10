@@ -146,7 +146,7 @@ docker-compose exec app ./vendor/bin/phpstan analyse
 
 ## 📁 Project Structure
 
-```
+```bash
 src/
 ├── app/
 │   ├── Http/Controllers/     # API & Web controllers

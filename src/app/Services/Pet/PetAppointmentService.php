@@ -3,11 +3,12 @@
 namespace App\Services\Pet;
 
 use App\Helpers\AppointmentPaginationHelper;
-use App\Models\Pet;
 use App\Models\Appointment;
+use App\Models\Pet;
 
 /**
  * Service for managing pet appointments.
+ * @group Appointments
  */
 class PetAppointmentService
 {

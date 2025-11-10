@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 
 /**
  * Application service provider.
+ * @group Providers
  */
 class AppServiceProvider extends ServiceProvider
 {

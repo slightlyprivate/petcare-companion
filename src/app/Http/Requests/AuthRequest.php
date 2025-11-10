@@ -3,10 +3,10 @@
 namespace App\Http\Requests;
 
 /**
- * Request class for showing an appointment.
- * @group Appointments
+ * Request class for authentication requests.
+ * @group Authentication
  */
-class AppointmentShowRequest extends \Illuminate\Foundation\Http\FormRequest
+class AuthRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,7 @@ class AppointmentShowRequest extends \Illuminate\Foundation\Http\FormRequest
     public function rules(): array
     {
         return [
-            'include' => ['sometimes', 'string', 'in:pet'],
+            'email' => 'required|email',
         ];
     }
 }

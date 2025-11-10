@@ -2,33 +2,31 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Models\Otp;
-use App\Models\User;
-use Illuminate\Http\Request;
+use App\Http\Requests\AuthVerificationRequest;
+use App\Services\Auth\AuthUserService;
 
+/**
+ * Controller for handling authentication requests.
+ */
 class AuthVerificationController extends AuthController
 {
+    /** @var AuthUserService */
+    protected $userService;
+
+    /**
+     * Create a new controller instance.
+     */
+    public function __construct(AuthUserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
      * Verify OTP and authenticate user.
      */
-    public function verifyOtp(Request $request)
+    public function verifyOtp(AuthVerificationRequest $request): \Illuminate\Http\JsonResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-            'code' => 'required|string',
-        ]);
-
-        $otp = Otp::where('email', $request->email)
-            ->where('code', $request->code)
-            ->where('expires_at', '>=', now())
-            ->first();
-
-        if (! $otp) {
-            return response()->json(['message' => 'Invalid or expired OTP'], 401);
-        }
-
-        $user = User::firstOrCreate(['email' => $request->email]);
-        $token = $user->createToken('auth_token')->plainTextToken;
+        [$user, $token] = $this->userService->validate($request->email, $request->code);
 
         return response()->json(['token' => $token, 'user' => $user]);
     }

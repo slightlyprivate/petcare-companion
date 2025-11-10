@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Pet;
 
-use App\Http\Controllers\Controller;
 use App\Helpers\AppointmentPaginationHelper;
-use App\Services\Pet\PetAppointmentService;
-use App\Http\Requests\AppointmentStoreRequest;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\AppointmentListRequest;
+use App\Http\Requests\AppointmentStoreRequest;
 use App\Http\Resources\AppointmentResource;
 use App\Models\Pet;
+use App\Services\Pet\PetAppointmentService;
 
 /**
  * Controller for managing pet appointments.

@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Resource representation of an Appointment.
+ * @group Appointments
  */
 class AppointmentResource extends JsonResource
 {
