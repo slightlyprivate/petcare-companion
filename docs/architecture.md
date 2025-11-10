@@ -91,13 +91,6 @@ This document explains the system architecture and design decisions for **PetCar
 - Docker chosen for parity and environment reproducibility.
 - Small dataset seeded for deterministic demo output.
 
-## Next Steps
-
-1. Finalize relationships, validation, and resource responses.
-2. Capture a diagram of data flow (Controller → Request → Model → Resource → Response).
-3. Include architecture diagram (`docs/architecture.png` or `.drawio`).
-4. Verify config cache and migrations run cleanly inside container.
-
 ## Data Flow Diagram
 
 The following diagram illustrates the typical data flow for an API request in the PetCare Companion application:

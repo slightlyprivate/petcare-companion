@@ -1,10 +1,10 @@
 # 🐾 PetCare Companion
 
-A modern **Laravel 11 REST API** for pet and appointment management, demonstrating **MVC architecture**, **Docker containerization**, and **comprehensive API design** best practices.
+A modern **Laravel 12 REST API** for pet and appointment management, demonstrating **MVC architecture**, **Docker containerization**, and **comprehensive API design** best practices.
 
 ## 🎯 Purpose & Role Alignment
 
-**Technology Stack**: PHP 8.3 • Laravel 11 • SQLite • Docker • PHPUnit  
+**Technology Stack**: PHP 8.3 • Laravel 12 • SQLite • Docker • PHPUnit  
 **Architecture**: RESTful API following MVC pattern with resource-based endpoints  
 **Role**: Educational demonstration of modern Laravel development practices  
 
@@ -183,7 +183,7 @@ This is an **educational project** demonstrating modern Laravel development. It'
 - Comprehensive validation strategies  
 - Docker containerization best practices
 - Test-driven development approaches
-- Laravel 11 feature utilization
+- Laravel 12 feature utilization
 
 ## 🤝 Contributing
 
