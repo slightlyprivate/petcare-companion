@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pet extends Model
 {
@@ -50,7 +50,7 @@ class Pet extends Model
      */
     public function getAgeAttribute(): ?int
     {
-        if (!$this->birth_date) {
+        if (! $this->birth_date) {
             return null;
         }
 
@@ -90,7 +90,7 @@ class Pet extends Model
      */
     public function scopeByOwner($query, string $ownerName)
     {
-        return $query->where('owner_name', 'like', '%' . $ownerName . '%');
+        return $query->where('owner_name', 'like', '%'.$ownerName.'%');
     }
 
     /**
@@ -98,7 +98,7 @@ class Pet extends Model
      */
     public function scopeByName($query, string $name)
     {
-        return $query->where('name', 'like', '%' . $name . '%');
+        return $query->where('name', 'like', '%'.$name.'%');
     }
 
     /**

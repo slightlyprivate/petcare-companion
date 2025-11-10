@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Pet;
 use App\Models\Appointment;
+use App\Models\Pet;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
         // Create 1-2 future appointments per pet for predictable demo data
         $pets->each(function ($pet, $index) {
             $futureAppointments = $index === 0 ? 2 : 1; // Buddy gets 2, others get 1
-            
+
             for ($i = 0; $i < $futureAppointments; $i++) {
                 Appointment::factory()->create([
                     'pet_id' => $pet->id,
@@ -63,9 +63,9 @@ class DatabaseSeeder extends Seeder
     {
         $dogAppointments = ['Wellness Check', 'Vaccination Update'];
         $catAppointments = ['Annual Checkup', 'Dental Cleaning'];
-        
+
         $appointments = $species === 'Dog' ? $dogAppointments : $catAppointments;
-        
+
         return $appointments[$index] ?? 'Follow-up Visit';
     }
 
@@ -78,7 +78,7 @@ class DatabaseSeeder extends Seeder
             "Routine health examination for {$petName}. Check weight, vaccinations, and overall health.",
             "Follow-up appointment for {$petName}. Review previous visit and discuss any concerns.",
         ];
-        
+
         return $notes[$index] ?? "General appointment for {$petName}.";
     }
 }

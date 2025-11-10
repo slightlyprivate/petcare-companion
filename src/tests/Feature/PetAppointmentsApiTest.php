@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\Pet;
 use App\Models\Appointment;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Testing\Fluent\AssertableJson;
-use Tests\TestCase;
+use App\Models\Pet;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class PetAppointmentsApiTest extends TestCase
 {
@@ -24,7 +23,7 @@ class PetAppointmentsApiTest extends TestCase
             'pet_id' => $pet1->id,
         ]);
 
-        // Create appointments for pet2 
+        // Create appointments for pet2
         $appointments2 = Appointment::factory(2)->create([
             'pet_id' => $pet2->id,
         ]);
@@ -44,15 +43,15 @@ class PetAppointmentsApiTest extends TestCase
                         'is_upcoming',
                         'created_at',
                         'updated_at',
-                    ]
+                    ],
                 ],
                 'links',
-                'meta'
+                'meta',
             ]);
 
         // Should only return appointments for pet1
         $this->assertCount(3, $response->json('data'));
-        
+
         foreach ($response->json('data') as $appointment) {
             $this->assertEquals($pet1->id, $appointment['pet_id']);
         }
@@ -233,7 +232,7 @@ class PetAppointmentsApiTest extends TestCase
     public function it_paginates_appointments()
     {
         $pet = Pet::factory()->create();
-        
+
         Appointment::factory(25)->create([
             'pet_id' => $pet->id,
         ]);

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Appointment extends Model
@@ -74,7 +74,7 @@ class Appointment extends Model
     {
         return $query->whereBetween('scheduled_at', [
             now()->startOfWeek(),
-            now()->endOfWeek()
+            now()->endOfWeek(),
         ]);
     }
 
@@ -111,7 +111,7 @@ class Appointment extends Model
      */
     public function getTimeUntilAttribute(): ?string
     {
-        if (!$this->scheduled_at || $this->isOverdue()) {
+        if (! $this->scheduled_at || $this->isOverdue()) {
             return null;
         }
 

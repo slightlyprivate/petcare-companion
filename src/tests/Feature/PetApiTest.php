@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Pet;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
-use Carbon\Carbon;
 
 class PetApiTest extends TestCase
 {
@@ -32,10 +32,10 @@ class PetApiTest extends TestCase
                         'age',
                         'created_at',
                         'updated_at',
-                    ]
+                    ],
                 ],
                 'links',
-                'meta'
+                'meta',
             ]);
 
         $this->assertCount(3, $response->json('data'));
@@ -52,11 +52,10 @@ class PetApiTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertCount(2, $response->json('data'));
-        
-        $response->assertJson(fn (AssertableJson $json) =>
-            $json->where('data.0.species', 'Dog')
-                ->where('data.1.species', 'Dog')
-                ->etc()
+
+        $response->assertJson(fn (AssertableJson $json) => $json->where('data.0.species', 'Dog')
+            ->where('data.1.species', 'Dog')
+            ->etc()
         );
     }
 
@@ -138,15 +137,14 @@ class PetApiTest extends TestCase
                     'age',
                     'created_at',
                     'updated_at',
-                ]
+                ],
             ])
-            ->assertJson(fn (AssertableJson $json) =>
-                $json->where('data.name', 'Buddy')
-                    ->where('data.species', 'Dog')
-                    ->where('data.breed', 'Golden Retriever')
-                    ->where('data.birth_date', '2020-05-15')
-                    ->where('data.owner_name', 'John Smith')
-                    ->etc()
+            ->assertJson(fn (AssertableJson $json) => $json->where('data.name', 'Buddy')
+                ->where('data.species', 'Dog')
+                ->where('data.breed', 'Golden Retriever')
+                ->where('data.birth_date', '2020-05-15')
+                ->where('data.owner_name', 'John Smith')
+                ->etc()
             );
 
         $this->assertDatabaseHas('pets', [
@@ -207,7 +205,7 @@ class PetApiTest extends TestCase
     public function it_validates_birth_date_not_in_future()
     {
         $futureDate = Carbon::tomorrow()->format('Y-m-d');
-        
+
         $petData = [
             'name' => 'Buddy',
             'species' => 'Dog',

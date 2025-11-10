@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Pet;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Carbon\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Pet>
@@ -24,7 +23,7 @@ class PetFactory extends Factory
     public function definition(): array
     {
         $species = $this->faker->randomElement(['Dog', 'Cat', 'Bird', 'Fish', 'Rabbit', 'Guinea Pig', 'Hamster', 'Turtle']);
-        
+
         $breeds = [
             'Dog' => ['Labrador', 'Golden Retriever', 'German Shepherd', 'Bulldog', 'Poodle', 'Beagle', 'Rottweiler', 'Yorkshire Terrier'],
             'Cat' => ['Persian', 'Maine Coon', 'Siamese', 'Ragdoll', 'British Shorthair', 'Abyssinian', 'Russian Blue', 'Bengal'],
@@ -33,7 +32,7 @@ class PetFactory extends Factory
             'Rabbit' => ['Holland Lop', 'Netherland Dwarf', 'Mini Rex', 'Lionhead', 'Flemish Giant', 'Angora', 'Dutch', 'New Zealand'],
             'Guinea Pig' => ['American', 'Abyssinian', 'Peruvian', 'Silkie', 'Teddy', 'Skinny Pig', 'Texel', 'Rex'],
             'Hamster' => ['Syrian', 'Dwarf Campbell', 'Dwarf Winter White', 'Roborovski', 'Chinese', 'European'],
-            'Turtle' => ['Red-eared Slider', 'Box Turtle', 'Painted Turtle', 'Russian Tortoise', 'Hermann\'s Tortoise']
+            'Turtle' => ['Red-eared Slider', 'Box Turtle', 'Painted Turtle', 'Russian Tortoise', 'Hermann\'s Tortoise'],
         ];
 
         $breed = $this->faker->randomElement($breeds[$species] ?? ['Mixed']);

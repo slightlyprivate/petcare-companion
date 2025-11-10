@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\Appointment;
 use App\Models\Pet;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Carbon\Carbon;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Appointment>
@@ -39,7 +38,7 @@ class AppointmentFactory extends Factory
             'Health Certificate',
             'Parasite Treatment',
             'Blood Work',
-            'X-Ray Examination'
+            'X-Ray Examination',
         ];
 
         $notes = [

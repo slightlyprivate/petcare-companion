@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\Pet;
 use App\Models\Appointment;
+use App\Models\Pet;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use Carbon\Carbon;
 
 class PetModelTest extends TestCase
 {
@@ -36,7 +36,7 @@ class PetModelTest extends TestCase
     public function it_can_calculate_pet_age_correctly()
     {
         $birthDate = Carbon::now()->subYears(3);
-        
+
         $pet = Pet::factory()->create([
             'birth_date' => $birthDate,
         ]);
@@ -71,13 +71,13 @@ class PetModelTest extends TestCase
     public function it_can_filter_upcoming_and_past_appointments()
     {
         $pet = Pet::factory()->create();
-        
+
         // Create past appointment
         $pastAppointment = Appointment::factory()->create([
             'pet_id' => $pet->id,
             'scheduled_at' => Carbon::now()->subDays(5),
         ]);
-        
+
         // Create upcoming appointment
         $upcomingAppointment = Appointment::factory()->create([
             'pet_id' => $pet->id,
@@ -107,7 +107,7 @@ class PetModelTest extends TestCase
 
         $this->assertEquals('Puppy (Dog)', $youngPet->display_name);
         $this->assertEquals('Baby', $youngPet->age_category);
-        
+
         $this->assertEquals('Old Dog (Dog)', $seniorPet->display_name);
         $this->assertEquals('Senior', $seniorPet->age_category);
     }

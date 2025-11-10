@@ -1,16 +1,16 @@
 <?php
 
-use App\Http\Controllers\PetListController;
-use App\Http\Controllers\PetCreateController;
-use App\Http\Controllers\PetShowController;
-use App\Http\Controllers\PetUpdateController;
-use App\Http\Controllers\PetDeleteController;
-use App\Http\Controllers\PetAppointmentsController;
 use App\Http\Controllers\AppointmentCreateController;
+use App\Http\Controllers\AppointmentDeleteController;
 use App\Http\Controllers\AppointmentDirectCreateController;
 use App\Http\Controllers\AppointmentShowController;
 use App\Http\Controllers\AppointmentUpdateController;
-use App\Http\Controllers\AppointmentDeleteController;
+use App\Http\Controllers\PetAppointmentsController;
+use App\Http\Controllers\PetCreateController;
+use App\Http\Controllers\PetDeleteController;
+use App\Http\Controllers\PetListController;
+use App\Http\Controllers\PetShowController;
+use App\Http\Controllers\PetUpdateController;
 use Illuminate\Support\Facades\Route;
 
 // Pet endpoints

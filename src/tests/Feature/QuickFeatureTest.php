@@ -37,25 +37,24 @@ class QuickFeatureTest extends TestCase
                         'age',
                         'created_at',
                         'updated_at',
-                    ]
+                    ],
                 ],
                 'links',
                 'meta' => [
                     'current_page',
                     'total',
-                ]
+                ],
             ]);
 
         // Verify we got all 3 pets
         $this->assertCount(3, $response->json('data'));
 
         // Verify specific data structure
-        $response->assertJson(fn (AssertableJson $json) =>
-            $json->where('data.0.species', 'Dog')
-                 ->where('data.0.owner_name', 'John Smith')
-                 ->has('data.0.name')
-                 ->has('data.0.id')
-                 ->etc()
+        $response->assertJson(fn (AssertableJson $json) => $json->where('data.0.species', 'Dog')
+            ->where('data.0.owner_name', 'John Smith')
+            ->has('data.0.name')
+            ->has('data.0.id')
+            ->etc()
         );
     }
 
@@ -91,17 +90,16 @@ class QuickFeatureTest extends TestCase
                     'is_upcoming',
                     'created_at',
                     'updated_at',
-                ]
+                ],
             ]);
 
         // Verify the data matches what we sent
-        $response->assertJson(fn (AssertableJson $json) =>
-            $json->where('data.pet_id', $pet->id)
-                 ->where('data.title', 'Wellness Check')
-                 ->where('data.notes', 'Annual health examination and vaccinations')
-                 ->where('data.is_upcoming', true)
-                 ->has('data.id')
-                 ->etc()
+        $response->assertJson(fn (AssertableJson $json) => $json->where('data.pet_id', $pet->id)
+            ->where('data.title', 'Wellness Check')
+            ->where('data.notes', 'Annual health examination and vaccinations')
+            ->where('data.is_upcoming', true)
+            ->has('data.id')
+            ->etc()
         );
 
         // Verify appointment was actually created in database
