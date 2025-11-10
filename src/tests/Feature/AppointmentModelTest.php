@@ -6,13 +6,14 @@ use App\Models\Appointment;
 use App\Models\Pet;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AppointmentModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_can_create_appointment_for_a_pet()
     {
         $pet = Pet::factory()->create();
@@ -34,7 +35,7 @@ class AppointmentModelTest extends TestCase
         $this->assertEquals($pet->id, $appointment->pet->id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_determine_if_appointment_is_upcoming_or_past()
     {
         $pet = Pet::factory()->create();
@@ -58,7 +59,7 @@ class AppointmentModelTest extends TestCase
         $this->assertEquals('completed', $pastAppointment->status);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_use_query_scopes()
     {
         $pet = Pet::factory()->create();
@@ -97,7 +98,7 @@ class AppointmentModelTest extends TestCase
         $this->assertNotContains($futureAppointment->id, $todayIds);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_time_until_appointment()
     {
         $pet = Pet::factory()->create();
@@ -118,7 +119,7 @@ class AppointmentModelTest extends TestCase
         $this->assertNull($pastAppointment->time_until);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_filter_appointments_by_week()
     {
         $pet = Pet::factory()->create();

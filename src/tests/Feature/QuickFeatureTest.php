@@ -3,17 +3,22 @@
 namespace Tests\Feature;
 
 use App\Models\Pet;
+use App\Models\User;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\Fluent\AssertableJson;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class QuickFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_can_list_pets_happy_path()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         // Arrange: Create some pets
         $pets = Pet::factory(3)->create([
             'species' => 'Dog',
@@ -21,7 +26,7 @@ class QuickFeatureTest extends TestCase
         ]);
 
         // Act: Make request to list pets
-        $response = $this->getJson('/api/pets');
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets');
 
         // Assert: Check response structure and data
         $response->assertStatus(200)
@@ -50,17 +55,20 @@ class QuickFeatureTest extends TestCase
         $this->assertCount(3, $response->json('data'));
 
         // Verify specific data structure
-        $response->assertJson(fn (AssertableJson $json) => $json->where('data.0.species', 'Dog')
-            ->where('data.0.owner_name', 'John Smith')
-            ->has('data.0.name')
-            ->has('data.0.id')
-            ->etc()
+        $response->assertJson(
+            fn (AssertableJson $json) => $json->where('data.0.species', 'Dog')
+                ->where('data.0.owner_name', 'John Smith')
+                ->has('data.0.name')
+                ->has('data.0.id')
+                ->etc()
         );
     }
 
-    /** @test */
+    #[Test]
     public function it_can_create_appointment_happy_path()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         // Arrange: Create a pet to add appointment to
         $pet = Pet::factory()->create([
             'name' => 'Buddy',
@@ -75,7 +83,7 @@ class QuickFeatureTest extends TestCase
         ];
 
         // Act: Make request to create appointment
-        $response = $this->postJson("/api/pets/{$pet->id}/appointments", $appointmentData);
+        $response = $this->actingAs($user, 'sanctum')->postJson("/api/pets/{$pet->id}/appointments", $appointmentData);
 
         // Assert: Check response
         $response->assertStatus(201)
@@ -94,12 +102,13 @@ class QuickFeatureTest extends TestCase
             ]);
 
         // Verify the data matches what we sent
-        $response->assertJson(fn (AssertableJson $json) => $json->where('data.pet_id', $pet->id)
-            ->where('data.title', 'Wellness Check')
-            ->where('data.notes', 'Annual health examination and vaccinations')
-            ->where('data.is_upcoming', true)
-            ->has('data.id')
-            ->etc()
+        $response->assertJson(
+            fn (AssertableJson $json) => $json->where('data.pet_id', $pet->id)
+                ->where('data.title', 'Wellness Check')
+                ->where('data.notes', 'Annual health examination and vaccinations')
+                ->where('data.is_upcoming', true)
+                ->has('data.id')
+                ->etc()
         );
 
         // Verify appointment was actually created in database

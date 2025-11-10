@@ -4,17 +4,22 @@ namespace Tests\Feature;
 
 use App\Models\Appointment;
 use App\Models\Pet;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PetAppointmentsApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_can_list_appointments_for_specific_pet()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet1 = Pet::factory()->create();
         $pet2 = Pet::factory()->create();
 
@@ -28,7 +33,7 @@ class PetAppointmentsApiTest extends TestCase
             'pet_id' => $pet2->id,
         ]);
 
-        $response = $this->getJson("/api/pets/{$pet1->id}/appointments");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet1->id}/appointments");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -57,17 +62,21 @@ class PetAppointmentsApiTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_404_for_non_existent_pet()
     {
-        $response = $this->getJson('/api/pets/999/appointments');
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets/999/appointments');
 
         $response->assertStatus(404);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_filter_appointments_by_status()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
         // Create upcoming appointment
@@ -83,21 +92,23 @@ class PetAppointmentsApiTest extends TestCase
         ]);
 
         // Test upcoming filter
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?status=upcoming");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?status=upcoming");
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data'));
         $this->assertEquals($upcomingAppointment->id, $response->json('data.0.id'));
 
         // Test past filter
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?status=past");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?status=past");
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data'));
         $this->assertEquals($pastAppointment->id, $response->json('data.0.id'));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_filter_appointments_by_today()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
         // Create today's appointment
@@ -117,16 +128,18 @@ class PetAppointmentsApiTest extends TestCase
             'scheduled_at' => Carbon::tomorrow(),
         ]);
 
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?status=today");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?status=today");
 
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data'));
         $this->assertEquals($todayAppointment->id, $response->json('data.0.id'));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_filter_appointments_by_date_range()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
         $startDate = Carbon::now()->addDays(1);
@@ -150,16 +163,18 @@ class PetAppointmentsApiTest extends TestCase
             'scheduled_at' => $endDate->copy()->addDays(1),
         ]);
 
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?from_date={$startDate->toDateString()}&to_date={$endDate->toDateString()}");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?from_date={$startDate->toDateString()}&to_date={$endDate->toDateString()}");
 
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data'));
         $this->assertEquals($appointmentInRange->id, $response->json('data.0.id'));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_search_appointments_by_title_or_notes()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
         $appointment1 = Appointment::factory()->create([
@@ -181,20 +196,22 @@ class PetAppointmentsApiTest extends TestCase
         ]);
 
         // Search by title
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?search=Check");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?search=Check");
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data'));
         $this->assertEquals($appointment1->id, $response->json('data.0.id'));
 
         // Search by notes
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?search=grooming");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?search=grooming");
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data')); // Only appointment3 contains "grooming"
     }
 
-    /** @test */
+    #[Test]
     public function it_can_sort_appointments()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
         $appointment1 = Appointment::factory()->create([
@@ -216,28 +233,30 @@ class PetAppointmentsApiTest extends TestCase
         ]);
 
         // Sort by title ascending
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?sort_by=title&sort_direction=asc");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?sort_by=title&sort_direction=asc");
         $response->assertStatus(200);
         $titles = collect($response->json('data'))->pluck('title')->toArray();
         $this->assertEquals(['Alpha Appointment', 'Beta Appointment', 'Zebra Appointment'], $titles);
 
         // Sort by scheduled_at descending
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?sort_by=scheduled_at&sort_direction=desc");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?sort_by=scheduled_at&sort_direction=desc");
         $response->assertStatus(200);
         $ids = collect($response->json('data'))->pluck('id')->toArray();
         $this->assertEquals([$appointment2->id, $appointment3->id, $appointment1->id], $ids);
     }
 
-    /** @test */
+    #[Test]
     public function it_paginates_appointments()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
         Appointment::factory(25)->create([
             'pet_id' => $pet->id,
         ]);
 
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?per_page=10");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?per_page=10");
 
         $response->assertStatus(200);
         $this->assertCount(10, $response->json('data'));
@@ -245,20 +264,24 @@ class PetAppointmentsApiTest extends TestCase
         $this->assertEquals(3, $response->json('meta.last_page'));
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_empty_collection_for_pet_with_no_appointments()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments");
 
         $response->assertStatus(200);
         $this->assertCount(0, $response->json('data'));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_combine_multiple_filters()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
         // Create appointments with different combinations
@@ -283,7 +306,7 @@ class PetAppointmentsApiTest extends TestCase
             'scheduled_at' => Carbon::now()->addDays(3),
         ]);
 
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments?status=upcoming&search=Wellness");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments?status=upcoming&search=Wellness");
 
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data'));

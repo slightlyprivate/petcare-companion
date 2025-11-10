@@ -6,13 +6,14 @@ use App\Models\Appointment;
 use App\Models\Pet;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PetModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function it_can_create_a_pet_with_required_fields()
     {
         $pet = Pet::create([
@@ -32,7 +33,7 @@ class PetModelTest extends TestCase
         $this->assertEquals('John Doe', $pet->owner_name);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_calculate_pet_age_correctly()
     {
         $birthDate = Carbon::now()->subYears(3);
@@ -44,7 +45,7 @@ class PetModelTest extends TestCase
         $this->assertEquals(3, $pet->age);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_null_age_when_birth_date_is_not_set()
     {
         $pet = Pet::factory()->create([
@@ -54,7 +55,7 @@ class PetModelTest extends TestCase
         $this->assertNull($pet->age);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_have_appointments()
     {
         $pet = Pet::factory()->create();
@@ -67,7 +68,7 @@ class PetModelTest extends TestCase
         $this->assertEquals($pet->id, $appointment->pet_id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_filter_upcoming_and_past_appointments()
     {
         $pet = Pet::factory()->create();
@@ -90,7 +91,7 @@ class PetModelTest extends TestCase
         $this->assertEquals($upcomingAppointment->id, $pet->nextAppointment()->id);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_get_display_name_and_age_category()
     {
         $youngPet = Pet::factory()->create([
@@ -112,7 +113,7 @@ class PetModelTest extends TestCase
         $this->assertEquals('Senior', $seniorPet->age_category);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_use_query_scopes()
     {
         Pet::factory()->create(['species' => 'Dog', 'name' => 'Buddy', 'owner_name' => 'John Smith']);
