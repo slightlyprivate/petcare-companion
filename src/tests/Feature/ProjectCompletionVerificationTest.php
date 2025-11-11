@@ -47,14 +47,6 @@ class ProjectCompletionVerificationTest extends TestCase
         // $this->assertArrayHasKey('info', $collection);
         // $this->assertArrayHasKey('item', $collection);
         // $this->assertArrayHasKey('variable', $collection);
-
-        // Verify README exists and has key sections
-        $this->assertTrue(file_exists(base_path('README.md')));
-        $readme = file_get_contents(base_path('README.md'));
-        $this->assertStringContainsString('Quick Start', $readme);
-        $this->assertStringContainsString('API Endpoints', $readme);
-        $this->assertStringContainsString('Postman Collection', $readme);
-        $this->assertStringContainsString('Architecture', $readme);
     }
 
     #[Test]

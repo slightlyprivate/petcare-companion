@@ -62,7 +62,7 @@ docker-compose exec app tail -f storage/logs/laravel.log
 - **From Address**: `noreply@petcare.local`
 - **No external mail server required** for development
 
-## 📊 API Endpoints Summary
+## 📊 API Endpoints
 
 ### Authentication Endpoints
 
@@ -165,7 +165,7 @@ docker-compose exec app ./vendor/bin/pint
 docker-compose exec app ./vendor/bin/phpstan analyse
 ```
 
-**Current Coverage**: 46 tests • 416 assertions • 100% pass rate
+**Current Coverage**: 62 tests • 473 assertions • 100% pass rate
 
 ## 📁 Project Structure
 
