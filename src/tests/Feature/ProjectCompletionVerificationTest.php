@@ -55,9 +55,6 @@ class ProjectCompletionVerificationTest extends TestCase
         $this->assertStringContainsString('API Endpoints', $readme);
         $this->assertStringContainsString('Postman Collection', $readme);
         $this->assertStringContainsString('Architecture', $readme);
-
-        // Verify web interface is accessible
-        $this->actingAs($user, 'sanctum')->get('/pets')->assertStatus(200);
     }
 
     #[Test]

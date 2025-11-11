@@ -43,29 +43,18 @@ docker-compose exec app php artisan db:seed
 # 5. Run tests to verify
 docker-compose exec app php artisan test
 
-# 6. Access application
-# API: http://localhost:8080/api/pets
-# Web UI: http://localhost:8080/pets
 ```
 
 **That's it!** 🎉 You now have a fully functional API with demo data.
 
 ### 📧 Mail Configuration (Development)
 
-The application uses **OTP-based authentication** for web access. Emails are configured to use Laravel's log driver for development:
+The application uses **OTP-based authentication**. Emails are configured to use Laravel's log driver for development:
 
 ```bash
 # View OTP codes in logs
 docker-compose exec app tail -f storage/logs/laravel.log
 ```
-
-**How to login via web interface:**
-
-1. Visit: `http://localhost:8080/login`
-2. Enter any email address (e.g., `test@example.com`)
-3. Check the application logs for the OTP code
-4. Enter the 6-digit code to login
-5. Access pet management at: `http://localhost:8080/pets`
 
 **Mail Configuration Details:**
 
@@ -121,8 +110,6 @@ docker-compose exec app tail -f storage/logs/laravel.log
 
 📖 **Detailed Architecture**: [docs/architecture.md](./docs/architecture.md)
 
-## 🖼️ Screenshots
-
 ### 1. API Response - Pet List with Pagination
 
 ```json
@@ -165,11 +152,6 @@ docker-compose exec app tail -f storage/logs/laravel.log
 }
 ```
 
-### 3. Web Interface
-
-![Web Interface](./docs/screenshots/web-interface.jpeg)
-*Clean, responsive web interface with OTP authentication and full CRUD operations for pets and appointments*
-
 ## 🧪 Testing & Quality
 
 ```bash
@@ -190,7 +172,7 @@ docker-compose exec app ./vendor/bin/phpstan analyse
 ```bash
 src/
 ├── app/
-│   ├── Http/Controllers/     # API & Web controllers
+│   ├── Http/Controllers/     # API controllers
 │   ├── Http/Requests/       # Form validation
 │   ├── Http/Resources/      # API transformations  
 │   └── Models/              # Eloquent models
@@ -199,10 +181,9 @@ src/
 │   ├── migrations/          # Database schema
 │   └── seeders/            # Demo data
 ├── tests/
-│   └── Feature/            # API & integration tests
+│   └── Feature/            # API integration tests
 └── routes/
-    ├── api.php             # API routes
-    └── web.php             # Web interface
+    └── api.php             # API routes
 ```
 
 ## 🐳 Docker Services
@@ -213,7 +194,7 @@ src/
 
 **Ports**:
 
-- API/Web: `http://localhost:8080`
+- API: `http://localhost:8080`
 - MySQL: `localhost:3307` (host access)
 - App direct: `http://localhost:9000` (development)
 
