@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * Model representing a pet in the pet care companion application.
+ *
+ * @group Pets
+ */
 class Pet extends Model
 {
     /** @use HasFactory<\Database\Factories\PetFactory> */

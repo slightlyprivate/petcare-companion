@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Pet;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\Fluent\AssertableJson;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ApiResponseShapeVerificationTest extends TestCase
@@ -26,10 +29,12 @@ class ApiResponseShapeVerificationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function api_pets_list_returns_correct_response_shape()
     {
-        $response = $this->getJson('/api/pets');
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets');
 
         $response->assertStatus(200)
             ->assertJson(
@@ -70,9 +75,11 @@ class ApiResponseShapeVerificationTest extends TestCase
         $this->assertEquals('application/json', $response->headers->get('Content-Type'));
     }
 
-    /** @test */
+    #[Test]
     public function api_pets_create_returns_correct_response_shape()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $petData = [
             'name' => 'Test Pet',
             'species' => 'Cat',
@@ -81,7 +88,7 @@ class ApiResponseShapeVerificationTest extends TestCase
             'owner_name' => 'Test Owner',
         ];
 
-        $response = $this->postJson('/api/pets', $petData);
+        $response = $this->actingAs($user, 'sanctum')->postJson('/api/pets', $petData);
 
         $response->assertStatus(201)
             ->assertJson(
@@ -104,10 +111,12 @@ class ApiResponseShapeVerificationTest extends TestCase
         $this->assertEquals('application/json', $response->headers->get('Content-Type'));
     }
 
-    /** @test */
+    #[Test]
     public function api_pets_validation_errors_return_consistent_format()
     {
-        $response = $this->postJson('/api/pets', []);
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $response = $this->actingAs($user, 'sanctum')->postJson('/api/pets', []);
 
         $response->assertStatus(422)
             ->assertJson(
@@ -129,9 +138,11 @@ class ApiResponseShapeVerificationTest extends TestCase
         $this->assertStringContainsString('Owner name is required', $errors['owner_name'][0]);
     }
 
-    /** @test */
+    #[Test]
     public function api_appointments_list_returns_correct_response_shape()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::first();
 
         // Create test appointment
@@ -141,7 +152,7 @@ class ApiResponseShapeVerificationTest extends TestCase
             'notes' => 'Test notes',
         ]);
 
-        $response = $this->getJson("/api/pets/{$pet->id}/appointments");
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments");
 
         $response->assertStatus(200)
             ->assertJson(
@@ -166,9 +177,11 @@ class ApiResponseShapeVerificationTest extends TestCase
             );
     }
 
-    /** @test */
+    #[Test]
     public function api_appointments_create_returns_correct_response_shape()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::first();
 
         $appointmentData = [
@@ -177,7 +190,7 @@ class ApiResponseShapeVerificationTest extends TestCase
             'notes' => 'New appointment notes',
         ];
 
-        $response = $this->postJson("/api/pets/{$pet->id}/appointments", $appointmentData);
+        $response = $this->actingAs($user, 'sanctum')->postJson("/api/pets/{$pet->id}/appointments", $appointmentData);
 
         $response->assertStatus(201)
             ->assertJson(
@@ -197,12 +210,14 @@ class ApiResponseShapeVerificationTest extends TestCase
             );
     }
 
-    /** @test */
+    #[Test]
     public function api_appointments_validation_errors_return_consistent_format()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         $pet = Pet::first();
 
-        $response = $this->postJson("/api/pets/{$pet->id}/appointments", [
+        $response = $this->actingAs($user, 'sanctum')->postJson("/api/pets/{$pet->id}/appointments", [
             'scheduled_at' => 'invalid-date',
             // Missing required title
         ]);
@@ -224,10 +239,12 @@ class ApiResponseShapeVerificationTest extends TestCase
         $this->assertStringContainsString('title is required', $errors['title'][0]);
     }
 
-    /** @test */
+    #[Test]
     public function api_404_errors_return_consistent_format()
     {
-        $response = $this->getJson('/api/pets/999/appointments');
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets/999/appointments');
 
         $response->assertStatus(404)
             ->assertJson(
@@ -236,13 +253,15 @@ class ApiResponseShapeVerificationTest extends TestCase
             );
     }
 
-    /** @test */
+    #[Test]
     public function api_pagination_includes_all_required_metadata()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         // Create multiple pets to test pagination
         Pet::factory(5)->create();
 
-        $response = $this->getJson('/api/pets?per_page=2');
+        $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets?per_page=2');
 
         $response->assertStatus(200)
             ->assertJson(
@@ -273,9 +292,11 @@ class ApiResponseShapeVerificationTest extends TestCase
         $this->assertLessThanOrEqual(2, count($data));
     }
 
-    /** @test */
+    #[Test]
     public function no_endpoints_return_500_errors()
     {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
         // Test all main endpoints to ensure no 500 errors
         $endpoints = [
             ['GET', '/api/pets'],
@@ -290,9 +311,9 @@ class ApiResponseShapeVerificationTest extends TestCase
             $data = $endpoint[2] ?? [];
 
             if ($method === 'GET') {
-                $response = $this->getJson($url);
+                $response = $this->actingAs($user, 'sanctum')->getJson($url);
             } else {
-                $response = $this->postJson($url, $data);
+                $response = $this->actingAs($user, 'sanctum')->postJson($url, $data);
             }
 
             // Assert no 500 errors

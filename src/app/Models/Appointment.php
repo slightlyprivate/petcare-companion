@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * Model representing an appointment for a pet in the pet care companion application.
+ *
+ * @group Appointments
+ */
 class Appointment extends Model
 {
     /** @use HasFactory<\Database\Factories\AppointmentFactory> */
@@ -76,6 +81,37 @@ class Appointment extends Model
             now()->startOfWeek(),
             now()->endOfWeek(),
         ]);
+    }
+
+    /**
+     * Scope a query to filter by status.
+     */
+    public function scopeByStatus($query, string $status)
+    {
+        if ($status === 'upcoming') {
+            return $query->upcoming();
+        }
+
+        if ($status === 'past' || $status === 'completed') {
+            return $query->past();
+        }
+
+        if ($status === 'today') {
+            return $query->today();
+        }
+
+        return $query;
+    }
+
+    /**
+     * Scope a query to search in title and notes.
+     */
+    public function scopeSearch($query, string $search)
+    {
+        return $query->where(function ($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+                ->orWhere('notes', 'like', "%{$search}%");
+        });
     }
 
     /**

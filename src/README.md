@@ -42,7 +42,6 @@ docker-compose exec app php artisan test
 
 # 5. Access application
 # API: http://localhost:8080/api/pets
-# Web UI: http://localhost:8080/pets
 ```
 
 **That's it!** 🎉 You now have a fully functional API with demo data.
@@ -79,8 +78,6 @@ docker-compose exec app php artisan test
 **Testing**: Feature + Unit tests with factories  
 
 📖 **Detailed Architecture**: [docs/architecture.md](./docs/architecture.md)
-
-## 🖼️ Screenshots
 
 ### 1. API Response - Pet List with Pagination
 
@@ -123,11 +120,6 @@ docker-compose exec app php artisan test
   }
 }
 ```
-
-### 3. Web Interface
-
-![Web Interface](./docs/screenshots/web-interface.png)
-*Clean, responsive form for pet management with validation*
 
 ## 🧪 Testing & Quality
 
