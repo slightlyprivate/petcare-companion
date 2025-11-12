@@ -12,8 +12,9 @@ use App\Services\Pet\PetAppointmentService;
 
 /**
  * Controller for managing pet appointments.
- * 
+ *
  * @group Pets
+ *
  * @subgroup Appointments
  */
 class PetAppointmentController extends Controller

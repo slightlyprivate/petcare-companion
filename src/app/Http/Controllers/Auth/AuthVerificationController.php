@@ -7,7 +7,7 @@ use App\Services\Auth\AuthUserService;
 
 /**
  * Controller for handling authentication requests.
- * 
+ *
  * @group Authentication
  */
 class AuthVerificationController extends AuthController

@@ -13,7 +13,7 @@ use App\Services\Pet\PetService;
 
 /**
  * Controller for managing pets.
- * 
+ *
  * @group Pets
  */
 class PetController extends Controller

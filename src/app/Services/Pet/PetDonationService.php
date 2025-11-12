@@ -16,7 +16,7 @@ class PetDonationService
 {
     /**
      * Create a donation for a specific pet.
-     * 
+     *
      * @throws AmountRequiredException if the donation amount is invalid.
      * @throws PaymentSessionFailed if the Stripe payment session creation fails.
      */
@@ -45,7 +45,7 @@ class PetDonationService
         } catch (\Exception $e) {
             // Mark donation as failed if Stripe session creation fails
             $donation->markAsFailed();
-            throw new PaymentSessionFailed();
+            throw new PaymentSessionFailed;
         }
 
         // Update the donation with the Stripe session ID
@@ -88,8 +88,8 @@ class PetDonationService
                 ],
             ],
             'mode' => 'payment',
-            'success_url' => config('app.url') . '/donations/success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => config('app.url') . '/donations/cancel',
+            'success_url' => config('app.url').'/donations/success?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => config('app.url').'/donations/cancel',
             'metadata' => [
                 'donation_id' => $donation->id,
             ],

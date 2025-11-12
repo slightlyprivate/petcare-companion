@@ -7,7 +7,6 @@ use App\Models\Pet;
 use App\Models\User;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 
 /**

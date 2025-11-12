@@ -32,6 +32,7 @@ return new class extends Migration
             $table->index('stripe_session_id');
         });
     }
+
     /**
      * Reverse the migrations.
      */

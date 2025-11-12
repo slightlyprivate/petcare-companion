@@ -64,7 +64,7 @@ class PetApiTest extends TestCase
         $this->assertCount(2, $response->json('data'));
 
         $response->assertJson(
-            fn(AssertableJson $json) => $json->where('data.0.species', 'Dog')
+            fn (AssertableJson $json) => $json->where('data.0.species', 'Dog')
                 ->where('data.1.species', 'Dog')
                 ->etc()
         );
@@ -161,7 +161,7 @@ class PetApiTest extends TestCase
                 ],
             ])
             ->assertJson(
-                fn(AssertableJson $json) => $json->where('data.name', 'Buddy')
+                fn (AssertableJson $json) => $json->where('data.name', 'Buddy')
                     ->where('data.species', 'Dog')
                     ->where('data.breed', 'Golden Retriever')
                     ->where('data.birth_date', '2020-05-15')
