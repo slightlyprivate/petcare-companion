@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Model representing a user in the pet care companion application.
@@ -16,7 +18,7 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class User extends Authenticatable
 {
-    use Billable, HasApiTokens, HasFactory;
+    use Billable, HasApiTokens, HasFactory, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -44,6 +46,15 @@ class User extends Authenticatable
     public function getAuthIdentifierName()
     {
         return 'email';
+    }
+
+    /**
+     * Configure the model's activity log options.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['email', 'role']);
     }
 
     /**

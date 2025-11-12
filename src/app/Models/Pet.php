@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Model representing a pet in the pet care companion application.
@@ -16,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Pet extends Model
 {
     /** @use HasFactory<\Database\Factories\PetFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -44,6 +46,15 @@ class Pet extends Model
             'birth_date' => 'date',
             'is_public' => 'boolean',
         ];
+    }
+
+    /**
+     * Configure the model's activity log options.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'species', 'breed', 'birth_date', 'owner_name', 'is_public']);
     }
 
     /**
@@ -115,7 +126,7 @@ class Pet extends Model
      */
     public function scopeByOwner($query, string $ownerName)
     {
-        return $query->where('owner_name', 'like', '%'.$ownerName.'%');
+        return $query->where('owner_name', 'like', '%' . $ownerName . '%');
     }
 
     /**
@@ -123,7 +134,7 @@ class Pet extends Model
      */
     public function scopeByName($query, string $name)
     {
-        return $query->where('name', 'like', '%'.$name.'%');
+        return $query->where('name', 'like', '%' . $name . '%');
     }
 
     /**

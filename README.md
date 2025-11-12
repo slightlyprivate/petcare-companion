@@ -13,8 +13,9 @@ This project showcases:
 - ✅ **REST API Design** - Resource controllers, API resources, pagination
 - ✅ **Laravel Best Practices** - Form requests, Eloquent models, factories
 - ✅ **Payment Integration** - Stripe payment processing with Laravel Cashier
+- ✅ **Audit Logging** - Comprehensive activity tracking with Spatie Activity Log
 - ✅ **Docker Integration** - Multi-container setup with app, database, and web services
-- ✅ **Comprehensive Testing** - 72+ tests with 500+ assertions
+- ✅ **Comprehensive Testing** - 86+ tests with 555+ assertions
 - ✅ **Modern PHP** - PSR-12 standards, typed properties, dependency injection
 
 ## 🚀 Quick Start
@@ -85,6 +86,37 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 - **Donation System**: Users can donate to pets ($1-$10,000)
 - **Webhook Processing**: Handles payment completion and failures
 - **Status Tracking**: Real-time payment status updates
+
+### 🔒 Audit Logging (Activity Tracking)
+
+The application includes **comprehensive audit logging** via Spatie Activity Log to track all sensitive and user-triggered events.
+
+**Tracked Events:**
+
+- **User**: Email and role changes
+- **Pets**: Create, update, delete operations with full history
+- **Appointments**: Create, update, delete operations
+- **Donations**: Create and status transitions (pending → paid/failed)
+
+**Features:**
+
+- Automatic user attribution (who made the change)
+- Old and new values captured for all updates
+- Persistent storage in `activity_log` table
+- Query-friendly indexed storage for audit reports
+- Configuration in `config/activitylog.php`
+
+**Example Query:**
+
+```php
+// Get all activities for a specific pet
+$activities = \Spatie\Activitylog\Models\Activity::forSubject($pet)->get();
+
+// Get who changed a pet
+foreach ($activities as $activity) {
+    echo "User {$activity->causer->email} {$activity->event}d pet at {$activity->created_at}";
+}
+```
 
 ## 📊 API Endpoints
 
@@ -196,7 +228,7 @@ docker-compose exec app ./vendor/bin/pint
 docker-compose exec app ./vendor/bin/phpstan analyse
 ```
 
-**Current Coverage**: 72 tests • 501 assertions • 100% pass rate
+**Current Coverage**: 86 tests • 555 assertions • 100% pass rate
 
 ## 📁 Project Structure
 
