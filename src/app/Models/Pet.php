@@ -63,6 +63,14 @@ class Pet extends Model
     }
 
     /**
+     * Get the donations made to this pet.
+     */
+    public function donations(): HasMany
+    {
+        return $this->hasMany(Donation::class);
+    }
+
+    /**
      * Get the pet's age in years.
      */
     public function getAgeAttribute(): ?int

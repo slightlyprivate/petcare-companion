@@ -13,8 +13,6 @@ use Tests\TestCase;
 
 /**
  * Feature tests for the Pet API endpoints.
- *
- * @group Tests/Feature
  */
 class PetApiTest extends TestCase
 {

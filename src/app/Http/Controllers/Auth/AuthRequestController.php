@@ -7,6 +7,8 @@ use App\Services\Auth\AuthUserService;
 
 /**
  * Controller for handling authentication requests.
+ *
+ * @group Authentication
  */
 class AuthRequestController extends AuthController
 {

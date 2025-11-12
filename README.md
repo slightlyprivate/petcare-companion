@@ -12,8 +12,9 @@ This project showcases:
 
 - ✅ **REST API Design** - Resource controllers, API resources, pagination
 - ✅ **Laravel Best Practices** - Form requests, Eloquent models, factories
+- ✅ **Payment Integration** - Stripe payment processing with Laravel Cashier
 - ✅ **Docker Integration** - Multi-container setup with app, database, and web services
-- ✅ **Comprehensive Testing** - 46+ tests with 400+ assertions
+- ✅ **Comprehensive Testing** - 72+ tests with 500+ assertions
 - ✅ **Modern PHP** - PSR-12 standards, typed properties, dependency injection
 
 ## 🚀 Quick Start
@@ -40,7 +41,12 @@ docker-compose up -d
 docker-compose exec app php artisan migrate
 docker-compose exec app php artisan db:seed
 
-# 5. Run tests to verify
+# 5. Configure Stripe environment (for payment features)
+echo "STRIPE_KEY=pk_test_your_key_here" >> .env
+echo "STRIPE_SECRET=sk_test_your_secret_here" >> .env
+echo "STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret" >> .env
+
+# 6. Run tests to verify
 docker-compose exec app php artisan test
 
 ```
@@ -61,6 +67,24 @@ docker-compose exec app tail -f storage/logs/laravel.log
 - **Driver**: Log (writes to `storage/logs/laravel.log`)
 - **From Address**: `noreply@petcare.local`
 - **No external mail server required** for development
+
+### 💳 Payment Configuration (Development)
+
+The application includes **Stripe payment integration** for pet donations. For development:
+
+```bash
+# Use Stripe test keys in .env
+STRIPE_KEY=pk_test_your_publishable_key
+STRIPE_SECRET=sk_test_your_secret_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+```
+
+**Payment Features:**
+
+- **Laravel Cashier**: Full Stripe integration
+- **Donation System**: Users can donate to pets ($1-$10,000)
+- **Webhook Processing**: Handles payment completion and failures
+- **Status Tracking**: Real-time payment status updates
 
 ## 📊 API Endpoints
 
@@ -91,6 +115,13 @@ docker-compose exec app tail -f storage/logs/laravel.log
 | `GET` | `/api/appointments/{id}` | Show appointment | Include pet data |
 | `PUT` | `/api/appointments/{id}` | Update appointment | Status management |
 | `DELETE` | `/api/appointments/{id}` | Delete appointment | Cascade handling |
+
+### Payment & Donation Endpoints
+
+| Method | Endpoint | Description | Features |
+|--------|----------|-------------|----------|
+| `POST` | `/api/pets/{id}/donate` | Create donation for pet | Stripe integration, validation |
+| `POST` | `/api/webhooks/stripe` | Stripe webhook handler | Payment status updates |
 
 ### 📋 Postman Collection
 
@@ -165,7 +196,7 @@ docker-compose exec app ./vendor/bin/pint
 docker-compose exec app ./vendor/bin/phpstan analyse
 ```
 
-**Current Coverage**: 62 tests • 473 assertions • 100% pass rate
+**Current Coverage**: 72 tests • 501 assertions • 100% pass rate
 
 ## 📁 Project Structure
 
@@ -175,7 +206,8 @@ src/
 │   ├── Http/Controllers/     # API controllers
 │   ├── Http/Requests/       # Form validation
 │   ├── Http/Resources/      # API transformations  
-│   └── Models/              # Eloquent models
+│   ├── Models/              # Eloquent models
+│   └── Services/            # Business logic services
 ├── database/
 │   ├── factories/           # Test data factories
 │   ├── migrations/          # Database schema
