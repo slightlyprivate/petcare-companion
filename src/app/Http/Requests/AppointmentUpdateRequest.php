@@ -44,4 +44,31 @@ class AppointmentUpdateRequest extends \Illuminate\Foundation\Http\FormRequest
             'scheduled_at.required' => 'Appointment date and time is required.',
         ];
     }
+
+    /**
+     * Get body parameters for API documentation.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'pet_id' => [
+                'description' => 'The ID of the pet for this appointment (optional if updating existing).',
+                'example' => 1,
+            ],
+            'title' => [
+                'description' => 'The title of the appointment (optional if updating existing).',
+                'example' => 'Vet Checkup',
+            ],
+            'scheduled_at' => [
+                'description' => 'The scheduled date and time for the appointment in ISO 8601 format (optional if updating existing).',
+                'example' => '2024-12-15T14:30:00Z',
+            ],
+            'notes' => [
+                'description' => 'Additional notes about the appointment (optional).',
+                'example' => 'Annual vaccination due',
+            ],
+        ];
+    }
 }

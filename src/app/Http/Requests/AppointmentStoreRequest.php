@@ -42,4 +42,27 @@ class AppointmentStoreRequest extends \Illuminate\Foundation\Http\FormRequest
             'scheduled_at.after' => 'Appointment must be scheduled for a future date and time.',
         ];
     }
+
+    /**
+     * Get body parameters for API documentation.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'title' => [
+                'description' => 'The title of the appointment.',
+                'example' => 'Vet Checkup',
+            ],
+            'scheduled_at' => [
+                'description' => 'The scheduled date and time for the appointment in ISO 8601 format.',
+                'example' => '2024-12-15T14:30:00Z',
+            ],
+            'notes' => [
+                'description' => 'Additional notes about the appointment (optional).',
+                'example' => 'Annual vaccination due',
+            ],
+        ];
+    }
 }

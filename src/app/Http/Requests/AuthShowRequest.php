@@ -16,7 +16,7 @@ class AuthShowRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -29,5 +29,15 @@ class AuthShowRequest extends FormRequest
         return [
             //
         ];
+    }
+
+    /**
+     * Get body parameters for API documentation.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [];
     }
 }

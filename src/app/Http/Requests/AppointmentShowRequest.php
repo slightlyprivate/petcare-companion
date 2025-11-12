@@ -28,4 +28,19 @@ class AppointmentShowRequest extends \Illuminate\Foundation\Http\FormRequest
             'include' => ['sometimes', 'string', 'in:pet'],
         ];
     }
+
+    /**
+     * Get query parameters for API documentation.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function queryParameters(): array
+    {
+        return [
+            'include' => [
+                'description' => 'Include related data (pet).',
+                'example' => 'pet',
+            ],
+        ];
+    }
 }

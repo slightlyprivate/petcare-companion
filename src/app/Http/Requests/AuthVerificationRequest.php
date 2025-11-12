@@ -29,4 +29,23 @@ class AuthVerificationRequest extends \Illuminate\Foundation\Http\FormRequest
             'code' => 'required|string',
         ];
     }
+
+    /**
+     * Get body parameters for API documentation.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'email' => [
+                'description' => 'The email address the OTP was sent to.',
+                'example' => 'user@example.com',
+            ],
+            'code' => [
+                'description' => 'The 6-digit OTP code received via email.',
+                'example' => '123456',
+            ],
+        ];
+    }
 }
