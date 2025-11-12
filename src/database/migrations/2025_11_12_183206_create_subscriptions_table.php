@@ -15,7 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id');
             $table->string('type');
-            $table->string('stripe_id')->unique()->collation('utf8_bin');
+
+            $stripeId = $table->string('stripe_id')->unique();
+            // Apply utf8_bin collation only for MySQL
+            if (Schema::getConnection()->getDriverName() === 'mysql') {
+                $stripeId->collation('utf8_bin');
+            }
+
             $table->string('stripe_status');
             $table->string('stripe_price')->nullable();
             $table->integer('quantity')->nullable();

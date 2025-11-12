@@ -6,6 +6,8 @@ use App\Http\Controllers\Auth\AuthRequestController;
 use App\Http\Controllers\Auth\AuthVerificationController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetController;
+use App\Http\Controllers\Pet\PetDonationController;
+use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // Auth endpoints
@@ -32,6 +34,9 @@ Route::prefix('pets')
         // Pet appointments endpoints
         Route::get('/{pet}/appointments', [PetAppointmentController::class, 'index'])->name('pets.appointments.index');
         Route::post('/{pet}/appointments', [PetAppointmentController::class, 'store'])->name('pets.appointments.store');
+
+        // Pet donations endpoint
+        Route::post('/{pet}/donate', [PetDonationController::class, 'store'])->name('pets.donations.store');
     });
 
 // Appointment endpoints
@@ -43,3 +48,6 @@ Route::prefix('appointments')
         Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::delete('/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
     });
+
+// Webhook endpoints (no authentication required)
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])->name('webhooks.stripe');

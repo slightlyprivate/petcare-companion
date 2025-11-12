@@ -12,7 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('stripe_id')->nullable()->index()->collation('utf8_bin');
+            $stripeId = $table->string('stripe_id')->nullable()->index();
+
+            // Apply utf8_bin collation only for MySQL
+            if (Schema::getConnection()->getDriverName() === 'mysql') {
+                $stripeId->collation('utf8_bin');
+            }
+
             $table->string('pm_type')->nullable();
             $table->string('pm_last_four', 4)->nullable();
             $table->timestamp('trial_ends_at')->nullable();

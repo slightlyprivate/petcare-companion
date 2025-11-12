@@ -14,6 +14,8 @@ use App\Services\Appointment\AppointmentService;
 
 /**
  * Controller for managing appointments.
+ * 
+ * @group Appointments
  */
 class AppointmentController extends Controller
 {

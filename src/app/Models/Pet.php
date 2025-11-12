@@ -63,6 +63,14 @@ class Pet extends Model
     }
 
     /**
+     * Get the donations made to this pet.
+     */
+    public function donations(): HasMany
+    {
+        return $this->hasMany(Donation::class);
+    }
+
+    /**
      * Get the pet's age in years.
      */
     public function getAgeAttribute(): ?int
@@ -107,7 +115,7 @@ class Pet extends Model
      */
     public function scopeByOwner($query, string $ownerName)
     {
-        return $query->where('owner_name', 'like', '%'.$ownerName.'%');
+        return $query->where('owner_name', 'like', '%' . $ownerName . '%');
     }
 
     /**
@@ -115,7 +123,7 @@ class Pet extends Model
      */
     public function scopeByName($query, string $name)
     {
-        return $query->where('name', 'like', '%'.$name.'%');
+        return $query->where('name', 'like', '%' . $name . '%');
     }
 
     /**

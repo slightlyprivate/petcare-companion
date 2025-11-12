@@ -3,12 +3,12 @@
 ## Context
 
 PetCare Companion is a comprehensive Laravel + MySQL application designed to demonstrate production-quality PHP skills for a backend engineering role emphasizing MVC architecture, RESTful APIs, authentication systems, payment processing, and Dockerized deployment.  
-This project's purpose is **portfolio credibility**—to showcase clean, modern PHP practices within a complete domain: pet management, appointment scheduling, user authentication, and recurring donation processing.
+This project's purpose is **portfolio credibility**—to showcase clean, modern PHP practices within a complete domain: pet management, appointment scheduling, user authentication, and one-time donation processing.
 
 ## Key Points
 
 - **Primary Goal:** Deliver a polished, working application that highlights strong PHP, MySQL, Docker, and modern web development fundamentals.
-- **Scope:** Authenticated CRUD APIs for managing pets and appointments, OTP-based authentication, role-based access control, and recurring donation system via Stripe.
+- **Scope:** Authenticated CRUD APIs for managing pets and appointments, OTP-based authentication, role-based access control, and one-time donation system via Stripe.
 - **Target User:** Developer recruiter or hiring manager evaluating code style, organization, fluency, and understanding of modern web application architecture.
 - **Technical Stack:**  
   - PHP 8.2+  
@@ -52,14 +52,16 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
   - Search functionality (title/notes)
   - Sorting capabilities
 
-#### Future Payment System (Planned)
+#### Payment System (Planned)
 
-- **Recurring Donations**
-  - Stripe integration for payment processing
-  - User-to-pet donation relationships
-  - Recurring subscription management
-  - Payment history tracking
-  - Donation analytics and reporting
+- **One-time Pet Donations**
+  - Stripe integration for secure payment processing
+  - Users can donate to any pet in the system
+  - Flexible donation amounts set by users
+  - Multiple donations allowed per pet (no restrictions)
+  - Donation history and tracking
+  - Payment confirmation and receipts
+  - Pet-specific donation analytics
 
 ### Non-Functional Requirements
 
@@ -122,7 +124,7 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
 
 ### Planned Enhancements
 
-- **Payment Processing:** Stripe integration for recurring donations
+- **Payment Processing:** Stripe integration for one-time pet donations
 - **User Roles:** Admin/user role system using enum-based roles
 - **Enhanced Security:** API rate limiting, request logging, audit trails
 - **Performance:** Query optimization, caching layer, pagination improvements
@@ -147,16 +149,16 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
 
 ### Future Entities (Planned)
 
-1. **Donation**: User-to-pet recurring payment records
+1. **Donation**: One-time payment records for pet support
 2. **PaymentMethod**: Stripe-managed payment sources
-3. **Subscription**: Recurring donation schedules
+3. **Transaction**: Individual payment transaction records
 
 ### Relationships
 
 - User → Pets (future: one-to-many when user ownership implemented)
 - Pet → Appointments (one-to-many with cascade delete)
-- Pet → Donations (future: one-to-many)
-- User → Donations (future: one-to-many)
+- Pet → Donations (future: one-to-many for received donations)
+- User → Donations (future: one-to-many for made donations)
 
 ## Security Considerations
 
@@ -186,7 +188,7 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
 
 ### Phase 2 (Planned)
 
-- [ ] Stripe payment integration for donations
+- [ ] Stripe payment integration for one-time donations
 - [ ] User-pet ownership relationships
 - [ ] Admin role and management capabilities
 - [ ] Enhanced filtering and search features

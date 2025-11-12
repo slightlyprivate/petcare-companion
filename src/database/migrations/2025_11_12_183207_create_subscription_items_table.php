@@ -14,7 +14,13 @@ return new class extends Migration
         Schema::create('subscription_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('subscription_id');
-            $table->string('stripe_id')->unique()->collation('utf8_bin');
+
+            $stripeId = $table->string('stripe_id')->unique();
+            // Apply utf8_bin collation only for MySQL
+            if (Schema::getConnection()->getDriverName() === 'mysql') {
+                $stripeId->collation('utf8_bin');
+            }
+
             $table->string('stripe_product');
             $table->string('stripe_price');
             $table->integer('quantity')->nullable();
