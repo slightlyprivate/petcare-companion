@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -28,6 +29,8 @@ class Pet extends Model
         'breed',
         'birth_date',
         'owner_name',
+        'user_id',
+        'is_public',
     ];
 
     /**
@@ -39,6 +42,7 @@ class Pet extends Model
     {
         return [
             'birth_date' => 'date',
+            'is_public' => 'boolean',
         ];
     }
 
@@ -48,6 +52,14 @@ class Pet extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    /**
+     * Get the user that owns the pet.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**

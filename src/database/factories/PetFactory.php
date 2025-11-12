@@ -43,6 +43,7 @@ class PetFactory extends Factory
             'breed' => $breed,
             'birth_date' => $this->faker->dateTimeBetween('-15 years', '-2 months')->format('Y-m-d'),
             'owner_name' => $this->faker->name(),
+            'user_id' => \App\Models\User::factory(),
         ];
     }
 
