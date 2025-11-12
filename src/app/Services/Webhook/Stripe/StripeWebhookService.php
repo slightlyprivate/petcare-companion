@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Wehook\Stripe;
+namespace App\Services\Webhook\Stripe;
 
 use App\Models\Donation;
 use Illuminate\Support\Facades\Log;
