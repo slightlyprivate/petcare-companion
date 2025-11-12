@@ -4,7 +4,7 @@ namespace App\Enums;
 
 /**
  * User roles within the application.
- * 
+ *
  * @group Enums
  */
 enum UserRole: string
