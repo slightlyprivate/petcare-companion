@@ -11,6 +11,11 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+/**
+ * Feature tests for the Pet API endpoints.
+ *
+ * @group Tests/Feature
+ */
 class PetApiTest extends TestCase
 {
     use RefreshDatabase;
@@ -61,7 +66,7 @@ class PetApiTest extends TestCase
         $this->assertCount(2, $response->json('data'));
 
         $response->assertJson(
-            fn (AssertableJson $json) => $json->where('data.0.species', 'Dog')
+            fn(AssertableJson $json) => $json->where('data.0.species', 'Dog')
                 ->where('data.1.species', 'Dog')
                 ->etc()
         );
@@ -158,7 +163,7 @@ class PetApiTest extends TestCase
                 ],
             ])
             ->assertJson(
-                fn (AssertableJson $json) => $json->where('data.name', 'Buddy')
+                fn(AssertableJson $json) => $json->where('data.name', 'Buddy')
                     ->where('data.species', 'Dog')
                     ->where('data.breed', 'Golden Retriever')
                     ->where('data.birth_date', '2020-05-15')
@@ -262,5 +267,70 @@ class PetApiTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['name', 'species', 'breed', 'owner_name']);
+    }
+
+    #[Test]
+    public function it_denies_access_to_pets_owned_by_other_users()
+    {
+        /** @var Authenticatable $owner */
+        $owner = User::factory()->create();
+
+        /** @var Authenticatable $otherUser */
+        $otherUser = User::factory()->create();
+
+        $pet = Pet::factory()->for($owner)->create();
+
+        $response = $this->actingAs($otherUser, 'sanctum')->getJson("/api/pets/{$pet->id}");
+
+        $response->assertForbidden();
+    }
+
+    #[Test]
+    public function administrators_can_view_any_pet()
+    {
+        /** @var Authenticatable $admin */
+        $admin = User::factory()->administrator()->create();
+
+        /** @var Authenticatable $owner */
+        $owner = User::factory()->create();
+
+        $pet = Pet::factory()->for($owner)->create();
+
+        $response = $this->actingAs($admin, 'sanctum')->getJson("/api/pets/{$pet->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.id', $pet->id);
+    }
+
+    #[Test]
+    public function administrators_can_update_pets_owned_by_other_users()
+    {
+        /** @var Authenticatable $admin */
+        $admin = User::factory()->administrator()->create();
+
+        /** @var Authenticatable $owner */
+        $owner = User::factory()->create();
+
+        $pet = Pet::factory()->for($owner)->create([
+            'name' => 'Original',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ]);
+
+        $updatePayload = [
+            'name' => 'Updated Name',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ];
+
+        $response = $this->actingAs($admin, 'sanctum')->putJson("/api/pets/{$pet->id}", $updatePayload);
+
+        $response->assertOk()
+            ->assertJsonPath('data.name', 'Updated Name');
+
+        $this->assertDatabaseHas('pets', [
+            'id' => $pet->id,
+            'name' => 'Updated Name',
+        ]);
     }
 }

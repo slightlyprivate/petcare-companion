@@ -7,7 +7,7 @@ use App\Models\User;
 
 /**
  * Policy for managing pet access control.
- * 
+ *
  * @group Policies
  */
 class PetPolicy
@@ -25,6 +25,10 @@ class PetPolicy
      */
     public function view(User $user, Pet $pet): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         return $user->id === $pet->user_id;
     }
 
@@ -41,6 +45,10 @@ class PetPolicy
      */
     public function update(User $user, Pet $pet): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         return $user->id === $pet->user_id;
     }
 
@@ -49,6 +57,10 @@ class PetPolicy
      */
     public function delete(User $user, Pet $pet): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         return $user->id === $pet->user_id;
     }
 

@@ -4,9 +4,15 @@ namespace Database\Seeders;
 
 use App\Models\Appointment;
 use App\Models\Pet;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+/**
+ * Seeder for populating the database with initial data.
+ *
+ * @group Seeders
+ */
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
@@ -16,23 +22,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        User::factory()
+            ->administrator()
+            ->create([
+                'email' => 'admin@petcare.test',
+            ]);
+
+        $owner = User::factory()->create([
+            'email' => 'owner@petcare.test',
+        ]);
+
         // Create exactly 3 predictable pets for demonstration
         $pets = collect([
-            Pet::factory()->create([
+            Pet::factory()->for($owner)->create([
                 'name' => 'Buddy',
                 'species' => 'Dog',
                 'breed' => 'Golden Retriever',
                 'owner_name' => 'John Smith',
                 'birth_date' => '2019-03-15', // ~6 years old
             ]),
-            Pet::factory()->create([
+            Pet::factory()->for($owner)->create([
                 'name' => 'Whiskers',
                 'species' => 'Cat',
                 'breed' => 'Persian',
                 'owner_name' => 'Jane Doe',
                 'birth_date' => '2020-07-22', // ~5 years old
             ]),
-            Pet::factory()->create([
+            Pet::factory()->for($owner)->create([
                 'name' => 'Charlie',
                 'species' => 'Dog',
                 'breed' => 'Labrador',

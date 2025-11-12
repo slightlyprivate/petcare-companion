@@ -4,6 +4,7 @@ namespace App\Services\Pet;
 
 use App\Helpers\PetPaginationHelper;
 use App\Models\Pet;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -64,7 +65,14 @@ class PetService
      */
     public function list(PetPaginationHelper $helper): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $query = Pet::where('user_id', Auth::user()->id);
+        /** @var User $user */
+        $user = Auth::user();
+
+        $query = Pet::query();
+
+        if (! $user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
 
         $filters = $helper->getFilters();
 
