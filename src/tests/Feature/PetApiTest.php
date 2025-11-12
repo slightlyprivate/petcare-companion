@@ -11,6 +11,11 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+/**
+ * Feature tests for the Pet API endpoints.
+ *
+ * @group Tests/Feature
+ */
 class PetApiTest extends TestCase
 {
     use RefreshDatabase;
@@ -20,7 +25,7 @@ class PetApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pets = Pet::factory(3)->create();
+        $pets = Pet::factory(3)->for($user)->create();
 
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets');
 
@@ -51,9 +56,9 @@ class PetApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        Pet::factory()->create(['species' => 'Dog']);
-        Pet::factory()->create(['species' => 'Cat']);
-        Pet::factory()->create(['species' => 'Dog']);
+        Pet::factory()->for($user)->create(['species' => 'Dog']);
+        Pet::factory()->for($user)->create(['species' => 'Cat']);
+        Pet::factory()->for($user)->create(['species' => 'Dog']);
 
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets?species=Dog');
 
@@ -72,9 +77,9 @@ class PetApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        Pet::factory()->create(['owner_name' => 'John Smith']);
-        Pet::factory()->create(['owner_name' => 'Jane Doe']);
-        Pet::factory()->create(['owner_name' => 'John Johnson']);
+        Pet::factory()->for($user)->create(['owner_name' => 'John Smith']);
+        Pet::factory()->for($user)->create(['owner_name' => 'Jane Doe']);
+        Pet::factory()->for($user)->create(['owner_name' => 'John Johnson']);
 
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets?owner_name=John');
 
@@ -87,9 +92,9 @@ class PetApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        Pet::factory()->create(['name' => 'Buddy']);
-        Pet::factory()->create(['name' => 'Bella']);
-        Pet::factory()->create(['name' => 'Buddy Jr']);
+        Pet::factory()->for($user)->create(['name' => 'Buddy']);
+        Pet::factory()->for($user)->create(['name' => 'Bella']);
+        Pet::factory()->for($user)->create(['name' => 'Buddy Jr']);
 
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets?name=Buddy');
 
@@ -102,9 +107,9 @@ class PetApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        Pet::factory()->create(['name' => 'Zebra']);
-        Pet::factory()->create(['name' => 'Alpha']);
-        Pet::factory()->create(['name' => 'Beta']);
+        Pet::factory()->for($user)->create(['name' => 'Zebra']);
+        Pet::factory()->for($user)->create(['name' => 'Alpha']);
+        Pet::factory()->for($user)->create(['name' => 'Beta']);
 
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets?sort_by=name&sort_direction=asc');
 
@@ -118,7 +123,7 @@ class PetApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        Pet::factory(25)->create();
+        Pet::factory(25)->for($user)->create();
 
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets?per_page=10');
 
@@ -262,5 +267,70 @@ class PetApiTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['name', 'species', 'breed', 'owner_name']);
+    }
+
+    #[Test]
+    public function it_denies_access_to_pets_owned_by_other_users()
+    {
+        /** @var Authenticatable $owner */
+        $owner = User::factory()->create();
+
+        /** @var Authenticatable $otherUser */
+        $otherUser = User::factory()->create();
+
+        $pet = Pet::factory()->for($owner)->create();
+
+        $response = $this->actingAs($otherUser, 'sanctum')->getJson("/api/pets/{$pet->id}");
+
+        $response->assertForbidden();
+    }
+
+    #[Test]
+    public function administrators_can_view_any_pet()
+    {
+        /** @var Authenticatable $admin */
+        $admin = User::factory()->administrator()->create();
+
+        /** @var Authenticatable $owner */
+        $owner = User::factory()->create();
+
+        $pet = Pet::factory()->for($owner)->create();
+
+        $response = $this->actingAs($admin, 'sanctum')->getJson("/api/pets/{$pet->id}");
+
+        $response->assertOk()
+            ->assertJsonPath('data.id', $pet->id);
+    }
+
+    #[Test]
+    public function administrators_can_update_pets_owned_by_other_users()
+    {
+        /** @var Authenticatable $admin */
+        $admin = User::factory()->administrator()->create();
+
+        /** @var Authenticatable $owner */
+        $owner = User::factory()->create();
+
+        $pet = Pet::factory()->for($owner)->create([
+            'name' => 'Original',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ]);
+
+        $updatePayload = [
+            'name' => 'Updated Name',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ];
+
+        $response = $this->actingAs($admin, 'sanctum')->putJson("/api/pets/{$pet->id}", $updatePayload);
+
+        $response->assertOk()
+            ->assertJsonPath('data.name', 'Updated Name');
+
+        $this->assertDatabaseHas('pets', [
+            'id' => $pet->id,
+            'name' => 'Updated Name',
+        ]);
     }
 }

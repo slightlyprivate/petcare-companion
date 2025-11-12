@@ -33,4 +33,39 @@ class AppointmentListRequest extends \Illuminate\Foundation\Http\FormRequest
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ];
     }
+
+    /**
+     * Get query parameters for API documentation.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function queryParameters(): array
+    {
+        return [
+            'pet_id' => [
+                'description' => 'Filter appointments by pet ID.',
+                'example' => 1,
+            ],
+            'date_from' => [
+                'description' => 'Filter appointments from this date (YYYY-MM-DD format).',
+                'example' => '2024-01-01',
+            ],
+            'date_to' => [
+                'description' => 'Filter appointments up to this date (YYYY-MM-DD format).',
+                'example' => '2024-12-31',
+            ],
+            'sort_by' => [
+                'description' => 'Field to sort by.',
+                'example' => 'scheduled_at',
+            ],
+            'sort_direction' => [
+                'description' => 'Sort direction (asc or desc).',
+                'example' => 'asc',
+            ],
+            'per_page' => [
+                'description' => 'Number of items per page (1-50).',
+                'example' => 15,
+            ],
+        ];
+    }
 }

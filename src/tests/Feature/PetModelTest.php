@@ -16,7 +16,7 @@ class PetModelTest extends TestCase
     #[Test]
     public function it_can_create_a_pet_with_required_fields()
     {
-        $pet = Pet::create([
+        $pet = Pet::factory()->create([
             'name' => 'Buddy',
             'species' => 'Dog',
             'owner_name' => 'John Doe',

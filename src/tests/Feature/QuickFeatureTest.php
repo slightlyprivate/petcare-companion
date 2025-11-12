@@ -20,7 +20,7 @@ class QuickFeatureTest extends TestCase
         /** @var Authenticatable $user */
         $user = User::factory()->create();
         // Arrange: Create some pets
-        $pets = Pet::factory(3)->create([
+        $pets = Pet::factory(3)->for($user)->create([
             'species' => 'Dog',
             'owner_name' => 'John Smith',
         ]);

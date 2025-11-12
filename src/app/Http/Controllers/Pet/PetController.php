@@ -42,6 +42,8 @@ class PetController extends Controller
      */
     public function update(PetStoreRequest $request, Pet $pet): PetResource
     {
+        $this->authorize('update', $pet);
+
         $pet = $this->petService->update($pet, $request->validated());
 
         return new PetResource($pet);
@@ -52,6 +54,8 @@ class PetController extends Controller
      */
     public function destroy(Pet $pet): \Illuminate\Http\Response
     {
+        $this->authorize('delete', $pet);
+
         $this->petService->delete($pet);
 
         return response()->noContent();
@@ -74,6 +78,8 @@ class PetController extends Controller
      */
     public function show(PetShowRequest $request, Pet $pet): PetResource
     {
+        $this->authorize('view', $pet);
+
         // Load appointments if requested
         if ($request->query('include') === 'appointments') {
             $pet->load('appointments');

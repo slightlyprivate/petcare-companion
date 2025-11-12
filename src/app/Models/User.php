@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -22,6 +24,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'email',
+        'role',
     ];
 
     /**
@@ -31,6 +34,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'role' => UserRole::class,
     ];
 
     /**
@@ -39,5 +43,21 @@ class User extends Authenticatable
     public function getAuthIdentifierName()
     {
         return 'email';
+    }
+
+    /**
+     * Get the pets that belong to the user.
+     */
+    public function pets(): HasMany
+    {
+        return $this->hasMany(Pet::class);
+    }
+
+    /**
+     * Determine if the user has administrator privileges.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role?->isAdmin() ?? false;
     }
 }

@@ -34,6 +34,7 @@ class ApiResponseShapeVerificationTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
+        Pet::factory()->for($user)->create();
         $response = $this->actingAs($user, 'sanctum')->getJson('/api/pets');
 
         $response->assertStatus(200)

@@ -33,4 +33,39 @@ class PetListRequest extends \Illuminate\Foundation\Http\FormRequest
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ];
     }
+
+    /**
+     * Get query parameters for API documentation.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function queryParameters(): array
+    {
+        return [
+            'species' => [
+                'description' => 'Filter pets by species.',
+                'example' => 'Dog',
+            ],
+            'owner_name' => [
+                'description' => 'Filter pets by owner name.',
+                'example' => 'John Doe',
+            ],
+            'name' => [
+                'description' => 'Filter pets by name.',
+                'example' => 'Buddy',
+            ],
+            'sort_by' => [
+                'description' => 'Field to sort by.',
+                'example' => 'name',
+            ],
+            'sort_direction' => [
+                'description' => 'Sort direction (asc or desc).',
+                'example' => 'asc',
+            ],
+            'per_page' => [
+                'description' => 'Number of items per page (1-50).',
+                'example' => 15,
+            ],
+        ];
+    }
 }

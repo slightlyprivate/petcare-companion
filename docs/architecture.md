@@ -10,6 +10,7 @@ This document explains the system architecture and design decisions for **PetCar
 - **Primary Goal:** Demonstrate production-quality Laravel patterns in a compact, testable API.
 - **Architecture Style:** MVC + REST, with clear validation, resources, and test coverage.
 - **Environment:** Containerized PHP-FPM + Nginx + MySQL stack using Docker Compose.
+- **Authorization:** Dual-role system (standard user vs. system admin) enforced through Laravel policies.
 
 ## Application Layers
 
@@ -26,22 +27,29 @@ This document explains the system architecture and design decisions for **PetCar
 
 ### 3. Validation Layer
 
-- Separate Form Request classes handle validation rules (`StorePetRequest`, `StoreAppointmentRequest`).
+- Separate Form Request classes handle validation rules (`PetStoreRequest`, `AppointmentStoreRequest`).
 - Ensures input sanitation and standardized 422 responses on validation failure.
 
-### 4. Model Layer
+### 4. Authorization Layer
+
+- Role information stored on the `users.role` column backed by the `App\Enums\UserRole` enum.
+- `AuthServiceProvider` registers policies for `User` and `Pet` models.
+- Policies grant owners access to their own resources while administrators (`UserRole::ADMIN`) receive full visibility and control.
+- Feature tests cover both privileged and non-privileged scenarios to prevent regressions.
+
+### 5. Model Layer
 
 - Eloquent ORM manages persistence.
 - Models (`Pet`, `Appointment`) define relationships and `$fillable` fields.
 - Database enforced with foreign key constraints and cascading deletes for child records.
 
-### 5. Resource Layer
+### 6. Resource Layer
 
 - Laravel API Resources (`PetResource`, `AppointmentResource`) shape consistent JSON output.
 - Optional includes supported (e.g., `/api/pets/1?include=appointments`).
 - JSON responses structured for readability and machine consumption.
 
-### 6. Database Layer
+### 7. Database Layer
 
 - MySQL 8 used for persistence, with tables for pets and appointments.
 - Migration-based schema evolution.
@@ -50,18 +58,18 @@ This document explains the system architecture and design decisions for **PetCar
   - `Pet` hasMany `Appointment`
   - `Appointment` belongsTo `Pet`
 
-### 7. Testing Layer
+### 8. Testing Layer
 
 - Feature tests validate CRUD flows and response formats.
 - Tests run in isolated SQLite memory or test database through Docker.
 - Target coverage: successful CRUD paths + one validation failure case.
 
-### 8. Presentation Layer (Optional)
+### 9. Presentation Layer (Optional)
 
 - Minimal Blade-based UI built with Bootstrap 5.
 - Provides quick view of pets and appointments; not core to the evaluation criteria.
 
-### 9. Infrastructure Layer
+### 10. Infrastructure Layer
 
 - Docker Compose orchestrates three services:
   - **app** (PHP-FPM)
@@ -75,6 +83,7 @@ This document explains the system architecture and design decisions for **PetCar
 - `.env` defines app and database configuration.
 - `.env.example` stored for reproducibility.
 - CSRF enabled for Blade routes; REST endpoints expect token-based or stateless access.
+- Authorization checks use Laravel policies invoked from controllers (`authorize` helpers) to protect resource endpoints.
 - Sensitive data (like DB credentials) excluded from version control.
 
 ## Performance and Maintainability
@@ -87,7 +96,7 @@ This document explains the system architecture and design decisions for **PetCar
 ## Decisions
 
 - Laravel selected for rapid development and MVC familiarity.
-- Focus on API completeness, not authentication or authorization.
+- Lightweight passwordless auth paired with explicit role-based authorization using policies.
 - Docker chosen for parity and environment reproducibility.
 - Small dataset seeded for deterministic demo output.
 

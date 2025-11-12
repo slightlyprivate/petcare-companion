@@ -4,6 +4,8 @@ namespace App\Services\Pet;
 
 use App\Helpers\PetPaginationHelper;
 use App\Models\Pet;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Service for managing pets.
@@ -17,6 +19,10 @@ class PetService
      */
     public function create(array $data): Pet
     {
+        if (! isset($data['user_id'])) {
+            $data['user_id'] = Auth::user()->id;
+        }
+
         return Pet::create($data);
     }
 
@@ -59,7 +65,14 @@ class PetService
      */
     public function list(PetPaginationHelper $helper): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
+        /** @var User $user */
+        $user = Auth::user();
+
         $query = Pet::query();
+
+        if (! $user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
 
         $filters = $helper->getFilters();
 
