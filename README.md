@@ -13,8 +13,10 @@ This project showcases:
 - ✅ **REST API Design** - Resource controllers, API resources, pagination
 - ✅ **Laravel Best Practices** - Form requests, Eloquent models, factories
 - ✅ **Payment Integration** - Stripe payment processing with Laravel Cashier
+- ✅ **Audit Logging** - Comprehensive activity tracking with Spatie Activity Log
+- ✅ **Notification System** - Multi-channel notifications (Email + SMS) with user preferences
 - ✅ **Docker Integration** - Multi-container setup with app, database, and web services
-- ✅ **Comprehensive Testing** - 72+ tests with 500+ assertions
+- ✅ **Comprehensive Testing** - 109+ tests with 627+ assertions
 - ✅ **Modern PHP** - PSR-12 standards, typed properties, dependency injection
 
 ## 🚀 Quick Start
@@ -86,7 +88,93 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 - **Webhook Processing**: Handles payment completion and failures
 - **Status Tracking**: Real-time payment status updates
 
-## 📊 API Endpoints
+### 🔒 Audit Logging (Activity Tracking)
+
+The application includes **comprehensive audit logging** via Spatie Activity Log to track all sensitive and user-triggered events.
+
+**Tracked Events:**
+
+- **User**: Email and role changes
+- **Pets**: Create, update, delete operations with full history
+- **Appointments**: Create, update, delete operations
+- **Donations**: Create and status transitions (pending → paid/failed)
+
+**Features:**
+
+- Automatic user attribution (who made the change)
+- Old and new values captured for all updates
+- Persistent storage in `activity_log` table
+- Query-friendly indexed storage for audit reports
+- Configuration in `config/activitylog.php`
+
+**Example Query:**
+
+```php
+// Get all activities for a specific pet
+$activities = \Spatie\Activitylog\Models\Activity::forSubject($pet)->get();
+
+// Get who changed a pet
+foreach ($activities as $activity) {
+    echo "User {$activity->causer->email} {$activity->event}d pet at {$activity->created_at}";
+}
+```
+
+### � Notification System (Email & SMS)
+
+The application includes a **comprehensive multi-channel notification system** using Laravel's notification framework with Twilio SMS integration.
+
+**Notification Types:**
+
+- **OTP Sent**: Sends authentication code via email and SMS
+- **Login Success**: Confirms successful authentication
+- **Donation Success**: Confirms donation completion with receipt details
+- **Pet Updated**: Notifies about pet information changes
+
+**Channels:**
+
+- **Email**: Rich HTML emails with markdown templates and branding
+- **SMS**: Twilio integration for text message delivery
+- **Database**: Persistent notification storage for in-app notifications
+
+**Features:**
+
+- Automatic notification creation and delivery
+- User notification preferences (opt-in/opt-out per type)
+- Channel-level preferences (enable/disable email or SMS)
+- Markdown email templates in `resources/views/emails/`
+- Customizable message formatting per channel
+
+**Notification Preference Endpoints:**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/user/notification-preferences` | Get user preferences |
+| `PUT` | `/api/user/notification-preferences` | Update preference type |
+| `POST` | `/api/user/notification-preferences/disable-all` | Disable all notifications |
+| `POST` | `/api/user/notification-preferences/enable-all` | Enable all notifications |
+
+**Configuration:**
+
+```bash
+# .env
+MAIL_DRIVER=log
+TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_PHONE_NUMBER=+1234567890
+```
+
+**Example Usage:**
+
+```php
+// Send notification to user
+Notification::send($user, new OtpSentNotification($code, $email));
+
+// Check user preferences
+$preferences = $user->notificationPreference;
+if ($preferences->isNotificationEnabled('otp')) {
+    // Send OTP notification
+}
+```
 
 ### Authentication Endpoints
 
@@ -196,7 +284,7 @@ docker-compose exec app ./vendor/bin/pint
 docker-compose exec app ./vendor/bin/phpstan analyse
 ```
 
-**Current Coverage**: 72 tests • 501 assertions • 100% pass rate
+**Current Coverage**: 86 tests • 555 assertions • 100% pass rate
 
 ## 📁 Project Structure
 

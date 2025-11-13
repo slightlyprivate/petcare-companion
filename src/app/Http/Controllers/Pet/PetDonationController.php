@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Pet;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\DonationStoreRequest;
+use App\Http\Requests\Donation\StoreDonationRequest;
 use App\Models\Pet;
 use App\Services\Pet\PetDonationService;
 
@@ -28,7 +28,7 @@ class PetDonationController extends Controller
     /**
      * Create a donation for a specific pet.
      */
-    public function store(DonationStoreRequest $request, Pet $pet): \Illuminate\Http\JsonResponse
+    public function store(StoreDonationRequest $request, Pet $pet): \Illuminate\Http\JsonResponse
     {
         $requestData = $request->validated();
         $requestUser = $request->user();

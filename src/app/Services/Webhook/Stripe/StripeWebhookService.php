@@ -2,8 +2,11 @@
 
 namespace App\Services\Webhook\Stripe;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Donation;
+use App\Notifications\DonationSuccessNotification;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Service for handling Stripe webhooks.
@@ -85,8 +88,35 @@ class StripeWebhookService
             return;
         }
 
-        // Mark donation as paid
+        // Retrieve payment intent to get charge details
+        $metadata = $this->extractChargeMetadata($session);
+
+        // Update donation with charge metadata
+        if ($session['payment_intent']) {
+            try {
+                \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+                $paymentIntent = \Stripe\PaymentIntent::retrieve($session['payment_intent']);
+
+                if ($paymentIntent->charges && $paymentIntent->charges->count() > 0) {
+                    $charge = $paymentIntent->charges->first();
+                    $donation->stripe_charge_id = $charge->id;
+                    $metadata = $this->extractChargeMetadata((array) $charge);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error retrieving charge metadata', [
+                    'donation_id' => $donation->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $donation->stripe_metadata = $metadata;
         $donation->markAsPaid();
+
+        // Send donation success notification to user if enabled
+        if (NotificationHelper::isNotificationEnabled($donation->user, 'donation')) {
+            Notification::send($donation->user, new DonationSuccessNotification($donation));
+        }
 
         Log::info('Donation marked as paid via webhook', [
             'donation_id' => $donation->id,
@@ -95,6 +125,25 @@ class StripeWebhookService
             'pet_id' => $donation->pet_id,
             'user_id' => $donation->user_id,
         ]);
+    }
+
+    /**
+     * Extract relevant charge metadata for storage.
+     */
+    protected function extractChargeMetadata(array $charge): array
+    {
+        return [
+            'amount' => $charge['amount'] ?? null,
+            'amount_captured' => $charge['amount_captured'] ?? null,
+            'currency' => $charge['currency'] ?? 'usd',
+            'payment_method' => $charge['payment_method_details']['type'] ?? $charge['payment_method'] ?? null,
+            'brand' => $charge['payment_method_details']['card']['brand'] ?? null,
+            'last4' => $charge['payment_method_details']['card']['last4'] ?? null,
+            'exp_month' => $charge['payment_method_details']['card']['exp_month'] ?? null,
+            'exp_year' => $charge['payment_method_details']['card']['exp_year'] ?? null,
+            'created' => $charge['created'] ?? now()->timestamp,
+            'receipt_url' => $charge['receipt_url'] ?? null,
+        ];
     }
 
     /**

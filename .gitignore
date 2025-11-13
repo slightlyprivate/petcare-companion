@@ -4,6 +4,7 @@
 /public/storage
 /storage/*.key
 /vendor
+
 # Scribe generated output
 /src/.scribe/
 /src/public/docs/
@@ -11,6 +12,7 @@
 
 # built assets published via vendor:publish
 /src/public/vendor/
+/src/resources/views/vendor
 
 # Ignore environment and configuration files
 .env

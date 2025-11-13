@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Model representing a donation made to a pet.
@@ -14,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Donation extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, LogsActivity, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -26,6 +29,8 @@ class Donation extends Model
         'pet_id',
         'amount_cents',
         'stripe_session_id',
+        'stripe_charge_id',
+        'stripe_metadata',
         'status',
         'completed_at',
     ];
@@ -38,7 +43,17 @@ class Donation extends Model
     protected $casts = [
         'amount_cents' => 'integer',
         'completed_at' => 'datetime',
+        'stripe_metadata' => 'array',
     ];
+
+    /**
+     * Configure the model's activity log options.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['user_id', 'pet_id', 'amount_cents', 'stripe_session_id', 'stripe_charge_id', 'status', 'completed_at']);
+    }
 
     /**
      * Get the user that made this donation.

@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Model representing a pet in the pet care companion application.
@@ -16,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Pet extends Model
 {
     /** @use HasFactory<\Database\Factories\PetFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -44,6 +47,15 @@ class Pet extends Model
             'birth_date' => 'date',
             'is_public' => 'boolean',
         ];
+    }
+
+    /**
+     * Configure the model's activity log options.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'species', 'breed', 'birth_date', 'owner_name', 'is_public']);
     }
 
     /**

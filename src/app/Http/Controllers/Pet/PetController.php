@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Pet;
 
 use App\Helpers\PetPaginationHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\PetListRequest;
-use App\Http\Requests\PetShowRequest;
-use App\Http\Requests\PetStoreRequest;
-use App\Http\Resources\PetResource;
+use App\Http\Requests\Pet\ListPetRequest;
+use App\Http\Requests\Pet\ShowPetRequest;
+use App\Http\Requests\Pet\StorePetRequest;
+use App\Http\Resources\Pet\PetResource;
 use App\Models\Pet;
 use App\Services\Pet\PetService;
 
@@ -32,7 +32,7 @@ class PetController extends Controller
     /**
      * Store a newly created pet in storage.
      */
-    public function store(PetStoreRequest $request): PetResource
+    public function store(StorePetRequest $request): PetResource
     {
         $pet = $this->petService->create($request->validated());
 
@@ -42,7 +42,7 @@ class PetController extends Controller
     /**
      * Update the specified pet in storage.
      */
-    public function update(PetStoreRequest $request, Pet $pet): PetResource
+    public function update(StorePetRequest $request, Pet $pet): PetResource
     {
         $this->authorize('update', $pet);
 
@@ -66,7 +66,7 @@ class PetController extends Controller
     /**
      * Get a listing of all pets.
      */
-    public function index(PetListRequest $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+    public function index(ListPetRequest $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
         $helper = new PetPaginationHelper($request);
 
@@ -78,7 +78,7 @@ class PetController extends Controller
     /**
      * Get the specified pet.
      */
-    public function show(PetShowRequest $request, Pet $pet): PetResource
+    public function show(ShowPetRequest $request, Pet $pet): PetResource
     {
         $this->authorize('view', $pet);
 
