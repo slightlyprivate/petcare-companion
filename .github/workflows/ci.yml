@@ -105,12 +105,13 @@ jobs:
         run: |
           cd src
           cp .env.example .env
-          php artisan key:generate --env=docs
+          php artisan key:generate
 
       - name: Generate Scribe documentation
         run: |
           cd src
           DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan scribe:generate
+          rm .env
 
       - name: Commit and push documentation
         if: github.event_name == 'push'
