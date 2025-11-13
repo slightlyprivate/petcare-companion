@@ -4,10 +4,11 @@ use App\Http\Controllers\Appointment\AppointmentController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthRequestController;
 use App\Http\Controllers\Auth\AuthVerificationController;
-use App\Http\Controllers\NotificationPreferenceController;
+use App\Http\Controllers\Auth\User\NotificationPreferenceController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetController;
 use App\Http\Controllers\Pet\PetDonationController;
+use App\Http\Controllers\Pet\Public\PetDirectoryController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,11 @@ Route::prefix('auth')->group(function () {
     Route::get('/me', [AuthController::class, 'show'])
         ->middleware('auth:sanctum')
         ->name('auth.me');
+});
+
+// Public endpoints
+Route::prefix('public')->group(function () {
+    Route::get('pets', [PetDirectoryController::class, 'index'])->name('public.pets.index');
 });
 
 // Pet endpoints

@@ -9,8 +9,8 @@ return [
             'success' => 'All notifications have been enabled.',
         ],
         'update' => [
-            'success'   => 'Notification preference updated successfully.',
-            'failure'   => 'Failed to update notification preference.',
+            'success' => 'Notification preference updated successfully.',
+            'failure' => 'Failed to update notification preference.',
             'not_found' => 'Notification preference not found.',
         ],
     ],

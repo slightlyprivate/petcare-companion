@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Appointment;
 
 use App\Helpers\AppointmentPaginationHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AppointmentListRequest;
-use App\Http\Requests\AppointmentShowRequest;
-use App\Http\Requests\AppointmentStoreRequest;
-use App\Http\Requests\AppointmentUpdateRequest;
-use App\Http\Resources\AppointmentResource;
+use App\Http\Requests\Appointment\AppointmentListRequest;
+use App\Http\Requests\Appointment\AppointmentShowRequest;
+use App\Http\Requests\Appointment\AppointmentStoreRequest;
+use App\Http\Requests\Appointment\AppointmentUpdateRequest;
+use App\Http\Resources\Appointment\AppointmentResource;
 use App\Models\Appointment;
 use App\Services\Appointment\AppointmentService;
 

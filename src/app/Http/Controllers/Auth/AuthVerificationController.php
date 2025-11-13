@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Requests\AuthVerificationRequest;
+use App\Http\Requests\Auth\AuthVerificationRequest;
 use App\Services\Auth\AuthUserService;
 
 /**

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Pet;
 
 use App\Helpers\AppointmentPaginationHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AppointmentListRequest;
-use App\Http\Requests\AppointmentStoreRequest;
-use App\Http\Resources\AppointmentResource;
+use App\Http\Requests\Appointment\AppointmentListRequest;
+use App\Http\Requests\Appointment\AppointmentStoreRequest;
+use App\Http\Resources\Appointment\AppointmentResource;
 use App\Models\Pet;
 use App\Services\Pet\PetAppointmentService;
 

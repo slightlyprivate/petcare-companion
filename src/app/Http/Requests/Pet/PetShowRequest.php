@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Pet;
 
 /**
- * Request class for authentication requests.
+ * Request class for showing a pet.
  *
- * @group Authentication
+ * @group Pets
  */
-class AuthRequest extends \Illuminate\Foundation\Http\FormRequest
+class PetShowRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,21 +25,21 @@ class AuthRequest extends \Illuminate\Foundation\Http\FormRequest
     public function rules(): array
     {
         return [
-            'email' => 'required|email',
+            'include' => ['sometimes', 'string', 'in:appointments'],
         ];
     }
 
     /**
-     * Get body parameters for API documentation.
+     * Get query parameters for API documentation.
      *
      * @return array<string, array<string, mixed>>
      */
-    public function bodyParameters(): array
+    public function queryParameters(): array
     {
         return [
-            'email' => [
-                'description' => 'The email address to send the OTP code to.',
-                'example' => 'user@example.com',
+            'include' => [
+                'description' => 'Include related data (appointments).',
+                'example' => 'appointments',
             ],
         ];
     }

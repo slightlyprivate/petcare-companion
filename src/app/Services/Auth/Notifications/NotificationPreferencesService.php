@@ -3,8 +3,8 @@
 namespace App\Services\Auth\Notifications;
 
 use App\Exceptions\Auth\InvalidUserException;
-use App\Models\User;
 use App\Models\NotificationPreference;
+use App\Models\User;
 use App\Support\Messages\NotificationsMessages;
 
 /**
@@ -55,8 +55,19 @@ class NotificationPreferencesService
 
         $preferences = $this->getUserPreferences($userId);
 
-        // Update the specific preference
-        if (in_array($type, [
+        // Map user-friendly type names to database column names
+        $typeMapping = [
+            'otp' => 'otp_notifications',
+            'login' => 'login_notifications',
+            'donation' => 'donation_notifications',
+            'pet_update' => 'pet_update_notifications',
+            'sms' => 'sms_enabled',
+            'email' => 'email_enabled',
+        ];
+
+        $columnName = $typeMapping[$type] ?? null;
+
+        if (! $columnName || ! in_array($columnName, [
             'otp_notifications',
             'login_notifications',
             'donation_notifications',
@@ -64,11 +75,11 @@ class NotificationPreferencesService
             'sms_enabled',
             'email_enabled',
         ])) {
-            $preferences->$type = $enabled;
-            $preferences->save();
-        } else {
             throw new \InvalidArgumentException(NotificationsMessages::notificationPreferenceNotFound());
         }
+
+        $preferences->$columnName = $enabled;
+        $preferences->save();
 
         return $preferences;
     }

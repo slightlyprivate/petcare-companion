@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Auth\User;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Form request for updating notification preferences.
  */
-class UpdateNotificationPreferenceRequest extends FormRequest
+class NotificationPreferenceUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

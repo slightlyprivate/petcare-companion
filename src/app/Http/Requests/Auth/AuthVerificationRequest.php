@@ -1,15 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
-
-use Illuminate\Foundation\Http\FormRequest;
+namespace App\Http\Requests\Auth;
 
 /**
- * Request class for showing authenticated user information.
+ * Request class for authentication requests.
  *
  * @group Authentication
  */
-class AuthShowRequest extends FormRequest
+class AuthVerificationRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,7 +25,8 @@ class AuthShowRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'email' => 'required|email',
+            'code' => 'required|string',
         ];
     }
 
@@ -38,6 +37,15 @@ class AuthShowRequest extends FormRequest
      */
     public function bodyParameters(): array
     {
-        return [];
+        return [
+            'email' => [
+                'description' => 'The email address the OTP was sent to.',
+                'example' => 'user@example.com',
+            ],
+            'code' => [
+                'description' => 'The 6-digit OTP code received via email.',
+                'example' => '123456',
+            ],
+        ];
     }
 }

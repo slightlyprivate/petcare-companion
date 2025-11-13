@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Auth;
 
 /**
  * Request class for authentication requests.
  *
  * @group Authentication
  */
-class AuthVerificationRequest extends \Illuminate\Foundation\Http\FormRequest
+class AuthRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,7 +26,6 @@ class AuthVerificationRequest extends \Illuminate\Foundation\Http\FormRequest
     {
         return [
             'email' => 'required|email',
-            'code' => 'required|string',
         ];
     }
 
@@ -39,12 +38,8 @@ class AuthVerificationRequest extends \Illuminate\Foundation\Http\FormRequest
     {
         return [
             'email' => [
-                'description' => 'The email address the OTP was sent to.',
+                'description' => 'The email address to send the OTP code to.',
                 'example' => 'user@example.com',
-            ],
-            'code' => [
-                'description' => 'The 6-digit OTP code received via email.',
-                'example' => '123456',
             ],
         ];
     }

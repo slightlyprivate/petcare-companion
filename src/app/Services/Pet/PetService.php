@@ -114,4 +114,52 @@ class PetService
 
         return $query->paginate($perPage);
     }
+
+    /**
+     * Get a paginated list of public pets with filtering and sorting, including donation totals.
+     */
+    public function directoryList(PetPaginationHelper $helper): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $query = Pet::where('is_public', true);
+
+        $filters = $helper->getFilters();
+
+        // Apply filters
+        if (! empty($filters['species'])) {
+            $query->bySpecies($filters['species']);
+        }
+        if (! empty($filters['owner_name'])) {
+            $query->byOwner($filters['owner_name']);
+        }
+        if (! empty($filters['name'])) {
+            $query->byName($filters['name']);
+        }
+
+        // Apply sorting (with popularity option)
+        $allowedSortFields = ['name', 'species', 'breed', 'owner_name', 'birth_date', 'created_at', 'popularity'];
+        $sortBy = $helper->getSortBy();
+        $sortDirection = $helper->getSortDirection();
+
+        if ($sortBy === 'popularity') {
+            // Sort by total donations (descending by default)
+            $query->withCount(['donations' => function ($q) {
+                $q->where('status', 'paid');
+            }])
+                ->orderBy('donations_count', $sortDirection === 'asc' ? 'asc' : 'desc');
+        } elseif ($sortBy && in_array($sortBy, $allowedSortFields)) {
+            $query->orderBy($sortBy, $sortDirection === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+
+        // Load donation totals for all results
+        $query->withSum(['donations' => function ($q) {
+            $q->where('status', 'paid');
+        }], 'amount_cents');
+
+        // Apply pagination
+        $perPage = $helper->getPerPage();
+
+        return $query->paginate($perPage);
+    }
 }

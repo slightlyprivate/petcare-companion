@@ -2,7 +2,7 @@
 
 namespace App\Channels;
 
-use App\Notifications\Notification; // Modified to use the correct Notification class for toTwilio method
+use Illuminate\Notifications\Notification;
 use Twilio\Exceptions\TwilioException;
 use Twilio\Rest\Client;
 
@@ -34,6 +34,11 @@ class TwilioChannel
      */
     public function send(mixed $notifiable, Notification $notification): void
     {
+        if (! method_exists($notification, 'toTwilio')) {
+            return;
+        }
+
+        /** @var mixed $notification */
         $message = $notification->toTwilio($notifiable);
 
         if (! $message || ! $message->getPhoneNumber()) {

@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth\User;
 
-use App\Http\Requests\UpdateNotificationPreferenceRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\User\NotificationPreferenceUpdateRequest;
 use App\Services\Auth\Notifications\NotificationPreferencesService;
 use App\Support\Messages\NotificationsMessages;
 use Illuminate\Http\JsonResponse;
@@ -45,7 +46,7 @@ class NotificationPreferenceController extends Controller
     /**
      * Update a specific notification preference type.
      */
-    public function update(UpdateNotificationPreferenceRequest $request): JsonResponse
+    public function update(NotificationPreferenceUpdateRequest $request): JsonResponse
     {
         $userId = $request->user()->id;
         $type = $request->input('type');

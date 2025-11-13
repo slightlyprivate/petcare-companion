@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Appointment;
 
 /**
- * Request class for storing a new appointment.
+ * Request class for updating an appointment.
  *
  * @group Appointments
  */
-class AppointmentStoreRequest extends \Illuminate\Foundation\Http\FormRequest
+class AppointmentUpdateRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,8 +25,9 @@ class AppointmentStoreRequest extends \Illuminate\Foundation\Http\FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
-            'scheduled_at' => ['required', 'date', 'after:now'],
+            'pet_id' => ['sometimes', 'required', 'integer', 'exists:pets,id'],
+            'title' => ['sometimes', 'required', 'string', 'max:255'],
+            'scheduled_at' => ['sometimes', 'required', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }
@@ -37,9 +38,10 @@ class AppointmentStoreRequest extends \Illuminate\Foundation\Http\FormRequest
     public function messages(): array
     {
         return [
+            'pet_id.required' => 'Pet selection is required.',
+            'pet_id.exists' => 'Selected pet does not exist.',
             'title.required' => 'Appointment title is required.',
             'scheduled_at.required' => 'Appointment date and time is required.',
-            'scheduled_at.after' => 'Appointment must be scheduled for a future date and time.',
         ];
     }
 
@@ -51,12 +53,16 @@ class AppointmentStoreRequest extends \Illuminate\Foundation\Http\FormRequest
     public function bodyParameters(): array
     {
         return [
+            'pet_id' => [
+                'description' => 'The ID of the pet for this appointment (optional if updating existing).',
+                'example' => 1,
+            ],
             'title' => [
-                'description' => 'The title of the appointment.',
+                'description' => 'The title of the appointment (optional if updating existing).',
                 'example' => 'Vet Checkup',
             ],
             'scheduled_at' => [
-                'description' => 'The scheduled date and time for the appointment in ISO 8601 format.',
+                'description' => 'The scheduled date and time for the appointment in ISO 8601 format (optional if updating existing).',
                 'example' => '2024-12-15T14:30:00Z',
             ],
             'notes' => [

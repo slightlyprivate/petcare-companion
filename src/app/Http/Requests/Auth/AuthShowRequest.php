@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Auth;
+
+use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Request class for showing an appointment.
+ * Request class for showing authenticated user information.
  *
- * @group Appointments
+ * @group Authentication
  */
-class AppointmentShowRequest extends \Illuminate\Foundation\Http\FormRequest
+class AuthShowRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,22 +27,17 @@ class AppointmentShowRequest extends \Illuminate\Foundation\Http\FormRequest
     public function rules(): array
     {
         return [
-            'include' => ['sometimes', 'string', 'in:pet'],
+            //
         ];
     }
 
     /**
-     * Get query parameters for API documentation.
+     * Get body parameters for API documentation.
      *
      * @return array<string, array<string, mixed>>
      */
-    public function queryParameters(): array
+    public function bodyParameters(): array
     {
-        return [
-            'include' => [
-                'description' => 'Include related data (pet).',
-                'example' => 'pet',
-            ],
-        ];
+        return [];
     }
 }

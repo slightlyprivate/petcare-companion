@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Pet;
 
 use App\Helpers\PetPaginationHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\PetListRequest;
-use App\Http\Requests\PetShowRequest;
-use App\Http\Requests\PetStoreRequest;
-use App\Http\Resources\PetResource;
+use App\Http\Requests\Pet\PetListRequest;
+use App\Http\Requests\Pet\PetShowRequest;
+use App\Http\Requests\Pet\PetStoreRequest;
+use App\Http\Resources\Pet\PetResource;
 use App\Models\Pet;
 use App\Services\Pet\PetService;
 

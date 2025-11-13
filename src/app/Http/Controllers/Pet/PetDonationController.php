@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Pet;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\DonationStoreRequest;
+use App\Http\Requests\Donation\DonationStoreRequest;
 use App\Models\Pet;
 use App\Services\Pet\PetDonationService;
 

@@ -1,23 +1,22 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Pet;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\Appointment\AppointmentResource;
 
 /**
  * Resource representation of a Pet.
  *
  * @group Pets
  */
-class PetResource extends JsonResource
+class PetResource extends \Illuminate\Http\Resources\Json\JsonResource
 {
     /**
      * Transform the resource into an array.
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+    public function toArray(\Illuminate\Http\Request $request): array
     {
         return [
             'id' => $this->id,

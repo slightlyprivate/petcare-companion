@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AuthShowRequest;
+use App\Http\Requests\Auth\AuthShowRequest;
 
 /**
  * Controller handling authentication-related actions.

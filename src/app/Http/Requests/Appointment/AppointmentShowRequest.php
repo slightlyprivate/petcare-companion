@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Appointment;
 
 /**
- * Request class for showing a pet.
+ * Request class for showing an appointment.
  *
- * @group Pets
+ * @group Appointments
  */
-class PetShowRequest extends \Illuminate\Foundation\Http\FormRequest
+class AppointmentShowRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +25,7 @@ class PetShowRequest extends \Illuminate\Foundation\Http\FormRequest
     public function rules(): array
     {
         return [
-            'include' => ['sometimes', 'string', 'in:appointments'],
+            'include' => ['sometimes', 'string', 'in:pet'],
         ];
     }
 
@@ -38,8 +38,8 @@ class PetShowRequest extends \Illuminate\Foundation\Http\FormRequest
     {
         return [
             'include' => [
-                'description' => 'Include related data (appointments).',
-                'example' => 'appointments',
+                'description' => 'Include related data (pet).',
+                'example' => 'pet',
             ],
         ];
     }
