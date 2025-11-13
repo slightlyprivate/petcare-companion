@@ -5,16 +5,16 @@ namespace App\Http\Requests\Auth\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Form request for updating notification preferences.
+ * Request class for exporting user data.
  */
-class NotificationPreferenceUpdateRequest extends FormRequest
+class ExportUserDataRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     /**
@@ -24,16 +24,6 @@ class NotificationPreferenceUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'type' => [
-                'required',
-                'string',
-                'in:otp,login,donation,pet_update,sms,email',
-            ],
-            'enabled' => [
-                'required',
-                'boolean',
-            ],
-        ];
+        return [];
     }
 }

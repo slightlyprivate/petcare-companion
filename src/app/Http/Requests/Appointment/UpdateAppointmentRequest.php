@@ -7,7 +7,7 @@ namespace App\Http\Requests\Appointment;
  *
  * @group Appointments
  */
-class AppointmentUpdateRequest extends \Illuminate\Foundation\Http\FormRequest
+class UpdateAppointmentRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

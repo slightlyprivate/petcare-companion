@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Http\Requests\Pet;
+namespace App\Http\Requests\Pet\Directory;
+
+use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Request class for listing pets.
+ * Request class for listing pets in the directory.
  *
  * @group Pets
  */
-class PetListRequest extends \Illuminate\Foundation\Http\FormRequest
+class ListPetDirectoryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,9 +30,9 @@ class PetListRequest extends \Illuminate\Foundation\Http\FormRequest
             'species' => ['sometimes', 'string', 'max:100'],
             'owner_name' => ['sometimes', 'string', 'max:255'],
             'name' => ['sometimes', 'string', 'max:255'],
-            'sort_by' => ['sometimes', 'string', 'in:name,species,owner_name'],
+            'sort_by' => ['sometimes', 'string', 'in:name,species,breed,owner_name,birth_date,created_at,popularity'],
             'sort_direction' => ['sometimes', 'string', 'in:asc,desc'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];
     }
 
@@ -55,15 +57,15 @@ class PetListRequest extends \Illuminate\Foundation\Http\FormRequest
                 'example' => 'Buddy',
             ],
             'sort_by' => [
-                'description' => 'Field to sort by.',
-                'example' => 'name',
+                'description' => 'Field to sort by (popularity sorts by total donations, descending by default).',
+                'example' => 'popularity',
             ],
             'sort_direction' => [
                 'description' => 'Sort direction (asc or desc).',
-                'example' => 'asc',
+                'example' => 'desc',
             ],
             'per_page' => [
-                'description' => 'Number of items per page (1-50).',
+                'description' => 'Number of items per page (1-100).',
                 'example' => 15,
             ],
         ];

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Pet\Public;
 
 use App\Helpers\PetPaginationHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Pet\PetDirectoryListRequest;
+use App\Http\Requests\Pet\Directory\ListPetDirectoryRequest;
 use App\Http\Resources\Pet\Directory\DirectoryPetResource;
 use App\Services\Pet\PetService;
 
@@ -32,7 +32,7 @@ class PetDirectoryController extends Controller
      * Returns public pets sorted by popularity (donation count) by default.
      * Includes total donations and donation count for discovery.
      */
-    public function index(PetDirectoryListRequest $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+    public function index(ListPetDirectoryRequest $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
         $helper = new PetPaginationHelper($request);
 

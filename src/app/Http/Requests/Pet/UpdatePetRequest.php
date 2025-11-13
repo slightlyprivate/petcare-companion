@@ -7,7 +7,7 @@ namespace App\Http\Requests\Pet;
  *
  * @group Pets
  */
-class PetUpdateRequest extends \Illuminate\Foundation\Http\FormRequest
+class UpdatePetRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

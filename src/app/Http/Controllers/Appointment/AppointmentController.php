@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Appointment;
 
 use App\Helpers\AppointmentPaginationHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Appointment\AppointmentListRequest;
-use App\Http\Requests\Appointment\AppointmentShowRequest;
-use App\Http\Requests\Appointment\AppointmentStoreRequest;
-use App\Http\Requests\Appointment\AppointmentUpdateRequest;
+use App\Http\Requests\Appointment\ListAppointmentRequest;
+use App\Http\Requests\Appointment\ShowAppointmentRequest;
+use App\Http\Requests\Appointment\StoreAppointmentRequest;
+use App\Http\Requests\Appointment\UpdateAppointmentRequest;
 use App\Http\Resources\Appointment\AppointmentResource;
 use App\Models\Appointment;
 use App\Services\Appointment\AppointmentService;
@@ -33,7 +33,7 @@ class AppointmentController extends Controller
     /**
      * Store a newly created appointment in storage.
      */
-    public function store(AppointmentStoreRequest $request)
+    public function store(StoreAppointmentRequest $request)
     {
         $appointment = $this->appointmentService->create($request->validated());
 
@@ -43,7 +43,7 @@ class AppointmentController extends Controller
     /**
      * Update the specified appointment in storage.
      */
-    public function update(AppointmentUpdateRequest $request, Appointment $appointment)
+    public function update(UpdateAppointmentRequest $request, Appointment $appointment)
     {
         $appointment = $this->appointmentService->update($appointment, $request->validated());
 
@@ -63,7 +63,7 @@ class AppointmentController extends Controller
     /**
      * Get a listing of all appointments.
      */
-    public function index(AppointmentListRequest $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+    public function index(ListAppointmentRequest $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
         $helper = new AppointmentPaginationHelper($request);
 
@@ -75,7 +75,7 @@ class AppointmentController extends Controller
     /**
      * Get the specified appointment.
      */
-    public function show(AppointmentShowRequest $request, Appointment $appointment): AppointmentResource
+    public function show(ShowAppointmentRequest $request, Appointment $appointment): AppointmentResource
     {
         $resource = $this->appointmentService->findById($appointment->id);
         // Load related pet if requested

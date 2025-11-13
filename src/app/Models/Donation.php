@@ -28,6 +28,8 @@ class Donation extends Model
         'pet_id',
         'amount_cents',
         'stripe_session_id',
+        'stripe_charge_id',
+        'stripe_metadata',
         'status',
         'completed_at',
     ];
@@ -40,6 +42,7 @@ class Donation extends Model
     protected $casts = [
         'amount_cents' => 'integer',
         'completed_at' => 'datetime',
+        'stripe_metadata' => 'array',
     ];
 
     /**
@@ -48,7 +51,7 @@ class Donation extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['user_id', 'pet_id', 'amount_cents', 'stripe_session_id', 'status', 'completed_at']);
+            ->logOnly(['user_id', 'pet_id', 'amount_cents', 'stripe_session_id', 'stripe_charge_id', 'status', 'completed_at']);
     }
 
     /**

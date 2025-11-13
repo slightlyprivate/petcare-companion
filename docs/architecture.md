@@ -34,7 +34,7 @@ This document explains the system architecture and design decisions for **PetCar
 
 ### 4. Validation Layer
 
-- Separate Form Request classes handle validation rules (`PetStoreRequest`, `AppointmentStoreRequest`, `DonationStoreRequest`).
+- Separate Form Request classes handle validation rules (`StorePetRequest`, `StoreAppointmentRequest`, `StoreDonationRequest`).
 - Ensures input sanitation and standardized 422 responses on validation failure.
 
 ### 5. Authorization Layer

@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
  *
  * @group Donations
  */
-class DonationStoreRequest extends FormRequest
+class StoreDonationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

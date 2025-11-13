@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Pet;
 
 use App\Helpers\AppointmentPaginationHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Appointment\AppointmentListRequest;
-use App\Http\Requests\Appointment\AppointmentStoreRequest;
+use App\Http\Requests\Appointment\ListAppointmentRequest;
+use App\Http\Requests\Appointment\StoreAppointmentRequest;
 use App\Http\Resources\Appointment\AppointmentResource;
 use App\Models\Pet;
 use App\Services\Pet\PetAppointmentService;
@@ -33,7 +33,7 @@ class PetAppointmentController extends Controller
     /**
      * Store a newly created appointment in storage.
      */
-    public function store(AppointmentStoreRequest $request, Pet $pet): \Illuminate\Http\JsonResponse
+    public function store(StoreAppointmentRequest $request, Pet $pet): \Illuminate\Http\JsonResponse
     {
         $appointment = $this->petAppointmentService->create($pet, $request->validated());
 
@@ -45,7 +45,7 @@ class PetAppointmentController extends Controller
     /**
      * Display a listing of appointments for a specific pet.
      */
-    public function index(AppointmentListRequest $request, Pet $pet): \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\Illuminate\Http\JsonResponse
+    public function index(ListAppointmentRequest $request, Pet $pet): \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\Illuminate\Http\JsonResponse
     {
         $helper = new AppointmentPaginationHelper($request);
 

@@ -2,14 +2,12 @@
 
 namespace App\Http\Requests\Pet;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 /**
- * Request class for listing pets in the directory.
+ * Request class for listing pets.
  *
  * @group Pets
  */
-class PetDirectoryListRequest extends FormRequest
+class ListPetRequest extends \Illuminate\Foundation\Http\FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -30,9 +28,9 @@ class PetDirectoryListRequest extends FormRequest
             'species' => ['sometimes', 'string', 'max:100'],
             'owner_name' => ['sometimes', 'string', 'max:255'],
             'name' => ['sometimes', 'string', 'max:255'],
-            'sort_by' => ['sometimes', 'string', 'in:name,species,breed,owner_name,birth_date,created_at,popularity'],
+            'sort_by' => ['sometimes', 'string', 'in:name,species,owner_name'],
             'sort_direction' => ['sometimes', 'string', 'in:asc,desc'],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ];
     }
 
@@ -57,15 +55,15 @@ class PetDirectoryListRequest extends FormRequest
                 'example' => 'Buddy',
             ],
             'sort_by' => [
-                'description' => 'Field to sort by (popularity sorts by total donations, descending by default).',
-                'example' => 'popularity',
+                'description' => 'Field to sort by.',
+                'example' => 'name',
             ],
             'sort_direction' => [
                 'description' => 'Sort direction (asc or desc).',
-                'example' => 'desc',
+                'example' => 'asc',
             ],
             'per_page' => [
-                'description' => 'Number of items per page (1-100).',
+                'description' => 'Number of items per page (1-50).',
                 'example' => 15,
             ],
         ];
