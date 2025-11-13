@@ -14,67 +14,83 @@ use App\Http\Controllers\Pet\Public\PetDirectoryController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
-// Auth endpoints
+// Auth endpoints - with rate limiting for sensitive operations
 Route::prefix('auth')->group(function () {
     Route::post('/request', [AuthRequestController::class, 'requestOtp'])
+        ->middleware('throttle:auth.otp')
         ->name('auth.request-otp');
     Route::post('/verify', [AuthVerificationController::class, 'verifyOtp'])
+        ->middleware('throttle:auth.verify')
         ->name('auth.verify-otp');
     Route::get('/me', [AuthController::class, 'show'])
         ->middleware('auth:sanctum')
         ->name('auth.me');
 });
 
-// Public endpoints
+// Public endpoints (no rate limiting)
 Route::prefix('public')->group(function () {
     Route::get('pets', [PetDirectoryController::class, 'index'])->name('public.pets.index');
 });
 
+// Webhook endpoints (no authentication required) - with rate limiting
+Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
+    ->middleware('throttle:webhook.stripe')
+    ->name('webhooks.stripe');
+
 // Authenticated endpoints
 Route::middleware('auth:sanctum')->group(function () {
-    // Appointment endpoints
-    Route::prefix('appointments')
-        ->group(function () {
-            Route::post('/', [AppointmentController::class, 'store'])->name('appointments.store');
-            Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
-            Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
-            Route::delete('/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
-        });
-    // Donation endpoints
-    Route::prefix('donations')
-        ->group(function () {
-            Route::get('/{id}/receipt', [DonationController::class, 'exportReceipt'])->name('donations.receipt.export');
-        });
-    // Pet endpoints
-    Route::prefix('pets')
-        ->group(function () {
-            Route::get('/', [PetController::class, 'index'])->name('pets.index');
-            Route::post('/', [PetController::class, 'store'])->name('pets.store');
-            Route::get('/{pet}', [PetController::class, 'show'])->name('pets.show');
-            Route::put('/{pet}', [PetController::class, 'update'])->name('pets.update');
-            Route::delete('/{pet}', [PetController::class, 'destroy'])->name('pets.destroy');
+    // Read operations (no rate limiting)
+    Route::prefix('appointments')->group(function () {
+        Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
+    });
 
-            // Pet appointments endpoints
-            Route::get('/{pet}/appointments', [PetAppointmentController::class, 'index'])->name('pets.appointments.index');
-            Route::post('/{pet}/appointments', [PetAppointmentController::class, 'store'])->name('pets.appointments.store');
+    Route::prefix('donations')->group(function () {
+        Route::get('/{id}/receipt', [DonationController::class, 'exportReceipt'])->name('donations.receipt.export');
+    });
 
-            // Pet donations endpoint
-            Route::post('/{pet}/donate', [PetDonationController::class, 'store'])->name('pets.donations.store');
-        });
-    // User endpoints
-    Route::prefix('user')
-        ->group(function () {
-            // User data
-            Route::get('/data/export', [UserDataController::class, 'exportData'])->name('user.data.export');
-            Route::delete('/data/delete', [UserDataController::class, 'deleteData'])->name('user.data.delete');
+    Route::prefix('pets')->group(function () {
+        Route::get('/', [PetController::class, 'index'])->name('pets.index');
+        Route::get('/{pet}', [PetController::class, 'show'])->name('pets.show');
+        Route::get('/{pet}/appointments', [PetAppointmentController::class, 'index'])->name('pets.appointments.index');
+    });
 
-            // Notification preferences
-            Route::get('/notification-preferences', [NotificationPreferenceController::class, 'index'])->name('user.notification-preferences.index');
-            Route::put('/notification-preferences', [NotificationPreferenceController::class, 'update'])->name('user.notification-preferences.update');
-            Route::post('/notification-preferences/disable-all', [NotificationPreferenceController::class, 'disableAll'])->name('user.notification-preferences.disable-all');
-            Route::post('/notification-preferences/enable-all', [NotificationPreferenceController::class, 'enableAll'])->name('user.notification-preferences.enable-all');
-        });
+    Route::prefix('user')->group(function () {
+        Route::get('/notification-preferences', [NotificationPreferenceController::class, 'index'])->name('user.notification-preferences.index');
+    });
+
+    // Write operations - Appointment endpoints (throttle:appointment.write)
+    Route::middleware('throttle:appointment.write')->group(function () {
+        Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
+        Route::put('/appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
+        Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+        Route::post('/pets/{pet}/appointments', [PetAppointmentController::class, 'store'])->name('pets.appointments.store');
+    });
+
+    // Write operations - Pet endpoints (throttle:pet.write)
+    Route::middleware('throttle:pet.write')->group(function () {
+        Route::post('/pets', [PetController::class, 'store'])->name('pets.store');
+        Route::put('/pets/{pet}', [PetController::class, 'update'])->name('pets.update');
+        Route::delete('/pets/{pet}', [PetController::class, 'destroy'])->name('pets.destroy');
+    });
+
+    // Write operations - Donation endpoints (throttle:donation.write)
+    Route::middleware('throttle:donation.write')->group(function () {
+        Route::post('/pets/{pet}/donate', [PetDonationController::class, 'store'])->name('pets.donations.store');
+    });
+
+    // Write operations - Notification endpoints (throttle:notification.write)
+    Route::middleware('throttle:notification.write')->group(function () {
+        Route::put('/user/notification-preferences', [NotificationPreferenceController::class, 'update'])->name('user.notification-preferences.update');
+        Route::post('/user/notification-preferences/disable-all', [NotificationPreferenceController::class, 'disableAll'])->name('user.notification-preferences.disable-all');
+        Route::post('/user/notification-preferences/enable-all', [NotificationPreferenceController::class, 'enableAll'])->name('user.notification-preferences.enable-all');
+    });
+
+    // User data endpoints (strict rate limiting)
+    Route::middleware('throttle:user.data.export')->group(function () {
+        Route::get('/user/data/export', [UserDataController::class, 'exportData'])->name('user.data.export');
+    });
+
+    Route::middleware('throttle:user.data.delete')->group(function () {
+        Route::delete('/user/data/delete', [UserDataController::class, 'deleteData'])->name('user.data.delete');
+    });
 });
-
-// Webhook endpoints (no authentication required)
-Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])->name('webhooks.stripe');

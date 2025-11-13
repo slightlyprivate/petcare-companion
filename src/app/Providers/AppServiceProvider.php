@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Channels\TwilioChannel;
+use App\Helpers\RateLimitHelper;
 use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimitHelper::configure();
+
         $this->app->make(ChannelManager::class)->extend('twilio', function ($app) {
             return $app->make(TwilioChannel::class);
         });
