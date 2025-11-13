@@ -4,6 +4,7 @@ use App\Http\Controllers\Appointment\AppointmentController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthRequestController;
 use App\Http\Controllers\Auth\AuthVerificationController;
+use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetController;
 use App\Http\Controllers\Pet\PetDonationController;
@@ -47,6 +48,16 @@ Route::prefix('appointments')
         Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
         Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::delete('/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+    });
+
+// Notification preference endpoints
+Route::prefix('user')
+    ->middleware('auth:sanctum')
+    ->group(function () {
+        Route::get('/notification-preferences', [NotificationPreferenceController::class, 'index'])->name('notification-preferences.index');
+        Route::put('/notification-preferences', [NotificationPreferenceController::class, 'update'])->name('notification-preferences.update');
+        Route::post('/notification-preferences/disable-all', [NotificationPreferenceController::class, 'disableAll'])->name('notification-preferences.disable-all');
+        Route::post('/notification-preferences/enable-all', [NotificationPreferenceController::class, 'enableAll'])->name('notification-preferences.enable-all');
     });
 
 // Webhook endpoints (no authentication required)

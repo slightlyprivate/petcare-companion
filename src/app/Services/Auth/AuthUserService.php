@@ -3,7 +3,10 @@
 namespace App\Services\Auth;
 
 use App\Exceptions\OtpVerificationFailedException;
+use App\Helpers\NotificationHelper;
 use App\Models\User;
+use App\Notifications\LoginSuccessNotification;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Service for handling user authentication via OTP.
@@ -49,6 +52,11 @@ class AuthUserService
 
         $user = $this->create($email);
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Send login success notification if enabled
+        if (NotificationHelper::isNotificationEnabled($user, 'login')) {
+            Notification::send($user, new LoginSuccessNotification($user));
+        }
 
         return [$user, $token];
     }

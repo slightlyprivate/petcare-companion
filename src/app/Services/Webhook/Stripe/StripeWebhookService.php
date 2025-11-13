@@ -2,8 +2,11 @@
 
 namespace App\Services\Webhook\Stripe;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Donation;
+use App\Notifications\DonationSuccessNotification;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Service for handling Stripe webhooks.
@@ -87,6 +90,11 @@ class StripeWebhookService
 
         // Mark donation as paid
         $donation->markAsPaid();
+
+        // Send donation success notification to user if enabled
+        if (NotificationHelper::isNotificationEnabled($donation->user, 'donation')) {
+            Notification::send($donation->user, new DonationSuccessNotification($donation));
+        }
 
         Log::info('Donation marked as paid via webhook', [
             'donation_id' => $donation->id,

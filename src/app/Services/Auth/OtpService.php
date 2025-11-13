@@ -2,7 +2,11 @@
 
 namespace App\Services\Auth;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Otp;
+use App\Models\User;
+use App\Notifications\OtpSentNotification;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Service for handling OTP operations.
@@ -48,10 +52,16 @@ class OtpService
      */
     public function sendOtpEmail(string $email, string $code): void
     {
-        // Send email (replace with notification or mailable)
-        \Illuminate\Support\Facades\Mail::raw("Your OTP is $code", function ($message) use ($email) {
-            $message->to($email)->subject('Your OTP Code');
-        });
+        // Find or create a user for this email to send notifications
+        $user = User::firstOrCreate(
+            ['email' => $email],
+            ['role' => 'user']
+        );
+
+        // Check if user has OTP notifications enabled before sending
+        if (NotificationHelper::isNotificationEnabled($user, 'otp')) {
+            Notification::send($user, new OtpSentNotification($code, $email));
+        }
     }
 
     /**

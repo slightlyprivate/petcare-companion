@@ -2,10 +2,13 @@
 
 namespace App\Services\Pet;
 
+use App\Helpers\NotificationHelper;
 use App\Helpers\PetPaginationHelper;
 use App\Models\Pet;
 use App\Models\User;
+use App\Notifications\PetUpdatedNotification;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 /**
  * Service for managing pets.
@@ -31,7 +34,15 @@ class PetService
      */
     public function update(Pet $pet, array $data): Pet
     {
+        // Track changes for notification
+        $changes = array_diff_assoc($data, $pet->getAttributes());
+
         $pet->update($data);
+
+        // Send pet updated notification to owner if there are changes and preference is enabled
+        if (! empty($changes) && $pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_update')) {
+            Notification::send($pet->user, new PetUpdatedNotification($pet, $changes));
+        }
 
         return $pet;
     }
