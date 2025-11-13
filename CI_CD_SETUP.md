@@ -24,8 +24,9 @@ Runs the complete PHPUnit test suite across multiple PHP versions.
 1. Checkout code
 2. Setup PHP with required extensions
 3. Install Composer dependencies
-4. Generate app encryption key for testing environment
-5. Execute test suite (`php artisan test`)
+4. Copy `.env.example` to `.env` for testing environment
+5. Generate app encryption key for testing environment
+6. Execute test suite (`php artisan test`)
 
 **Configuration:**
 
