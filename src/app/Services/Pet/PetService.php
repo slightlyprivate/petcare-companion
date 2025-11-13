@@ -2,6 +2,7 @@
 
 namespace App\Services\Pet;
 
+use App\Exceptions\Pet\PetRestoreFailedException;
 use App\Helpers\NotificationHelper;
 use App\Helpers\PetPaginationHelper;
 use App\Models\Pet;
@@ -53,6 +54,18 @@ class PetService
     public function delete(Pet $pet): void
     {
         $pet->delete();
+    }
+
+    /**
+     * Restore a soft-deleted pet.
+     */
+    public function restore(Pet $pet): void
+    {
+        if ($pet->trashed() === false) {
+            throw new PetRestoreFailedException;
+        }
+
+        $pet->restore();
     }
 
     /**

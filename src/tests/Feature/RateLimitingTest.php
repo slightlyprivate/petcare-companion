@@ -32,9 +32,9 @@ class RateLimitingTest extends TestCase
         for ($i = 0; $i < 20; $i++) {
             $response = $this->actingAs($user, 'sanctum')
                 ->postJson('/api/pets', [
-                    'name' => 'Pet ' . $i,
+                    'name' => 'Pet '.$i,
                     'species' => 'dog',
-                    'owner_name' => 'Owner ' . $i,
+                    'owner_name' => 'Owner '.$i,
                 ]);
 
             // All should succeed (might fail due to validation, but not rate limit)
@@ -138,9 +138,9 @@ class RateLimitingTest extends TestCase
         for ($i = 0; $i < 10; $i++) {
             $response = $this->actingAs($user1, 'sanctum')
                 ->postJson('/api/pets', [
-                    'name' => 'Pet ' . $i,
+                    'name' => 'Pet '.$i,
                     'species' => 'dog',
-                    'owner_name' => 'Owner ' . $i,
+                    'owner_name' => 'Owner '.$i,
                 ]);
 
             $this->assertNotEquals(429, $response->status());

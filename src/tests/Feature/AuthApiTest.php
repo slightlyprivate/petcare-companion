@@ -25,7 +25,7 @@ class AuthApiTest extends TestCase
         ]);
 
         $response->assertStatus(200)
-            ->assertJson(['message' => 'OTP sent']);
+            ->assertJson(['message' => __('auth.otp.sent')]);
 
         // Verify OTP was created
         $this->assertDatabaseHas('otps', [

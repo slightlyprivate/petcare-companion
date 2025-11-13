@@ -10,6 +10,7 @@ use App\Http\Controllers\Donation\DonationController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetController;
 use App\Http\Controllers\Pet\PetDonationController;
+use App\Http\Controllers\Pet\PetRestoreController;
 use App\Http\Controllers\Pet\Public\PetDirectoryController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -45,7 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('donations')->group(function () {
-        Route::get('/{id}/receipt', [DonationController::class, 'exportReceipt'])->name('donations.receipt.export');
+        Route::get('/{donation}/receipt', [DonationController::class, 'exportReceipt'])->name('donations.receipt.export');
     });
 
     Route::prefix('pets')->group(function () {
@@ -71,6 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pets', [PetController::class, 'store'])->name('pets.store');
         Route::put('/pets/{pet}', [PetController::class, 'update'])->name('pets.update');
         Route::delete('/pets/{pet}', [PetController::class, 'destroy'])->name('pets.destroy');
+        Route::post('/pets/{pet}/restore', [PetRestoreController::class, 'restore'])->name('pets.restore');
     });
 
     // Write operations - Donation endpoints (throttle:donation.write)

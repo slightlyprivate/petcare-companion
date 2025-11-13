@@ -23,13 +23,11 @@ class DonationController extends Controller
     /**
      * Export a donation receipt.
      */
-    public function exportReceipt(ExportDonationReceiptRequest $request, string $id): \Illuminate\Http\Response
+    public function exportReceipt(ExportDonationReceiptRequest $request, Donation $donation): \Illuminate\Http\Response
     {
-        $donation = Donation::findOrFail($id);
-
         // Check if user owns this donation
         if ($donation->user_id !== $request->user()->id) {
-            throw new AuthorizationException('Unauthorized to access this donation');
+            throw new AuthorizationException;
         }
 
         $pdfContent = $this->donationService->exportReceiptAsFile($donation);
