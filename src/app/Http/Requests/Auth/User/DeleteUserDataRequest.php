@@ -26,4 +26,12 @@ class DeleteUserDataRequest extends FormRequest
     {
         return [];
     }
+
+    /**
+     * Get the body parameters for this request.
+     */
+    public function bodyParameters(): array
+    {
+        return [];
+    }
 }

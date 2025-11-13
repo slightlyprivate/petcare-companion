@@ -36,4 +36,21 @@ class UpdateNotificationPreferenceRequest extends FormRequest
             ],
         ];
     }
+
+    /**
+     * Get the body parameters for this request.
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'type' => [
+                'description' => 'Notification type (otp, login, donation, pet_update, sms, email)',
+                'example' => 'email',
+            ],
+            'enabled' => [
+                'description' => 'Whether the notification type is enabled',
+                'example' => true,
+            ],
+        ];
+    }
 }
