@@ -13,36 +13,68 @@ namespace App\Constants;
 class CreditConstants
 {
     /**
-     * The value of 1 credit in cents (USD).
+     * The credit to dollar ratio.
      *
-     * Standard: 1 credit = $1.00 = 100 cents
+     * Standard: 5 credits = $1.00 (100 cents)
+     * This means 1 credit = 20 cents
      *
      * This constant is used throughout the application for:
      * - Converting credits to stripe checkout amounts
      * - Displaying total gift values to users
      * - Calculating donation totals in public directory views
      */
-    public const int CREDIT_VALUE_IN_CENTS = 100;
+    public const int CREDITS_PER_DOLLAR = 5;
+
+    /**
+     * The value of 1 credit in cents (USD).
+     *
+     * Calculated as: $1.00 / 5 credits = $0.20 per credit = 20 cents
+     *
+     * @deprecated Use CREDITS_PER_DOLLAR instead
+     */
+    public const int CREDIT_VALUE_IN_CENTS = 20;
 
     /**
      * Get the dollar amount for a given number of credits.
      *
      * @param  int  $credits  The number of credits to convert
-     * @return float The equivalent dollar amount
+     * @return float The equivalent dollar amount (e.g., 5 credits = 1.00)
      */
     public static function toDollars(int $credits): float
     {
-        return $credits * self::CREDIT_VALUE_IN_CENTS / 100;
+        return $credits / self::CREDITS_PER_DOLLAR;
     }
 
     /**
      * Get the cent amount for a given number of credits.
      *
      * @param  int  $credits  The number of credits to convert
-     * @return int The equivalent amount in cents
+     * @return int The equivalent amount in cents (e.g., 5 credits = 100 cents)
      */
     public static function toCents(int $credits): int
     {
-        return $credits * self::CREDIT_VALUE_IN_CENTS;
+        return (int) round($credits * self::CREDIT_VALUE_IN_CENTS);
+    }
+
+    /**
+     * Get the number of credits for a given dollar amount.
+     *
+     * @param  float  $dollars  The dollar amount to convert
+     * @return int The equivalent number of credits
+     */
+    public static function fromDollars(float $dollars): int
+    {
+        return (int) round($dollars * self::CREDITS_PER_DOLLAR);
+    }
+
+    /**
+     * Get the number of credits for a given cent amount.
+     *
+     * @param  int  $cents  The cent amount to convert
+     * @return int The equivalent number of credits
+     */
+    public static function fromCents(int $cents): int
+    {
+        return (int) round($cents / self::CREDIT_VALUE_IN_CENTS);
     }
 }

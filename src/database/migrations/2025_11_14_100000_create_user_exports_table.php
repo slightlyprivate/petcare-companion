@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('user_exports', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id')->index();
+            $table->bigInteger('user_id')->unsigned()->index();
             $table->string('file_path');
             $table->string('file_name');
             $table->dateTime('expires_at')->index();

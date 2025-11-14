@@ -3,8 +3,10 @@
 namespace App\Services\Webhook\Stripe;
 
 use App\Helpers\NotificationHelper;
+use App\Models\CreditPurchase;
 use App\Models\Gift;
 use App\Notifications\Gift\GiftSuccessNotification;
+use App\Services\Credit\CreditPurchaseService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
@@ -13,6 +15,13 @@ use Illuminate\Support\Facades\Notification;
  */
 class StripeWebhookService
 {
+    private CreditPurchaseService $creditPurchaseService;
+
+    public function __construct(?CreditPurchaseService $creditPurchaseService = null)
+    {
+        $this->creditPurchaseService = $creditPurchaseService ?? new CreditPurchaseService;
+    }
+
     /**
      * Handle incoming Stripe webhook.
      */
@@ -74,10 +83,19 @@ class StripeWebhookService
      */
     protected function handleCheckoutSessionCompleted(array $session): void
     {
+        // Check if this is a credit purchase
+        $purchaseId = $session['metadata']['purchase_id'] ?? null;
+        if ($purchaseId) {
+            $this->handleCreditPurchaseCompletion($session);
+
+            return;
+        }
+
+        // Otherwise handle as gift
         $giftId = $session['metadata']['gift_id'] ?? null;
 
         if (! $giftId) {
-            Log::warning('Checkout session completed without gift_id in metadata', [
+            Log::warning('Checkout session completed without gift_id or purchase_id in metadata', [
                 'session_id' => $session['id'],
             ]);
 
@@ -156,6 +174,80 @@ class StripeWebhookService
             'pet_id' => $gift->pet_id,
             'user_id' => $gift->user_id,
         ]);
+    }
+
+    /**
+     * Handle credit purchase completion via webhook.
+     */
+    protected function handleCreditPurchaseCompletion(array $session): void
+    {
+        $purchaseId = $session['metadata']['purchase_id'] ?? null;
+
+        if (! $purchaseId) {
+            Log::warning('Credit purchase session completed without purchase_id in metadata', [
+                'session_id' => $session['id'],
+            ]);
+
+            return;
+        }
+
+        $purchase = CreditPurchase::where('stripe_session_id', $session['id'])->first();
+
+        if (! $purchase) {
+            Log::warning('Credit purchase not found for completed checkout session', [
+                'session_id' => $session['id'],
+                'purchase_id' => $purchaseId,
+            ]);
+
+            return;
+        }
+
+        if ($purchase->status === 'completed') {
+            Log::info('Credit purchase already marked as completed', [
+                'purchase_id' => $purchase->id,
+                'session_id' => $session['id'],
+            ]);
+
+            return;
+        }
+
+        try {
+            $chargeId = null;
+
+            // Retrieve charge ID from payment intent if available
+            if ($session['payment_intent']) {
+                try {
+                    \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+                    $paymentIntent = $this->retrievePaymentIntentWithRetry($session['payment_intent'], 3);
+
+                    if ($paymentIntent && $paymentIntent->charges && $paymentIntent->charges->count() > 0) {
+                        $chargeId = $paymentIntent->charges->first()->id;
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Could not retrieve charge ID for credit purchase', [
+                        'purchase_id' => $purchase->id,
+                        'payment_intent' => $session['payment_intent'],
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Complete the purchase and update wallet
+            $this->creditPurchaseService->completePurchase($session['id'], $chargeId);
+
+            Log::info('Credit purchase completed and wallet updated via webhook', [
+                'purchase_id' => $purchase->id,
+                'session_id' => $session['id'],
+                'credits' => $purchase->credits,
+                'user_id' => $purchase->user_id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to complete credit purchase via webhook', [
+                'purchase_id' => $purchase->id,
+                'session_id' => $session['id'],
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

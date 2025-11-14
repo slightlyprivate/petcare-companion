@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\AuthVerificationController;
 use App\Http\Controllers\Auth\User\NotificationPreferenceController;
 use App\Http\Controllers\Auth\User\UserDataController;
 use App\Http\Controllers\Auth\User\UserExportDownloadController;
+use App\Http\Controllers\Credit\CreditPurchaseController;
 use App\Http\Controllers\Gift\GiftController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetController;
@@ -50,6 +51,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{gift}/receipt', [GiftController::class, 'exportReceipt'])->name('gifts.receipt.export');
     });
 
+    Route::prefix('credits')->group(function () {
+        Route::get('/{creditPurchase}', [CreditPurchaseController::class, 'show'])->name('credits.show');
+    });
+
     Route::prefix('pets')->group(function () {
         Route::get('/', [PetController::class, 'index'])->name('pets.index');
         Route::get('/{pet}', [PetController::class, 'show'])->name('pets.show');
@@ -79,6 +84,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Write operations - Gift endpoints (throttle:gift.write)
     Route::middleware('throttle:gift.write')->group(function () {
         Route::post('/pets/{pet}/gifts', [PetGiftController::class, 'store'])->name('pets.gifts.store');
+    });
+
+    // Write operations - Credit endpoints (throttle:credit.write)
+    Route::middleware('throttle:credit.write')->group(function () {
+        Route::post('/credits/purchase', [CreditPurchaseController::class, 'store'])->name('credits.purchase');
     });
 
     // Write operations - Notification endpoints (throttle:notification.write)
