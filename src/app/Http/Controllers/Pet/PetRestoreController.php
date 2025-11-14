@@ -12,6 +12,8 @@ use Illuminate\Http\JsonResponse;
 /**
  * Controller for restoring soft-deleted pets.
  *
+ * @authenticated
+ *
  * @group Pets
  */
 class PetRestoreController extends Controller

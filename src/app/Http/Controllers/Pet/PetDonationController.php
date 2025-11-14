@@ -8,7 +8,9 @@ use App\Models\Pet;
 use App\Services\Pet\PetDonationService;
 
 /**
- * Controller for handling pet donation operations.
+ * Controller for managing pet donations.
+ *
+ * @authenticated
  *
  * @group Donations
  */

@@ -8,6 +8,8 @@ use App\Http\Requests\Auth\AuthShowRequest;
 /**
  * Controller handling authentication-related actions.
  *
+ * @authenticated
+ *
  * @group Authentication
  */
 class AuthController extends Controller

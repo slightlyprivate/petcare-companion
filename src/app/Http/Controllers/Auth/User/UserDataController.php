@@ -12,6 +12,8 @@ use Illuminate\Http\JsonResponse;
 /**
  * Controller for managing user data export and deletion (GDPR compliance).
  *
+ * @authenticated
+ *
  * @group User Data
  */
 class UserDataController extends Controller

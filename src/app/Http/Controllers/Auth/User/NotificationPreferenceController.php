@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Log;
 /**
  * Controller for managing user notification preferences.
  *
+ * @authenticated
+ *
  * @group Notification Preferences
  */
 class NotificationPreferenceController extends Controller

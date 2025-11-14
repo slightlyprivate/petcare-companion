@@ -14,6 +14,8 @@ use App\Services\Pet\PetService;
 /**
  * Controller for managing pets.
  *
+ * @authenticated
+ *
  * @group Pets
  */
 class PetController extends Controller

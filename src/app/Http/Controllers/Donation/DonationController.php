@@ -11,6 +11,8 @@ use Illuminate\Auth\Access\AuthorizationException;
 /**
  * Controller for managing donations.
  *
+ * @authenticated
+ *
  * @group Donations
  */
 class DonationController extends Controller
