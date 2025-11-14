@@ -22,14 +22,15 @@ class CreditConversionAccuracyTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Test that credit constant converts 1 credit to 100 cents ($1.00).
+     * Test that credit constant converts 5 credits to 100 cents ($1.00).
      */
     #[Test]
-    public function credit_constant_converts_one_credit_to_one_dollar(): void
+    public function credit_constant_converts_five_credits_to_one_dollar(): void
     {
-        $this->assertEquals(100, CreditConstants::CREDIT_VALUE_IN_CENTS);
-        $this->assertEquals(100, CreditConstants::toCents(1));
-        $this->assertEquals(1.0, CreditConstants::toDollars(1));
+        $this->assertEquals(20, CreditConstants::CREDIT_VALUE_IN_CENTS);
+        $this->assertEquals(20, CreditConstants::toCents(1));
+        $this->assertEquals(0.20, CreditConstants::toDollars(1));
+        $this->assertEquals(5, CreditConstants::CREDITS_PER_DOLLAR);
     }
 
     /**
@@ -38,21 +39,21 @@ class CreditConversionAccuracyTest extends TestCase
     #[Test]
     public function credit_conversion_is_accurate_for_common_amounts(): void
     {
-        // Small gift: 50 credits = $50.00 = 5000 cents
-        $this->assertEquals(5000, CreditConstants::toCents(50));
-        $this->assertEquals(50.0, CreditConstants::toDollars(50));
+        // Small gift: 50 credits = $10.00 = 1000 cents
+        $this->assertEquals(1000, CreditConstants::toCents(50));
+        $this->assertEquals(10.0, CreditConstants::toDollars(50));
 
-        // Medium gift: 100 credits = $100.00 = 10000 cents
-        $this->assertEquals(10000, CreditConstants::toCents(100));
-        $this->assertEquals(100.0, CreditConstants::toDollars(100));
+        // Medium gift: 100 credits = $20.00 = 2000 cents
+        $this->assertEquals(2000, CreditConstants::toCents(100));
+        $this->assertEquals(20.0, CreditConstants::toDollars(100));
 
-        // Large gift: 350 credits = $350.00 = 35000 cents
-        $this->assertEquals(35000, CreditConstants::toCents(350));
-        $this->assertEquals(350.0, CreditConstants::toDollars(350));
+        // Large gift: 350 credits = $70.00 = 7000 cents
+        $this->assertEquals(7000, CreditConstants::toCents(350));
+        $this->assertEquals(70.0, CreditConstants::toDollars(350));
 
-        // Large gift: 1000 credits = $1000.00 = 100000 cents
-        $this->assertEquals(100000, CreditConstants::toCents(1000));
-        $this->assertEquals(1000.0, CreditConstants::toDollars(1000));
+        // Large gift: 1000 credits = $200.00 = 20000 cents
+        $this->assertEquals(20000, CreditConstants::toCents(1000));
+        $this->assertEquals(200.0, CreditConstants::toDollars(1000));
     }
 
     /**
@@ -100,11 +101,11 @@ class CreditConversionAccuracyTest extends TestCase
 
         // Verify conversion to cents
         $expectedCents = CreditConstants::toCents($totalCredits);
-        $this->assertEquals(35000, $expectedCents);
+        $this->assertEquals(7000, $expectedCents);
 
         // Verify conversion to dollars
         $expectedDollars = CreditConstants::toDollars($totalCredits);
-        $this->assertEquals(350.0, $expectedDollars);
+        $this->assertEquals(70.0, $expectedDollars);
     }
 
     /**
@@ -116,16 +117,18 @@ class CreditConversionAccuracyTest extends TestCase
     #[Test]
     public function large_gift_conversion_maintains_accuracy(): void
     {
-        $largeGiftCredits = 10000; // $10,000
+        $largeGiftCredits = 10000; // $2,000 (10000 credits / 5 = $2000)
 
         $cents = CreditConstants::toCents($largeGiftCredits);
         $dollars = CreditConstants::toDollars($largeGiftCredits);
 
-        $this->assertEquals(1000000, $cents);
-        $this->assertEquals(10000.0, $dollars);
+        $this->assertEquals(200000, $cents);
+        $this->assertEquals(2000.0, $dollars);
 
-        // Verify round-trip conversion
-        $roundTripCents = CreditConstants::toCents((int) $dollars);
+        // Verify round-trip conversion: cents -> credits -> cents
+        $roundTripCredits = CreditConstants::fromCents($cents);
+        $roundTripCents = CreditConstants::toCents($roundTripCredits);
+        $this->assertEquals($largeGiftCredits, $roundTripCredits);
         $this->assertEquals($cents, $roundTripCents);
     }
 
@@ -136,8 +139,8 @@ class CreditConversionAccuracyTest extends TestCase
      * was actually charged in Stripe (avoiding "$15 gifted" but only "$7.50 received").
      *
      * Example scenario:
-     * - User sends 350 credit gift (calculated as $350.00 in Stripe)
-     * - Directory should show: total_gifts = 350 (credits), total_gifts_cents = 35000
+     * - User sends 175 credit gift (calculated as $35.00 in Stripe)
+     * - Directory should show: total_gifts = 175 (credits), total_gifts_cents = 3500
      * - This must match Stripe's charge amount
      */
     #[Test]
@@ -148,7 +151,7 @@ class CreditConversionAccuracyTest extends TestCase
         $pet = Pet::factory()->create();
 
         // Create gift that was actually paid via Stripe
-        $giftCredits = 175; // $175.00
+        $giftCredits = 175; // $35.00 (175 credits / 5 = $35)
         $expectedStripeCents = CreditConstants::toCents($giftCredits);
 
         $gift = Gift::factory()->create([
@@ -157,7 +160,7 @@ class CreditConversionAccuracyTest extends TestCase
             'cost_in_credits' => $giftCredits,
             'status' => 'paid',
             'stripe_metadata' => [
-                'amount' => $expectedStripeCents, // 17500 cents
+                'amount' => $expectedStripeCents, // 3500 cents
                 'currency' => 'usd',
                 'payment_method' => 'card',
             ],
@@ -177,8 +180,8 @@ class CreditConversionAccuracyTest extends TestCase
         $displayDollars = $displayCents / 100; // Convert cents to dollars
 
         $this->assertEquals(175, $sumCredits);
-        $this->assertEquals(17500, $displayCents);
-        $this->assertEquals(175.0, $displayDollars);
+        $this->assertEquals(3500, $displayCents);
+        $this->assertEquals(35.0, $displayDollars);
     }
 
     /**
@@ -225,8 +228,8 @@ class CreditConversionAccuracyTest extends TestCase
         $displayCents = CreditConstants::toCents($sumCredits);
         $displayDollars = $displayCents / 100;
 
-        $this->assertEquals(45000, $displayCents);
-        $this->assertEquals(450.0, $displayDollars);
+        $this->assertEquals(9000, $displayCents);
+        $this->assertEquals(90.0, $displayDollars);
     }
 
     /**
@@ -273,7 +276,7 @@ class CreditConversionAccuracyTest extends TestCase
 
         // Verify directory display
         $displayCents = CreditConstants::toCents($paidSum);
-        $this->assertEquals(10000, $displayCents);
+        $this->assertEquals(2000, $displayCents);
     }
 
     /**
@@ -358,6 +361,6 @@ class CreditConversionAccuracyTest extends TestCase
 
         // Verify the amounts match
         $this->assertEquals($expectedStripeCents, $stripeAmount);
-        $this->assertEquals(17500, $stripeAmount); // 175 dollars = 17500 cents
+        $this->assertEquals(3500, $stripeAmount); // 175 credits = 3500 cents ($35.00)
     }
 }

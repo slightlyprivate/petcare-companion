@@ -15,5 +15,5 @@ return [
             'invalid_bundle' => 'The selected credit bundle is not available.',
             'invalid_return_url' => 'The return URL provided is not valid.',
         ],
-    ]
+    ],
 ];
