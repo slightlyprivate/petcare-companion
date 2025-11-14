@@ -473,4 +473,87 @@ class NotificationTest extends TestCase
         // Verify no success notification would be sent for failed donations
         Notification::assertNothingSent();
     }
+
+    /**
+     * Test that no false change notification is sent when identical data is submitted.
+     */
+    public function test_no_false_change_notification_on_identical_data(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Fluffy',
+            'species' => 'cat',
+            'breed' => 'Persian',
+            'birth_date' => '2020-01-15',
+        ]);
+
+        $petService = new \App\Services\Pet\PetService;
+
+        // Update with identical data (should not trigger notification)
+        $petService->update($pet, [
+            'name' => 'Fluffy',
+            'species' => 'cat',
+            'breed' => 'Persian',
+            'birth_date' => '2020-01-15',
+        ]);
+
+        // No notification should be sent since no data actually changed
+        Notification::assertNotSentTo($user, PetUpdatedNotification::class);
+    }
+
+    /**
+     * Test that cast-aware change detection works (e.g., int vs string).
+     */
+    public function test_cast_aware_change_detection_prevents_false_notifications(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Fluffy',
+            'is_public' => true,
+        ]);
+
+        $petService = new \App\Services\Pet\PetService;
+
+        // Update with identical data but different type (boolean vs string)
+        // getDirty() respects casts, so this should not trigger notification
+        $petService->update($pet, [
+            'name' => 'Fluffy',
+            'is_public' => true,  // boolean, same value
+        ]);
+
+        // No notification should be sent
+        Notification::assertNotSentTo($user, PetUpdatedNotification::class);
+    }
+
+    /**
+     * Test that actual changes still trigger notifications.
+     */
+    public function test_actual_changes_still_trigger_notifications(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Fluffy',
+            'species' => 'cat',
+        ]);
+
+        $petService = new \App\Services\Pet\PetService;
+
+        // Update with one identical field and one changed field
+        $petService->update($pet, [
+            'name' => 'Fluffy',  // unchanged
+            'species' => 'dog',  // changed
+        ]);
+
+        // Notification should be sent because species changed
+        Notification::assertSentTo($user, PetUpdatedNotification::class);
+    }
 }

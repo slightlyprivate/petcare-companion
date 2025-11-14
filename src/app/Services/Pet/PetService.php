@@ -44,10 +44,11 @@ class PetService
      */
     public function update(Pet $pet, array $data): Pet
     {
-        // Track changes for notification
-        $changes = array_diff_assoc($data, $pet->getAttributes());
+        $pet->fill($data);
 
-        $pet->update($data);
+        $changes = $pet->getDirty();
+
+        $pet->save();
 
         // Send pet updated notification to owner if there are changes and preference is enabled
         if (! empty($changes) && $pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_update')) {
