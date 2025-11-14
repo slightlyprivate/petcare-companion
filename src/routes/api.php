@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AuthRequestController;
 use App\Http\Controllers\Auth\AuthVerificationController;
 use App\Http\Controllers\Auth\User\NotificationPreferenceController;
 use App\Http\Controllers\Auth\User\UserDataController;
+use App\Http\Controllers\Auth\User\UserExportDownloadController;
 use App\Http\Controllers\Gift\GiftController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetController;
@@ -95,4 +96,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('throttle:user.data.delete')->group(function () {
         Route::delete('/user/data', [UserDataController::class, 'deleteData'])->name('user.data.delete');
     });
+
+    // User export download endpoint (signed URL route - allows both authenticated and unauthenticated access with valid signature)
+    Route::get('/user/data/exports/{export}/download', [UserExportDownloadController::class, 'download'])
+        ->name('user.data.exports.download');
 });

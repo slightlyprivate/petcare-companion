@@ -2,14 +2,19 @@
 
 namespace App\Jobs;
 
+use App\Mail\UserDataExportNotification;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Models\UserExport;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use ZipArchive;
 
 /**
@@ -38,56 +43,76 @@ class ExportUserDataJob implements ShouldQueue
                 'appointments' => Appointment::whereHas('pet', fn ($q) => $q->where('user_id', $this->user->id))->get()->map(fn ($apt) => $apt->only(['id', 'pet_id', 'title', 'scheduled_at', 'notes', 'created_at']))->toArray(),
             ];
 
-            // Create temporary zip file
-            $zipPath = storage_path('app/exports/user_data_'.$this->user->id.'_'.now()->timestamp.'.zip');
+            // Create zip file in memory and store using Storage::disk
+            $zipContent = $this->generateZipContent($userData);
+            $fileName = 'user_data_'.$this->user->id.'_'.now()->timestamp.'.zip';
+            $filePath = 'exports/'.$fileName;
 
-            if (! file_exists(storage_path('app/exports'))) {
-                mkdir(storage_path('app/exports'), 0755, true);
-            }
+            // Store zip file using the local disk
+            Storage::disk('local')->put($filePath, $zipContent);
 
-            $zip = new ZipArchive;
-            $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+            // Create UserExport record with 7-day expiration
+            $expiresAt = now()->addDays(7);
+            $userExport = UserExport::create([
+                'user_id' => $this->user->id,
+                'file_path' => $filePath,
+                'file_name' => $fileName,
+                'expires_at' => $expiresAt,
+            ]);
 
-            // Add JSON files for each data type
-            $zip->addFromString('user.json', json_encode($userData['user'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            $zip->addFromString('pets.json', json_encode($userData['pets'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            $zip->addFromString('gifts.json', json_encode($userData['gifts'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            $zip->addFromString('appointments.json', json_encode($userData['appointments'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
-            // Close to ensure file is written
-            $closeResult = $zip->close();
-
-            if (! $closeResult) {
-                throw new \Exception('Failed to close zip archive');
-            }
-
-            // Generate file reference for storage (in real implementation, would use signed URLs)
-            $fileName = basename($zipPath);
-            $downloadUrl = "File stored as: {$fileName}";
+            // Generate signed temporary URL for download
+            $downloadUrl = URL::temporarySignedRoute(
+                'user.data.exports.download',
+                $expiresAt,
+                ['export' => $userExport->id]
+            );
 
             // Send download link via email
             try {
-                Mail::send('emails.data-export', [
-                    'user' => $this->user,
-                    'downloadUrl' => $downloadUrl,
-                    'zipPath' => $zipPath,
-                ], function ($message) {
-                    $message->to($this->user->email)
-                        ->subject('Your PetCare Companion Data Export');
-                });
+                Mail::send(new UserDataExportNotification($this->user, $downloadUrl));
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Error sending data export email', [
+                Log::warning('Error sending data export email', [
                     'user_id' => $this->user->id,
+                    'export_id' => $userExport->id,
                     'error' => $e->getMessage(),
                 ]);
                 // Continue even if email fails - the file was still generated
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error exporting user data', [
+            Log::error('Error exporting user data', [
                 'user_id' => $this->user->id,
                 'error' => $e->getMessage(),
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * Generate zip file content from user data.
+     */
+    private function generateZipContent(array $userData): string
+    {
+        $zip = new ZipArchive;
+        $tmpFile = tempnam(sys_get_temp_dir(), 'export_');
+
+        if ($zip->open($tmpFile, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+            throw new \Exception('Failed to create zip archive');
+        }
+
+        // Add JSON files for each data type
+        $zip->addFromString('user.json', json_encode($userData['user'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $zip->addFromString('pets.json', json_encode($userData['pets'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $zip->addFromString('gifts.json', json_encode($userData['gifts'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $zip->addFromString('appointments.json', json_encode($userData['appointments'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        if ($zip->close() !== true) {
+            throw new \Exception('Failed to close zip archive');
+        }
+
+        // Read the zip file content
+        $content = file_get_contents($tmpFile);
+        unlink($tmpFile);
+
+        return $content;
     }
 }

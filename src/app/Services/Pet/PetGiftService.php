@@ -91,8 +91,8 @@ class PetGiftService
                 ],
             ],
             'mode' => 'payment',
-            'success_url' => $returnUrl . '?gift_id={CHECKOUT_SESSION_ID}&status=success',
-            'cancel_url' => $returnUrl . '?gift_id={CHECKOUT_SESSION_ID}&status=cancel',
+            'success_url' => $returnUrl.'?gift_id={CHECKOUT_SESSION_ID}&status=success',
+            'cancel_url' => $returnUrl.'?gift_id={CHECKOUT_SESSION_ID}&status=cancel',
             'metadata' => [
                 'gift_id' => $gift->id,
             ],

@@ -14,6 +14,11 @@ return [
             'success' => 'Your data export request is queued. You will receive an email when it is ready.',
             'failure' => 'Failed to queue your data export request.',
         ],
+        'ready' => [
+            'email' => [
+                'subject' => 'Your Data Export is Ready for Download',
+            ],
+        ],
     ],
     'delete' => [
         'queued' => [
