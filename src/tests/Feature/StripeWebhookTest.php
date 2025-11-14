@@ -11,8 +11,8 @@ use App\Services\Webhook\Stripe\StripeWebhookService;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
-use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Tests\TestCase;
 
 /**
@@ -51,7 +51,7 @@ class StripeWebhookTest extends TestCase
         $secret = config('services.stripe.webhook.secret');
         $timestamp = time();
         $signedContent = "{$timestamp}.{$payload}";
-        $signature = "t={$timestamp},v1=" . hash_hmac('sha256', $signedContent, $secret);
+        $signature = "t={$timestamp},v1=".hash_hmac('sha256', $signedContent, $secret);
 
         // Create the event object
         $event = $this->createStripeEvent($eventData);
@@ -228,7 +228,7 @@ class StripeWebhookTest extends TestCase
         $secret = config('services.stripe.webhook.secret');
 
         // Use invalid signature
-        $invalidSignature = 't=' . time() . ',v1=invalid';
+        $invalidSignature = 't='.time().',v1=invalid';
 
         // Mock Stripe\Webhook::constructEvent to throw exception
         $webhook = \Mockery::mock('overload:\Stripe\Webhook');

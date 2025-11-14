@@ -70,6 +70,24 @@ This document explains the system architecture and design decisions for **PetCar
 - **Gift Processing**: Real-time processing of gift transactions with status management.
 - **Status Management**: Credits and gifts track states (pending, paid, failed) with timestamps.
 
+#### Credit Conversion Standard
+
+The application uses a **standardized credit conversion rate** defined in `App\Constants\CreditConstants`:
+
+- **1 Credit = $1.00 USD = 100 cents**
+- **Constant:** `CreditConstants::CREDIT_VALUE_IN_CENTS = 100`
+- **Helper Methods:**
+  - `CreditConstants::toCents(int $credits): int` — converts credits to Stripe cents
+  - `CreditConstants::toDollars(int $credits): float` — converts credits to dollar amount
+
+**Used in:**
+
+- `PetGiftService::createStripeCheckoutSession()` — converts gift cost to Stripe payment amount
+- `DirectoryPetResource::toArray()` — displays total gift donation values in public directory
+- All places requiring cents-to-credits conversion for consistency
+
+This centralized constant ensures uniform credit valuation across all payment flows and prevents miscalculations.
+
 ### 9. Database Layer
 
 - MySQL 8 used for persistence, with tables for pets, appointments, gifts, wallets, and credit transactions.

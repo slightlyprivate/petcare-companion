@@ -5,7 +5,6 @@ namespace App\Services\Auth\Notifications;
 use App\Exceptions\Auth\InvalidUserException;
 use App\Models\NotificationPreference;
 use App\Models\User;
-use App\Support\Messages\NotificationsMessages;
 
 /**
  * Service for managing user notification preferences.

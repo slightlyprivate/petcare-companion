@@ -2,6 +2,7 @@
 
 namespace App\Services\Pet;
 
+use App\Constants\CreditConstants;
 use App\Exceptions\Gift\CreditCostRequiredException;
 use App\Exceptions\Stripe\PaymentSessionFailed;
 use App\Models\Gift;
@@ -71,8 +72,8 @@ class PetGiftService
     protected function createStripeCheckoutSession(Gift $gift, string $returnUrl): \Stripe\Checkout\Session
     {
         $pet = $gift->pet;
-        // Convert credits to cents for Stripe (assuming 1 credit = 1 cent for calculation)
-        $amountCents = $gift->cost_in_credits * 100;
+        // Convert credits to cents using the standardized credit constant
+        $amountCents = CreditConstants::toCents($gift->cost_in_credits);
 
         return \Stripe\Checkout\Session::create([
             'payment_method_types' => ['card'],
@@ -90,8 +91,8 @@ class PetGiftService
                 ],
             ],
             'mode' => 'payment',
-            'success_url' => $returnUrl.'?gift_id={CHECKOUT_SESSION_ID}&status=success',
-            'cancel_url' => $returnUrl.'?gift_id={CHECKOUT_SESSION_ID}&status=cancel',
+            'success_url' => $returnUrl . '?gift_id={CHECKOUT_SESSION_ID}&status=success',
+            'cancel_url' => $returnUrl . '?gift_id={CHECKOUT_SESSION_ID}&status=cancel',
             'metadata' => [
                 'gift_id' => $gift->id,
             ],

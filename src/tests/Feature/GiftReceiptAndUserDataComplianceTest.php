@@ -52,7 +52,7 @@ class GiftReceiptAndUserDataComplianceTest extends TestCase
 
         $response->assertStatus(200)
             ->assertHeader('Content-Type', 'application/pdf')
-            ->assertHeader('Content-Disposition', 'attachment; filename="receipt_' . $gift->id . '.pdf"');
+            ->assertHeader('Content-Disposition', 'attachment; filename="receipt_'.$gift->id.'.pdf"');
 
         // Verify receipt is a valid PDF (starts with PDF header)
         $this->assertStringStartsWith('%PDF', $response->getContent());
@@ -242,7 +242,7 @@ class GiftReceiptAndUserDataComplianceTest extends TestCase
 
         // Verify zip file contains correct data structure
         $exportDir = storage_path('app/exports');
-        $zipFile = glob($exportDir . '/user_data_' . $user->id . '_*.zip')[0] ?? null;
+        $zipFile = glob($exportDir.'/user_data_'.$user->id.'_*.zip')[0] ?? null;
 
         $this->assertNotNull($zipFile, 'Export zip file not found');
         $this->assertFileExists($zipFile);
@@ -279,7 +279,7 @@ class GiftReceiptAndUserDataComplianceTest extends TestCase
 
         // Verify zip file was created successfully
         $exportDir = storage_path('app/exports');
-        $zipFiles = glob($exportDir . '/user_data_' . $user->id . '_*.zip');
+        $zipFiles = glob($exportDir.'/user_data_'.$user->id.'_*.zip');
 
         $this->assertNotEmpty($zipFiles);
         $this->assertFileExists($zipFiles[0]);

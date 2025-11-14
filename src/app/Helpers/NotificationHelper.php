@@ -2,7 +2,6 @@
 
 namespace App\Helpers;
 
-use App\Models\NotificationPreference;
 use App\Models\User;
 
 /**

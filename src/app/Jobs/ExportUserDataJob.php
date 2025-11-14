@@ -33,13 +33,13 @@ class ExportUserDataJob implements ShouldQueue
             // Gather user data
             $userData = [
                 'user' => $this->user->only(['id', 'email', 'role', 'created_at', 'updated_at']),
-                'pets' => $this->user->pets()->get()->map(fn($pet) => $pet->only(['id', 'name', 'species', 'breed', 'owner_name', 'is_public', 'created_at', 'updated_at']))->toArray(),
-                'gifts' => $this->user->gifts()->get()->map(fn($gift) => $gift->only(['id', 'cost_in_credits', 'status', 'completed_at', 'created_at']))->toArray(),
-                'appointments' => Appointment::whereHas('pet', fn($q) => $q->where('user_id', $this->user->id))->get()->map(fn($apt) => $apt->only(['id', 'pet_id', 'title', 'scheduled_at', 'notes', 'created_at']))->toArray(),
+                'pets' => $this->user->pets()->get()->map(fn ($pet) => $pet->only(['id', 'name', 'species', 'breed', 'owner_name', 'is_public', 'created_at', 'updated_at']))->toArray(),
+                'gifts' => $this->user->gifts()->get()->map(fn ($gift) => $gift->only(['id', 'cost_in_credits', 'status', 'completed_at', 'created_at']))->toArray(),
+                'appointments' => Appointment::whereHas('pet', fn ($q) => $q->where('user_id', $this->user->id))->get()->map(fn ($apt) => $apt->only(['id', 'pet_id', 'title', 'scheduled_at', 'notes', 'created_at']))->toArray(),
             ];
 
             // Create temporary zip file
-            $zipPath = storage_path('app/exports/user_data_' . $this->user->id . '_' . now()->timestamp . '.zip');
+            $zipPath = storage_path('app/exports/user_data_'.$this->user->id.'_'.now()->timestamp.'.zip');
 
             if (! file_exists(storage_path('app/exports'))) {
                 mkdir(storage_path('app/exports'), 0755, true);
@@ -57,7 +57,7 @@ class ExportUserDataJob implements ShouldQueue
             // Close to ensure file is written
             $closeResult = $zip->close();
 
-            if (!$closeResult) {
+            if (! $closeResult) {
                 throw new \Exception('Failed to close zip archive');
             }
 
