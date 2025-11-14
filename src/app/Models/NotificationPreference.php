@@ -103,6 +103,8 @@ class NotificationPreference extends Model
             'login_notifications' => false,
             'gift_notifications' => false,
             'pet_update_notifications' => false,
+            'pet_create_notifications' => false,
+            'pet_delete_notifications' => false,
         ]);
     }
 
@@ -116,6 +118,8 @@ class NotificationPreference extends Model
             'login_notifications' => true,
             'gift_notifications' => true,
             'pet_update_notifications' => true,
+            'pet_create_notifications' => true,
+            'pet_delete_notifications' => true,
         ]);
     }
 }

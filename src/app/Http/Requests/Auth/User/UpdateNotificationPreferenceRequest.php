@@ -28,7 +28,7 @@ class UpdateNotificationPreferenceRequest extends FormRequest
             'type' => [
                 'required',
                 'string',
-                'in:otp,login,gift,pet_update,sms,email',
+                'in:otp,login,gift,pet_update,pet_create,pet_delete,sms,email',
             ],
             'enabled' => [
                 'required',
