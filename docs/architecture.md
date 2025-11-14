@@ -629,6 +629,125 @@ Returns PDF file with gift receipt details.
 - Transaction history stored with immutable audit trail
 - No recalculation of balances; transactions are source of truth
 
+### Public Pet Reporting & Transparency
+
+**Overview**:
+
+The public reporting system provides comprehensive transparency for pet profiles and gift contributions. Donors can view detailed gift histories and summaries without authentication, promoting trust and engagement.
+
+**Key Components**:
+
+1. **PetReportController** (`GET /api/public/pet-reports/{petId}`):
+   - Returns full gift history and per-type summaries
+   - Only accessible for `is_public=true` pets (404 for private)
+   - Includes authenticated gift data with timestamps
+
+2. **PublicPetReportResource**:
+   - Combines multiple data sources into a unified report
+   - Aggregates gift summaries by type with statistics
+   - Includes transaction audit trail showing all gift-related wallet deductions
+   - Calculates financial metrics per gift type (count, total, average value)
+
+3. **GiftSummaryResource**:
+   - Per-gift-type aggregation with:
+     - Count of gifts received
+     - Total and average donation value
+     - Gift type metadata (name, icon, color)
+   - Used in detailed reports and directory listings
+
+4. **AuditTrailResource**:
+   - Transaction-level detail for each gift sent
+   - Shows:
+     - Transaction type and descriptive label
+     - Amount in credits, cents, and dollars
+     - Reason and related entity (gift ID)
+     - ISO8601 timestamp for sorting and display
+   - Sorted by most recent first for chronological viewing
+
+5. **Enhanced DirectoryPetResource**:
+   - Includes `gift_types` distribution in listing
+   - Links to detailed report via `report_url`
+   - Quick summary without full audit trail (lightweight)
+
+**Data Flow**:
+
+```mermaid
+GET /api/public/pet-reports/{petId}
+  ↓
+PetReportController::show()
+  ↓
+Load Pet with: gifts (relation), giftType (nested)
+  ↓
+PublicPetReportResource::toArray()
+  ├→ getGiftSummariesByType()
+  │   ├→ Group gifts by gift_type_id
+  │   ├→ Calculate: count, total_credits, average
+  │   └→ Return: GiftSummaryResource[]
+  └→ getTransactionAuditTrail()
+      ├→ Map gifts to audit entries
+      ├→ Include: type, reason, amount, timestamp
+      ├→ Sort by timestamp DESC (most recent first)
+      └→ Return: AuditTrailResource[]
+```
+
+**Example Response**:
+
+```json
+{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Fluffy",
+    "gift_count": 12,
+    "total_gifts_value": 150.00,
+    "gift_summaries_by_type": [
+      {
+        "gift_type_id": "...",
+        "gift_type_name": "Toy",
+        "count": 5,
+        "total_value": 100.00,
+        "average_value": 20.00
+      },
+      {
+        "gift_type_id": "...",
+        "gift_type_name": "Treat",
+        "count": 7,
+        "total_value": 50.00,
+        "average_value": 7.14
+      }
+    ],
+    "transaction_audit_trail": [
+      {
+        "type": "deduction",
+        "type_label": "Gift Sent",
+        "amount_credits": 50,
+        "amount_cents": 1000,
+        "amount_dollars": 10.00,
+        "reason": "Gift sent to Fluffy",
+        "related_type": "Gift",
+        "related_id": "abc123...",
+        "timestamp": "2025-11-14T23:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+**Transparency Benefits**:
+
+- Donors see exact gift history for any pet
+- No authentication required (builds trust)
+- Detailed financial breakdown by gift type
+- Audit trail shows all contributions chronologically
+- Prevents disputes with immutable transaction record
+- Encourages giving through public recognition
+
+**Performance**:
+
+- Single query with eager loading (pet → gifts → giftType)
+- Grouping and aggregation in PHP (small datasets)
+- No N+1 queries; gift types loaded in single batch query
+- 404 early-return for private pets
+
 ### Future Extensibility
 
 **Premium Gift Tiers** (Phase 2):
