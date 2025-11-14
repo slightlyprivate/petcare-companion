@@ -38,11 +38,11 @@ class StripeWebhookService
         // Handle the event
         switch ($event['type']) {
             case 'checkout.session.completed':
-                $this->handleCheckoutSessionCompleted($event['data']['object']);
+                $this->handleCheckoutSessionCompleted($this->toArray($event['data']['object']));
                 break;
 
             case 'checkout.session.expired':
-                $this->handleCheckoutSessionExpired($event['data']['object']);
+                $this->handleCheckoutSessionExpired($this->toArray($event['data']['object']));
                 break;
 
             default:
@@ -51,6 +51,25 @@ class StripeWebhookService
                     'id' => $event['id'],
                 ]);
         }
+    }
+
+    /**
+     * Convert Stripe objects to arrays recursively.
+     *
+     * @param  mixed  $value
+     * @return mixed
+     */
+    protected function toArray(mixed $value): mixed
+    {
+        if (\is_array($value)) {
+            return \array_map([$this, 'toArray'], $value);
+        }
+
+        if ($value instanceof \Stripe\StripeObject) {
+            return \array_map([$this, 'toArray'], $value->toArray());
+        }
+
+        return $value;
     }
 
     /**
