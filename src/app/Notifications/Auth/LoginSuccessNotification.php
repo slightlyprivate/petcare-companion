@@ -2,6 +2,7 @@
 
 namespace App\Notifications\Auth;
 
+use App\Helpers\NotificationHelper;
 use App\Messages\TwilioMessage;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -30,7 +31,17 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database', 'twilio'];
+        $channels = ['database'];
+
+        if (NotificationHelper::isChannelEnabled($notifiable, 'email')) {
+            $channels[] = 'mail';
+        }
+
+        if (NotificationHelper::isChannelEnabled($notifiable, 'sms')) {
+            $channels[] = 'twilio';
+        }
+
+        return $channels;
     }
 
     /**

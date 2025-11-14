@@ -21,10 +21,13 @@ class NotificationHelper
             return false;
         }
 
-        // Get or create preferences (defaults to true)
-        $preferences = $user->notificationPreference ?? NotificationPreference::create([
-            'user_id' => $user->id,
-        ]);
+        // Get preferences if they exist, otherwise default to true
+        $preferences = $user->notificationPreference;
+
+        if (! $preferences) {
+            // Default to enabled for all notification types if no preference exists yet
+            return true;
+        }
 
         return $preferences->isNotificationEnabled($notificationType);
     }
@@ -40,10 +43,13 @@ class NotificationHelper
             return false;
         }
 
-        // Get or create preferences (defaults to true)
-        $preferences = $user->notificationPreference ?? NotificationPreference::create([
-            'user_id' => $user->id,
-        ]);
+        // Get preferences if they exist, otherwise default to true
+        $preferences = $user->notificationPreference;
+
+        if (! $preferences) {
+            // Default to enabled for all channels if no preference exists yet
+            return true;
+        }
 
         return $preferences->isChannelEnabled($channel);
     }

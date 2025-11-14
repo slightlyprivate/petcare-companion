@@ -2,6 +2,7 @@
 
 namespace App\Notifications\Pet;
 
+use App\Helpers\NotificationHelper;
 use App\Messages\TwilioMessage;
 use App\Models\Pet;
 use Illuminate\Bus\Queueable;
@@ -28,7 +29,17 @@ class PetDeletedNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database', 'twilio'];
+        $channels = ['database'];
+
+        if (NotificationHelper::isChannelEnabled($notifiable, 'email')) {
+            $channels[] = 'mail';
+        }
+
+        if (NotificationHelper::isChannelEnabled($notifiable, 'sms')) {
+            $channels[] = 'twilio';
+        }
+
+        return $channels;
     }
 
     /**
