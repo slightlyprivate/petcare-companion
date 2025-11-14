@@ -48,7 +48,7 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
                 'donationId' => $this->donation->id,
                 'date' => $this->donation->completed_at?->format('M d, Y H:i:s') ?? 'Pending',
             ])
-            ->subject(__('donation.notify.created.subject'));
+            ->subject(__('donations.created.email.subject'));
     }
 
     /**
@@ -66,7 +66,7 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
             'pet_id' => $this->donation->pet_id,
             'amount' => $amount,
             'pet_name' => $this->donation->pet->name,
-            'message' => __('donation.notify.created.message', [
+            'message' => __('donations.created.email.intro', [
                 'amount' => $amount,
                 'pet_name' => $this->donation->pet->name,
             ]),
@@ -82,7 +82,7 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
 
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            __('donation.notify.created.sms', [
+            __('donations.created.sms.body', [
                 'amount' => $amount,
                 'pet_name' => $this->donation->pet->name,
                 'donation_id' => $this->donation->id,

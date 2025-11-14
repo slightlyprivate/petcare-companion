@@ -25,7 +25,7 @@ class UserDataController extends Controller
         ExportUserDataJob::dispatch($request->user());
 
         return response()->json([
-            'message' => __('user.data.export.queued'),
+            'message' => __('users.export.queued.success'),
             'status' => 'processing',
         ], 202);
     }
@@ -39,7 +39,7 @@ class UserDataController extends Controller
         DeleteUserDataJob::dispatch($request->user());
 
         return response()->json([
-            'message' => __('user.data.deletion.queued'),
+            'message' => __('users.delete.queued.success'),
             'status' => 'processing',
         ], 202);
     }

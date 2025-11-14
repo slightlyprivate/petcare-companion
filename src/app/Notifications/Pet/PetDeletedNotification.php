@@ -43,7 +43,7 @@ class PetDeletedNotification extends Notification implements ShouldQueue
                 'breed' => $this->pet->breed ?? 'Not specified',
                 'ownerName' => $this->pet->owner_name,
             ])
-            ->subject(__('pet.notify.deleted.subject', ['pet_name' => $this->pet->name]));
+            ->subject(__('pets.deleted.email.subject', ['pet_name' => $this->pet->name]));
     }
 
     /**
@@ -58,7 +58,7 @@ class PetDeletedNotification extends Notification implements ShouldQueue
             'pet_id' => $this->pet->id,
             'pet_name' => $this->pet->name,
             'species' => $this->pet->species,
-            'message' => __('pet.notify.deleted.message', ['pet_name' => $this->pet->name]),
+            'message' => __('pets.deleted.email.intro', ['pet_name' => $this->pet->name]),
         ];
     }
 
@@ -69,7 +69,7 @@ class PetDeletedNotification extends Notification implements ShouldQueue
     {
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            __('pet.notify.deleted.sms', ['pet_name' => $this->pet->name])
+            __('pets.deleted.sms.body', ['pet_name' => $this->pet->name])
         );
     }
 

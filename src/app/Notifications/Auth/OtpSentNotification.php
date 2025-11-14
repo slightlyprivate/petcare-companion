@@ -42,7 +42,7 @@ class OtpSentNotification extends Notification implements ShouldQueue
             ->markdown('emails.otp_sent', [
                 'code' => $this->code,
             ])
-            ->subject(__('auth.notify.otp.subject'));
+            ->subject(__('auth.otp.email.subject'));
     }
 
     /**
@@ -56,7 +56,7 @@ class OtpSentNotification extends Notification implements ShouldQueue
             'type' => 'otp_sent',
             'code' => $this->code,
             'email' => $this->email,
-            'message' => __('auth.notify.otp.message', ['code' => $this->code]),
+            'message' => __('auth.otp.email.intro', ['code' => $this->code]),
         ];
     }
 
@@ -67,7 +67,7 @@ class OtpSentNotification extends Notification implements ShouldQueue
     {
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            __('auth.notify.otp.sms', ['code' => $this->code])
+            __('auth.otp.sms.body', ['code' => $this->code])
         );
     }
 

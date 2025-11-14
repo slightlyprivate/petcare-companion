@@ -31,6 +31,6 @@ class AuthRequestController extends AuthController
         $email = $request->email;
         $this->userService->processAuthenticationRequest($email);
 
-        return response()->json(['message' => __('auth.otp.sent')], 200);
+        return response()->json(['message' => __('auth.otp.success')], 200);
     }
 }

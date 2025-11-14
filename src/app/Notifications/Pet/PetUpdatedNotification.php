@@ -49,7 +49,7 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
                 'status' => $this->pet->is_public ? 'Public' : 'Private',
                 'changedFields' => implode(', ', $changedFields),
             ])
-            ->subject(__('pet.notify.updated.subject', ['pet_name' => $this->pet->name]));
+            ->subject(__('pets.updated.email.subject', ['pet_name' => $this->pet->name]));
     }
 
     /**
@@ -66,7 +66,7 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
             'pet_id' => $this->pet->id,
             'pet_name' => $this->pet->name,
             'changed_fields' => $changedFields,
-            'message' => __('pet.notify.updated.message', ['pet_name' => $this->pet->name]),
+            'message' => __('pets.updated.email.intro', ['pet_name' => $this->pet->name]),
         ];
     }
 
@@ -79,7 +79,7 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
 
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            __('pet.notify.updated.sms', ['pet_name' => $this->pet->name])
+            __('pets.updated.sms.body', ['pet_name' => $this->pet->name])
         );
     }
 

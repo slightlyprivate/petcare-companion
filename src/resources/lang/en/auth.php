@@ -1,38 +1,64 @@
 <?php
 
 return [
-    // Notifications Texts for Authentication Events
-    'notify' => [
-        // Successful Login Notification
-        'login' => [
+
+    'login' => [
+        'email' => [
             'subject' => 'Successful Login to PetCare Companion',
-            'message' => 'You have successfully logged in to PetCare Companion at :time.',
-            'sms' => 'Welcome back to PetCare Companion! You successfully logged in at :time. If this wasn\'t you, contact support.',
+            'intro'   => 'You successfully logged in at :time.',
         ],
-        // OTP Sent Notification
-        'otp' => [
-            'subject' => 'Your PetCare Companion Authentication Code',
-            'message' => 'Your one-time passcode is :code. It is valid for 5 minutes.',
-            'sms' => 'Your PetCare Companion code is :code. Valid for 5 minutes.',
+        'sms' => [
+            'body' => 'Login at :time. If this wasn\'t you, contact support.',
         ],
-        // Data Deletion Initiated Notification
-        'delete-data-initiated' => [
-            'subject' => 'Your PetCare Companion Data Deletion Request Initiated',
-            'message' => 'We have received your data deletion request. We are processing it and will notify you once it is complete.',
-            'sms' => 'Your PetCare Companion data deletion request has been received. We will notify you once it is complete.',
-        ],
-        // Data Deletion Confirmation Notification
-        'delete-data' => [
-            'subject' => 'Your PetCare Companion Data Deletion Request',
-            'message' => 'Your data deletion request has been processed. Your data has been permanently removed from our system.',
-            'sms' => 'Your PetCare Companion data deletion request has been completed. Your data is no longer stored with us.',
-        ],
+        'success' => 'Login successful.',
+        'failure' => 'Login failed.',
     ],
-    // Display texts for authentication errors and messages
+
     'otp' => [
-        'invalid' => 'The provided one-time passcode is invalid.',
-        'expired' => 'The one-time passcode has expired.',
-        'sent' => 'A one-time passcode has been sent.',
+        'email' => [
+            'subject' => 'Your Authentication Code',
+            'intro'   => 'Your one-time passcode is :code, valid for 5 minutes.',
+        ],
+        'sms' => [
+            'body' => 'Your code is :code. Valid 5 minutes.',
+        ],
+        'success' => 'OTP sent successfully.',
+        'failure' => 'Failed to send OTP.',
+        'errors' => [
+            'invalid' => 'The one-time passcode is invalid.',
+            'expired' => 'The one-time passcode has expired.',
+        ],
     ],
-    'unauthorized' => 'You are not authorized to perform this action.',
+
+    'delete' => [
+        'initiated' => [
+            'email' => [
+                'subject' => 'Data Deletion Started',
+                'intro'   => 'We received your request to delete your data.',
+                'outro'   => 'We will notify you upon completion.',
+            ],
+            'sms' => [
+                'body' => 'Deletion request received. We\'ll notify you when complete.',
+            ],
+            'success' => 'Data deletion initiated successfully.',
+            'failure' => 'Failed to initiate data deletion.',
+        ],
+        'completed' => [
+            'email' => [
+                'subject' => 'Data Deletion Complete',
+                'intro'   => 'Your data has been permanently deleted.',
+                'outro'   => 'Thank you for using PetCare Companion.',
+            ],
+            'sms' => [
+                'body' => 'Your data has been deleted.',
+            ],
+            'success' => 'Data deletion completed successfully.',
+            'failure' => 'Failed to complete data deletion.',
+        ],
+    ],
+
+    'errors' => [
+        'unauthorized' => 'You are not authorized to perform this action.',
+    ],
+
 ];

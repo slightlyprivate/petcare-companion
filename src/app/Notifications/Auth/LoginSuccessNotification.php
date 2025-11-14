@@ -43,7 +43,7 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
                 'email' => $this->user->email,
                 'time' => now()->format('M d, Y H:i:s'),
             ])
-            ->subject(__('auth.notify.login.subject'));
+            ->subject(__('auth.login.email.subject'));
     }
 
     /**
@@ -57,7 +57,7 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
             'type' => 'login_success',
             'user_id' => $this->user->id,
             'email' => $this->user->email,
-            'message' => __('auth.notify.login.message', [
+            'message' => __('auth.login.email.intro', [
                 'time' => now()->format('M d, Y H:i:s'),
             ]),
         ];
@@ -70,7 +70,7 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
     {
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            __('auth.notify.login.sms', [
+            __('auth.login.sms.body', [
                 'time' => now()->format('H:i'),
             ])
         );

@@ -26,7 +26,7 @@ class UserDataDeletionInitiated extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('auth.notify.delete-data-initiated.subject'),
+            subject: __('auth.delete.initiated.email.subject'),
         );
     }
 

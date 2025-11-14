@@ -58,12 +58,12 @@ class NotificationPreferenceController extends Controller
             Log::error($e);
 
             return response()->json([
-                'message' => __('notifications.preferences.update.failure'),
+                'message' => __('notifications.update.failure'),
             ], 500);
         }
 
         return response()->json([
-            'message' => __('notifications.preferences.update.success'),
+            'message' => __('notifications.update.success'),
             'data' => [
                 'type' => $type,
                 'enabled' => $enabled,
@@ -83,7 +83,7 @@ class NotificationPreferenceController extends Controller
         $preferences->disableAll();
 
         return response()->json([
-            'message' => __('notifications.preferences.disable_all.success'),
+            'message' => __('notifications.disable_all.success'),
         ]);
     }
 
@@ -99,7 +99,7 @@ class NotificationPreferenceController extends Controller
         $preferences->enableAll();
 
         return response()->json([
-            'message' => __('notifications.preferences.enable_all.success'),
+            'message' => __('notifications.enable_all.success'),
         ]);
     }
 }

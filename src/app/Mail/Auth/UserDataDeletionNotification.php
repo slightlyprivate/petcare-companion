@@ -26,7 +26,7 @@ class UserDataDeletionNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('auth.notify.delete-data-completed.subject'),
+            subject: __('auth.delete.completed.email.subject'),
         );
     }
 
