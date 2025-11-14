@@ -33,13 +33,13 @@ class ExportUserDataJob implements ShouldQueue
             // Gather user data
             $userData = [
                 'user' => $this->user->only(['id', 'email', 'role', 'created_at', 'updated_at']),
-                'pets' => $this->user->pets()->get()->map(fn ($pet) => $pet->only(['id', 'name', 'species', 'breed', 'owner_name', 'created_at', 'updated_at'])),
-                'gifts' => $this->user->gifts()->get()->map(fn ($gift) => $gift->only(['id', 'amount_cents', 'status', 'completed_at', 'created_at'])),
-                'appointments' => Appointment::whereHas('pet', fn ($q) => $q->where('user_id', $this->user->id))->get()->map(fn ($apt) => $apt->only(['id', 'pet_id', 'date', 'time', 'notes', 'status', 'created_at'])),
+                'pets' => $this->user->pets()->get()->map(fn($pet) => $pet->only(['id', 'name', 'species', 'breed', 'owner_name', 'is_public', 'created_at', 'updated_at']))->toArray(),
+                'gifts' => $this->user->gifts()->get()->map(fn($gift) => $gift->only(['id', 'cost_in_credits', 'status', 'completed_at', 'created_at']))->toArray(),
+                'appointments' => Appointment::whereHas('pet', fn($q) => $q->where('user_id', $this->user->id))->get()->map(fn($apt) => $apt->only(['id', 'pet_id', 'title', 'scheduled_at', 'notes', 'created_at']))->toArray(),
             ];
 
             // Create temporary zip file
-            $zipPath = storage_path('app/exports/user_data_'.$this->user->id.'_'.now()->timestamp.'.zip');
+            $zipPath = storage_path('app/exports/user_data_' . $this->user->id . '_' . now()->timestamp . '.zip');
 
             if (! file_exists(storage_path('app/exports'))) {
                 mkdir(storage_path('app/exports'), 0755, true);
@@ -54,14 +54,23 @@ class ExportUserDataJob implements ShouldQueue
             $zip->addFromString('gifts.json', json_encode($userData['gifts'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             $zip->addFromString('appointments.json', json_encode($userData['appointments'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
-            $zip->close();
+            // Close to ensure file is written
+            $closeResult = $zip->close();
+
+            if (!$closeResult) {
+                throw new \Exception('Failed to close zip archive');
+            }
+
+            // Generate file reference for storage (in real implementation, would use signed URLs)
+            $fileName = basename($zipPath);
+            $downloadUrl = "File stored as: {$fileName}";
 
             // Send download link via email
-            // In production, you would generate a secure signed URL for the download
             try {
                 Mail::send('emails.data-export', [
                     'user' => $this->user,
-                    'exportFile' => $zipPath,
+                    'downloadUrl' => $downloadUrl,
+                    'zipPath' => $zipPath,
                 ], function ($message) {
                     $message->to($this->user->email)
                         ->subject('Your PetCare Companion Data Export');
