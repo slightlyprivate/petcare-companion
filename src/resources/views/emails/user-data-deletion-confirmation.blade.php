@@ -7,7 +7,7 @@ Your request to delete your account and all associated data has been processed s
 - Your user account
 - Your pets and their records
 - Your appointments
-- Your donations
+- Your gifts
 - Your notification preferences
 - All personally identifiable information
 

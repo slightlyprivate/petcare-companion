@@ -3,8 +3,8 @@
 namespace App\Services\Webhook\Stripe;
 
 use App\Helpers\NotificationHelper;
-use App\Models\Donation;
-use App\Notifications\Donation\DonationSuccessNotification;
+use App\Models\Gift;
+use App\Notifications\Gift\GiftSuccessNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
@@ -55,9 +55,6 @@ class StripeWebhookService
 
     /**
      * Convert Stripe objects to arrays recursively.
-     *
-     * @param  mixed  $value
-     * @return mixed
      */
     protected function toArray(mixed $value): mixed
     {
@@ -77,30 +74,30 @@ class StripeWebhookService
      */
     protected function handleCheckoutSessionCompleted(array $session): void
     {
-        $donationId = $session['metadata']['donation_id'] ?? null;
+        $giftId = $session['metadata']['gift_id'] ?? null;
 
-        if (! $donationId) {
-            Log::warning('Checkout session completed without donation_id in metadata', [
+        if (! $giftId) {
+            Log::warning('Checkout session completed without gift_id in metadata', [
                 'session_id' => $session['id'],
             ]);
 
             return;
         }
 
-        $donation = Donation::where('stripe_session_id', $session['id'])->first();
+        $gift = Gift::where('stripe_session_id', $session['id'])->first();
 
-        if (! $donation) {
-            Log::warning('Donation not found for completed checkout session', [
+        if (! $gift) {
+            Log::warning('Gift not found for completed checkout session', [
                 'session_id' => $session['id'],
-                'donation_id' => $donationId,
+                'gift_id' => $giftId,
             ]);
 
             return;
         }
 
-        if ($donation->status === 'paid') {
-            Log::info('Donation already marked as paid', [
-                'donation_id' => $donation->id,
+        if ($gift->status === 'paid') {
+            Log::info('Gift already marked as paid', [
+                'gift_id' => $gift->id,
                 'session_id' => $session['id'],
             ]);
 
@@ -110,7 +107,7 @@ class StripeWebhookService
         // Retrieve payment intent to get charge details
         $metadata = $this->extractChargeMetadata($session);
 
-        // Update donation with charge metadata
+        // Update gift with charge metadata
         if ($session['payment_intent']) {
             try {
                 \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
@@ -118,31 +115,31 @@ class StripeWebhookService
 
                 if ($paymentIntent->charges && $paymentIntent->charges->count() > 0) {
                     $charge = $paymentIntent->charges->first();
-                    $donation->stripe_charge_id = $charge->id;
+                    $gift->stripe_charge_id = $charge->id;
                     $metadata = $this->extractChargeMetadata((array) $charge);
                 }
             } catch (\Exception $e) {
                 Log::error('Error retrieving charge metadata', [
-                    'donation_id' => $donation->id,
+                    'gift_id' => $gift->id,
                     'error' => $e->getMessage(),
                 ]);
             }
         }
 
-        $donation->stripe_metadata = $metadata;
-        $donation->markAsPaid();
+        $gift->stripe_metadata = $metadata;
+        $gift->markAsPaid();
 
-        // Send donation success notification to user if enabled
-        if (NotificationHelper::isNotificationEnabled($donation->user, 'donation')) {
-            Notification::send($donation->user, new DonationSuccessNotification($donation));
+        // Send gift success notification to user if enabled
+        if (NotificationHelper::isNotificationEnabled($gift->user, 'gift')) {
+            Notification::send($gift->user, new GiftSuccessNotification($gift));
         }
 
-        Log::info('Donation marked as paid via webhook', [
-            'donation_id' => $donation->id,
+        Log::info('Gift marked as paid via webhook', [
+            'gift_id' => $gift->id,
             'session_id' => $session['id'],
-            'amount_cents' => $donation->amount_cents,
-            'pet_id' => $donation->pet_id,
-            'user_id' => $donation->user_id,
+            'cost_in_credits' => $gift->cost_in_credits,
+            'pet_id' => $gift->pet_id,
+            'user_id' => $gift->user_id,
         ]);
     }
 
@@ -170,42 +167,42 @@ class StripeWebhookService
      */
     protected function handleCheckoutSessionExpired(array $session): void
     {
-        $donationId = $session['metadata']['donation_id'] ?? null;
+        $giftId = $session['metadata']['gift_id'] ?? null;
 
-        if (! $donationId) {
-            Log::warning('Checkout session expired without donation_id in metadata', [
+        if (! $giftId) {
+            Log::warning('Checkout session expired without gift_id in metadata', [
                 'session_id' => $session['id'],
             ]);
 
             return;
         }
 
-        $donation = Donation::where('stripe_session_id', $session['id'])->first();
+        $gift = Gift::where('stripe_session_id', $session['id'])->first();
 
-        if (! $donation) {
-            Log::warning('Donation not found for expired checkout session', [
+        if (! $gift) {
+            Log::warning('Gift not found for expired checkout session', [
                 'session_id' => $session['id'],
-                'donation_id' => $donationId,
+                'gift_id' => $giftId,
             ]);
 
             return;
         }
 
-        if ($donation->status !== 'pending') {
-            Log::info('Donation not pending, skipping expiration handling', [
-                'donation_id' => $donation->id,
+        if ($gift->status !== 'pending') {
+            Log::info('Gift not pending, skipping expiration handling', [
+                'gift_id' => $gift->id,
                 'session_id' => $session['id'],
-                'current_status' => $donation->status,
+                'current_status' => $gift->status,
             ]);
 
             return;
         }
 
-        // Mark donation as failed due to expiration
-        $donation->markAsFailed();
+        // Mark gift as failed due to expiration
+        $gift->markAsFailed();
 
-        Log::info('Donation marked as failed due to session expiration', [
-            'donation_id' => $donation->id,
+        Log::info('Gift marked as failed due to session expiration', [
+            'gift_id' => $gift->id,
             'session_id' => $session['id'],
         ]);
     }

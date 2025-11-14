@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Appointment;
-use App\Models\Donation;
+use App\Models\Gift;
 use App\Models\Pet;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -202,22 +202,22 @@ class ActivityLogTest extends TestCase
     }
 
     /**
-     * Test that Donation model creation is logged.
+     * Test that Gift model creation is logged.
      */
-    public function test_donation_creation_is_logged(): void
+    public function test_gift_creation_is_logged(): void
     {
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
         Activity::query()->delete();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
         ]);
 
         $this->assertDatabaseHas('activity_log', [
-            'subject_type' => Donation::class,
-            'subject_id' => $donation->id,
+            'subject_type' => Gift::class,
+            'subject_id' => $gift->id,
             'event' => 'created',
         ]);
 
@@ -227,18 +227,18 @@ class ActivityLogTest extends TestCase
     }
 
     /**
-     * Test that Donation status updates are logged.
+     * Test that Gift status updates are logged.
      */
-    public function test_donation_status_update_is_logged(): void
+    public function test_gift_status_update_is_logged(): void
     {
-        $donation = Donation::factory()->create(['status' => 'pending']);
+        $gift = Gift::factory()->create(['status' => 'pending']);
         Activity::query()->delete();
 
-        $donation->markAsPaid();
+        $gift->markAsPaid();
 
         $this->assertDatabaseHas('activity_log', [
-            'subject_type' => Donation::class,
-            'subject_id' => $donation->id,
+            'subject_type' => Gift::class,
+            'subject_id' => $gift->id,
             'event' => 'updated',
         ]);
 

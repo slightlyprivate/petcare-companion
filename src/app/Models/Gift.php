@@ -11,11 +11,11 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
- * Model representing a donation made to a pet.
+ * Model representing a gift sent to a pet.
  *
- * @group Donations
+ * @group Gifts
  */
-class Donation extends Model
+class Gift extends Model
 {
     use HasFactory, HasUuids, LogsActivity, SoftDeletes;
 
@@ -27,7 +27,7 @@ class Donation extends Model
     protected $fillable = [
         'user_id',
         'pet_id',
-        'amount_cents',
+        'cost_in_credits',
         'stripe_session_id',
         'stripe_charge_id',
         'stripe_metadata',
@@ -41,7 +41,7 @@ class Donation extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'amount_cents' => 'integer',
+        'cost_in_credits' => 'integer',
         'completed_at' => 'datetime',
         'stripe_metadata' => 'array',
     ];
@@ -52,11 +52,11 @@ class Donation extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['user_id', 'pet_id', 'amount_cents', 'stripe_session_id', 'stripe_charge_id', 'status', 'completed_at']);
+            ->logOnly(['user_id', 'pet_id', 'cost_in_credits', 'stripe_session_id', 'stripe_charge_id', 'status', 'completed_at']);
     }
 
     /**
-     * Get the user that made this donation.
+     * Get the user that sent this gift.
      */
     public function user(): BelongsTo
     {
@@ -64,7 +64,7 @@ class Donation extends Model
     }
 
     /**
-     * Get the pet this donation was made to.
+     * Get the pet this gift was sent to.
      */
     public function pet(): BelongsTo
     {
@@ -72,15 +72,7 @@ class Donation extends Model
     }
 
     /**
-     * Get the donation amount in dollars.
-     */
-    public function getAmountDollarsAttribute(): float
-    {
-        return $this->amount_cents / 100;
-    }
-
-    /**
-     * Scope a query to only include successful donations.
+     * Scope a query to only include successful gifts.
      */
     public function scopePaid($query): mixed
     {
@@ -88,7 +80,7 @@ class Donation extends Model
     }
 
     /**
-     * Scope a query to only include pending donations.
+     * Scope a query to only include pending gifts.
      */
     public function scopePending($query): mixed
     {
@@ -96,7 +88,7 @@ class Donation extends Model
     }
 
     /**
-     * Mark the donation as paid.
+     * Mark the gift as sent.
      */
     public function markAsPaid(): bool
     {
@@ -107,7 +99,7 @@ class Donation extends Model
     }
 
     /**
-     * Mark the donation as failed.
+     * Mark the gift as failed.
      */
     public function markAsFailed(): bool
     {

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Donation;
+use App\Models\Gift;
 use App\Models\Pet;
 use App\Models\User;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -10,9 +10,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Test suite for donation API endpoints.
+ * Test suite for gift API endpoints.
  */
-class DonationApiTest extends TestCase
+class GiftApiTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -32,36 +32,36 @@ class DonationApiTest extends TestCase
     }
 
     /**
-     * Test that authenticated user can initiate donation to pet.
+     * Test that authenticated user can initiate gift to pet.
      */
     /**
-     * Test donation validation rules.
+     * Test gift validation rules.
      */
-    public function test_it_validates_donation_input(): void
+    public function test_it_validates_gift_input(): void
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
         $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => -5,  // Invalid negative amount
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'cost_in_credits' => -5,  // Invalid negative amount
                 'return_url' => 'invalid-url',  // Invalid URL
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['amount', 'return_url']);
+            ->assertJsonValidationErrors(['cost_in_credits', 'return_url']);
     }
 
     /**
-     * Test that donation requires authentication.
+     * Test that gift requires authentication.
      */
-    public function test_it_requires_authentication_for_donation(): void
+    public function test_it_requires_authentication_for_gift(): void
     {
         $pet = Pet::factory()->create();
 
-        $response = $this->postJson("/api/pets/{$pet->id}/donate", [
-            'amount' => 25.00,
+        $response = $this->postJson("/api/pets/{$pet->id}/gifts", [
+            'cost_in_credits' => 100,
             'return_url' => 'https://example.com/success',
         ]);
 
@@ -69,9 +69,9 @@ class DonationApiTest extends TestCase
     }
 
     /**
-     * Test donation amount limits.
+     * Test gift amount limits.
      */
-    public function test_it_validates_donation_amount_limits(): void
+    public function test_it_validates_gift_amount_limits(): void
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
@@ -79,87 +79,87 @@ class DonationApiTest extends TestCase
 
         // Test minimum amount
         $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => 0.50,  // Below minimum
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'cost_in_credits' => 5,  // Below minimum of 10
                 'return_url' => 'https://example.com/success',
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['amount']);
+            ->assertJsonValidationErrors(['cost_in_credits']);
 
         // Test maximum amount
         $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => 15000,  // Above maximum
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'cost_in_credits' => 1000001,  // Above maximum of 1,000,000
                 'return_url' => 'https://example.com/success',
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['amount']);
+            ->assertJsonValidationErrors(['cost_in_credits']);
     }
 
     /**
-     * Test donation model relationships.
+     * Test gift model relationships.
      */
-    public function test_donation_has_correct_relationships(): void
+    public function test_gift_has_correct_relationships(): void
     {
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
         ]);
 
-        $this->assertInstanceOf(User::class, $donation->user);
-        $this->assertInstanceOf(Pet::class, $donation->pet);
-        $this->assertEquals($user->id, $donation->user->id);
-        $this->assertEquals($pet->id, $donation->pet->id);
+        $this->assertInstanceOf(User::class, $gift->user);
+        $this->assertInstanceOf(Pet::class, $gift->pet);
+        $this->assertEquals($user->id, $gift->user->id);
+        $this->assertEquals($pet->id, $gift->pet->id);
     }
 
     /**
-     * Test donation status methods.
+     * Test gift status methods.
      */
-    public function test_donation_status_methods(): void
+    public function test_gift_status_methods(): void
     {
-        $donation = Donation::factory()->create(['status' => 'pending']);
+        $gift = Gift::factory()->create(['status' => 'pending']);
 
         // Test marking as paid
-        $result = $donation->markAsPaid();
+        $result = $gift->markAsPaid();
         $this->assertTrue($result);
-        $this->assertEquals('paid', $donation->fresh()->status);
-        $this->assertNotNull($donation->fresh()->completed_at);
+        $this->assertEquals('paid', $gift->fresh()->status);
+        $this->assertNotNull($gift->fresh()->completed_at);
 
         // Test marking as failed
-        $donation2 = Donation::factory()->create(['status' => 'pending']);
-        $result = $donation2->markAsFailed();
+        $gift2 = Gift::factory()->create(['status' => 'pending']);
+        $result = $gift2->markAsFailed();
         $this->assertTrue($result);
-        $this->assertEquals('failed', $donation2->fresh()->status);
-        $this->assertNotNull($donation2->fresh()->completed_at);
+        $this->assertEquals('failed', $gift2->fresh()->status);
+        $this->assertNotNull($gift2->fresh()->completed_at);
     }
 
     /**
-     * Test donation amount conversion.
+     * Test gift amount conversion.
      */
-    public function test_donation_amount_conversion(): void
+    public function test_gift_amount_conversion(): void
     {
-        $donation = Donation::factory()->create(['amount_cents' => 2500]);
+        $gift = Gift::factory()->create(['cost_in_credits' => 100]);
 
-        $this->assertEquals(25.00, $donation->amount_dollars);
+        $this->assertEquals(100, $gift->cost_in_credits);
     }
 
     /**
-     * Test that return_url is required for donation creation.
+     * Test that return_url is required for gift creation.
      */
-    public function test_it_requires_return_url_for_donation(): void
+    public function test_it_requires_return_url_for_gift(): void
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
         $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => 25.00,
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'cost_in_credits' => 100,
                 // Missing return_url
             ]);
 
@@ -177,8 +177,8 @@ class DonationApiTest extends TestCase
         $pet = Pet::factory()->create();
 
         $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => 25.00,
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'cost_in_credits' => 100,
                 'return_url' => 'not-a-valid-url',
             ]);
 
@@ -204,19 +204,19 @@ class DonationApiTest extends TestCase
         $customReturnUrl = 'https://app.example.com/checkout/complete';
 
         $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => 25.00,
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'cost_in_credits' => 100,
                 'return_url' => $customReturnUrl,
             ]);
 
-        // Will fail with Stripe API error, but we can verify donation was created
+        // Will fail with Stripe API error, but we can verify gift was created
         $response->assertStatus(500);
 
-        // Verify donation was created
-        $this->assertDatabaseHas('donations', [
+        // Verify gift was created
+        $this->assertDatabaseHas('gifts', [
             'user_id' => $user->id,
             'pet_id' => $pet->id,
-            'amount_cents' => 2500,
+            'cost_in_credits' => 100,
         ]);
     }
 
@@ -237,29 +237,29 @@ class DonationApiTest extends TestCase
         $returnUrl1 = 'https://app1.example.com/callback';
         $returnUrl2 = 'https://app2.example.com/callback';
 
-        // First donation with different return_url
+        // First gift with different return_url
         $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => 10.00,
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'cost_in_credits' => 100,
                 'return_url' => $returnUrl1,
             ]);
 
-        // Second donation with different return_url
+        // Second gift with different return_url
         $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => 15.00,
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'cost_in_credits' => 150,
                 'return_url' => $returnUrl2,
             ]);
 
         // Both should be created despite Stripe errors
-        $this->assertDatabaseCount('donations', 2);
-        $this->assertDatabaseHas('donations', [
+        $this->assertDatabaseCount('gifts', 2);
+        $this->assertDatabaseHas('gifts', [
             'user_id' => $user->id,
-            'amount_cents' => 1000,
+            'cost_in_credits' => 100,
         ]);
-        $this->assertDatabaseHas('donations', [
+        $this->assertDatabaseHas('gifts', [
             'user_id' => $user->id,
-            'amount_cents' => 1500,
+            'cost_in_credits' => 150,
         ]);
     }
 }

@@ -15,6 +15,8 @@ This project showcases:
 - ✅ **Payment Integration** - Stripe payment processing with Laravel Cashier
 - ✅ **Audit Logging** - Comprehensive activity tracking with Spatie Activity Log
 - ✅ **Notification System** - Multi-channel notifications (Email + SMS) with user preferences
+- ✅ **Gift Economy** - Virtual credits and symbolic gifting system
+- ✅ **Wallet Management** - User credit balances and transaction history
 - ✅ **Docker Integration** - Multi-container setup with app, database, and web services
 - ✅ **Comprehensive Testing** - 109+ tests with 627+ assertions
 - ✅ **Modern PHP** - PSR-12 standards, typed properties, dependency injection
@@ -70,9 +72,9 @@ docker-compose exec app tail -f storage/logs/laravel.log
 - **From Address**: `noreply@petcare.local`
 - **No external mail server required** for development
 
-### 💳 Payment Configuration (Development)
+## 💳 Payment & Gift Economy Configuration
 
-The application includes **Stripe payment integration** for pet donations. For development:
+The application includes **Stripe payment integration** for virtual credit purchases in the gift economy system. For development:
 
 ```bash
 # Use Stripe test keys in .env
@@ -81,14 +83,16 @@ STRIPE_SECRET=sk_test_your_secret_key
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 ```
 
-**Payment Features:**
+**Gift Economy Features:**
 
-- **Laravel Cashier**: Full Stripe integration
-- **Donation System**: Users can donate to pets ($1-$10,000)
-- **Webhook Processing**: Handles payment completion and failures
-- **Status Tracking**: Real-time payment status updates
+- **Virtual Credits**: Users purchase credits via Stripe (not real currency)
+- **Gift System**: Users send symbolic gifts to pets using credits
+- **Wallet Management**: Each user has a wallet tracking credit balance
+- **Transaction History**: Full logging of all credit purchases and gifts
+- **Webhook Processing**: Handles payment completion and credit allocation
+- **Status Tracking**: Real-time payment and gift status updates
 
-### 🔒 Audit Logging (Activity Tracking)
+## 🔒 Audit Logging (Activity Tracking)
 
 The application includes **comprehensive audit logging** via Spatie Activity Log to track all sensitive and user-triggered events.
 
@@ -97,7 +101,7 @@ The application includes **comprehensive audit logging** via Spatie Activity Log
 - **User**: Email and role changes
 - **Pets**: Create, update, delete operations with full history
 - **Appointments**: Create, update, delete operations
-- **Donations**: Create and status transitions (pending → paid/failed)
+- **Gifts**: Create and status transitions (pending → paid/failed)
 
 **Features:**
 
@@ -119,7 +123,7 @@ foreach ($activities as $activity) {
 }
 ```
 
-### � Notification System (Email & SMS)
+### Notification System (Email & SMS)
 
 The application includes a **comprehensive multi-channel notification system** using Laravel's notification framework with Twilio SMS integration.
 
@@ -127,7 +131,7 @@ The application includes a **comprehensive multi-channel notification system** u
 
 - **OTP Sent**: Sends authentication code via email and SMS
 - **Login Success**: Confirms successful authentication
-- **Donation Success**: Confirms donation completion with receipt details
+- **Gift Success**: Confirms gift completion with receipt details
 - **Pet Updated**: Notifies about pet information changes
 
 **Channels:**
@@ -204,11 +208,12 @@ if ($preferences->isNotificationEnabled('otp')) {
 | `PUT` | `/api/appointments/{id}` | Update appointment | Status management |
 | `DELETE` | `/api/appointments/{id}` | Delete appointment | Cascade handling |
 
-### Payment & Donation Endpoints
+### Payment & Gift Endpoints
 
 | Method | Endpoint | Description | Features |
 |--------|----------|-------------|----------|
-| `POST` | `/api/pets/{id}/donate` | Create donation for pet | Stripe integration, validation |
+| `POST` | `/api/pets/{id}/gifts` | Send gift to pet | Stripe integration, validation |
+| `GET` | `/api/gifts/{id}/receipt` | Get gift/credit receipt | PDF export support |
 | `POST` | `/api/webhooks/stripe` | Stripe webhook handler | Payment status updates |
 
 ### 📋 Postman Collection

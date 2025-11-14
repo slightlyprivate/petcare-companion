@@ -23,7 +23,7 @@ class RateLimitHelper
         self::configureAuthRateLimits();
         self::configurePetRateLimits();
         self::configureAppointmentRateLimits();
-        self::configureDonationRateLimits();
+        self::configureGiftRateLimits();
         self::configureUserDataRateLimits();
         self::configureNotificationRateLimits();
         self::configureWebhookRateLimits();
@@ -70,14 +70,14 @@ class RateLimitHelper
     }
 
     /**
-     * Configure donation operation rate limiters.
+     * Configure gift operation rate limiters.
      *
      * Uses strict limits to prevent spam and abuse.
      */
-    private static function configureDonationRateLimits(): void
+    private static function configureGiftRateLimits(): void
     {
-        RateLimiter::for('donation.write', function () {
-            // Allow 5 donations per hour per user
+        RateLimiter::for('gift.write', function () {
+            // Allow 5 gifts per hour per user
             return Limit::perHour(5)->by(request()->user()->id);
         });
     }

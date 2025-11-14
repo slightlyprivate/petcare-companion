@@ -67,11 +67,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the donations made by the user.
+     * Get the gifts sent by the user.
      */
-    public function donations(): HasMany
+    public function gifts(): HasMany
     {
-        return $this->hasMany(Donation::class);
+        return $this->hasMany(Gift::class);
+    }
+
+    /**
+     * Get the user's wallet.
+     */
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
     }
 
     /**

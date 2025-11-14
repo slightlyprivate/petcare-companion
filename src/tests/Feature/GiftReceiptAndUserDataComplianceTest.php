@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Mail\Auth\UserDataDeletionInitiated;
 use App\Mail\Auth\UserDataDeletionNotification;
 use App\Models\Appointment;
-use App\Models\Donation;
+use App\Models\Gift;
 use App\Models\Pet;
 use App\Models\User;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,23 +15,23 @@ use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
- * Test suite for donation receipt and user data compliance endpoints.
+ * Test suite for gift receipt and user data compliance endpoints.
  */
-class DonationReceiptAndUserDataComplianceTest extends TestCase
+class GiftReceiptAndUserDataComplianceTest extends TestCase
 {
     use RefreshDatabase;
 
     /**
-     * Test that authenticated user can export donation receipt.
+     * Test that authenticated user can export gift receipt.
      */
-    public function test_it_can_export_donation_receipt(): void
+    public function test_it_can_export_gift_receipt(): void
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        // Create a completed donation
-        $donation = Donation::factory()->create([
+        // Create a completed gift
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'paid',
@@ -48,18 +48,18 @@ class DonationReceiptAndUserDataComplianceTest extends TestCase
         ]);
 
         $response = $this->actingAs($user, 'sanctum')
-            ->getJson("/api/donations/{$donation->id}/receipt");
+            ->getJson("/api/gifts/{$gift->id}/receipt");
 
         $response->assertStatus(200)
             ->assertHeader('Content-Type', 'application/pdf')
-            ->assertHeader('Content-Disposition', 'attachment; filename="receipt_'.$donation->id.'.pdf"');
+            ->assertHeader('Content-Disposition', 'attachment; filename="receipt_'.$gift->id.'.pdf"');
 
         // Verify receipt is a valid PDF (starts with PDF header)
         $this->assertStringStartsWith('%PDF', $response->getContent());
     }
 
     /**
-     * Test that user cannot export another user's donation receipt.
+     * Test that user cannot export another user's gift receipt.
      */
     public function test_it_prevents_unauthorized_receipt_export(): void
     {
@@ -69,14 +69,14 @@ class DonationReceiptAndUserDataComplianceTest extends TestCase
         $user2 = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user1->id,
             'pet_id' => $pet->id,
             'status' => 'paid',
         ]);
 
         $response = $this->actingAs($user2, 'sanctum')
-            ->getJson("/api/donations/{$donation->id}/receipt");
+            ->getJson("/api/gifts/{$gift->id}/receipt");
 
         $response->assertStatus(403);
     }
@@ -89,12 +89,12 @@ class DonationReceiptAndUserDataComplianceTest extends TestCase
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
         ]);
 
-        $response = $this->getJson("/api/donations/{$donation->id}/receipt");
+        $response = $this->getJson("/api/gifts/{$gift->id}/receipt");
 
         $response->assertStatus(401);
     }
@@ -173,7 +173,7 @@ class DonationReceiptAndUserDataComplianceTest extends TestCase
         $user = User::factory()->create();
         $pet = Pet::factory()->create(['user_id' => $user->id]);
         Appointment::factory()->create(['pet_id' => $pet->id]);
-        Donation::factory()->create(['user_id' => $user->id]);
+        Gift::factory()->create(['user_id' => $user->id]);
 
         $userId = $user->id;
         $userEmail = $user->email;
@@ -196,7 +196,7 @@ class DonationReceiptAndUserDataComplianceTest extends TestCase
         $user = User::factory()->create();
         $pet = Pet::factory()->create(['user_id' => $user->id]);
         $appointment = Appointment::factory()->create(['pet_id' => $pet->id]);
-        Donation::factory()->create(['user_id' => $user->id]);
+        Gift::factory()->create(['user_id' => $user->id]);
 
         $userId = $user->id;
         $userEmail = $user->email;
@@ -210,7 +210,7 @@ class DonationReceiptAndUserDataComplianceTest extends TestCase
 
         // Verify related data is hard deleted
         $this->assertDatabaseMissing('pets', ['user_id' => $userId]);
-        $this->assertDatabaseMissing('donations', ['user_id' => $userId]);
+        $this->assertDatabaseMissing('gifts', ['user_id' => $userId]);
         $this->assertDatabaseMissing('appointments', ['id' => $appointment->id]);
 
         // Verify deletion emails were sent

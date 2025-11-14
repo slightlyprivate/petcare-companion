@@ -13,7 +13,7 @@ class NotificationHelper
     /**
      * Check if a user has a specific notification type enabled.
      *
-     * @param  string  $notificationType  One of: otp, login, donation, pet_update
+     * @param  string  $notificationType  The type of notification to check (e.g., otp_notifications)
      */
     public static function isNotificationEnabled(?User $user, string $notificationType): bool
     {

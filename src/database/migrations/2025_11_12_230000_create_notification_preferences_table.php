@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->boolean('otp_notifications')->default(true);
             $table->boolean('login_notifications')->default(true);
-            $table->boolean('donation_notifications')->default(true);
+            $table->boolean('gift_notifications')->default(true);
             $table->boolean('pet_update_notifications')->default(true);
             $table->boolean('pet_create_notifications')->default(true);
             $table->boolean('pet_delete_notifications')->default(true);

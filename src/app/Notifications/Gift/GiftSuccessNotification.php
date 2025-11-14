@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Notifications\Donation;
+namespace App\Notifications\Gift;
 
 use App\Messages\TwilioMessage;
-use App\Models\Donation;
+use App\Models\Gift;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * Notification sent when a donation is successfully processed.
+ * Notification sent when a gift is successfully sent.
  */
-class DonationSuccessNotification extends Notification implements ShouldQueue
+class GiftSuccessNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -20,7 +20,7 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
      * Create a new notification instance.
      */
     public function __construct(
-        public Donation $donation,
+        public Gift $gift,
     ) {}
 
     /**
@@ -38,17 +38,17 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $petName = $this->donation->pet->name;
-        $amount = $this->donation->amount_cents / 100;
+        $petName = $this->gift->pet->name;
+        $credits = $this->gift->cost_in_credits;
 
         return (new MailMessage)
-            ->markdown('emails.donation_success', [
+            ->markdown('emails.gift_success', [
                 'petName' => $petName,
-                'amount' => $amount,
-                'donationId' => $this->donation->id,
-                'date' => $this->donation->completed_at?->format('M d, Y H:i:s') ?? 'Pending',
+                'credits' => $credits,
+                'giftId' => $this->gift->id,
+                'date' => $this->gift->completed_at?->format('M d, Y H:i:s') ?? 'Pending',
             ])
-            ->subject(__('donations.created.email.subject'));
+            ->subject(__('gifts.created.email.subject'));
     }
 
     /**
@@ -58,17 +58,17 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        $amount = $this->donation->amount_cents / 100;
+        $credits = $this->gift->cost_in_credits;
 
         return [
-            'type' => 'donation_success',
-            'donation_id' => $this->donation->id,
-            'pet_id' => $this->donation->pet_id,
-            'amount' => $amount,
-            'pet_name' => $this->donation->pet->name,
-            'message' => __('donations.created.email.intro', [
-                'amount' => $amount,
-                'pet_name' => $this->donation->pet->name,
+            'type' => 'gift_success',
+            'gift_id' => $this->gift->id,
+            'pet_id' => $this->gift->pet_id,
+            'credits' => $credits,
+            'pet_name' => $this->gift->pet->name,
+            'message' => __('gifts.created.email.intro', [
+                'credits' => $credits,
+                'pet_name' => $this->gift->pet->name,
             ]),
         ];
     }
@@ -78,14 +78,14 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
      */
     public function toTwilio(object $notifiable): ?TwilioMessage
     {
-        $amount = $this->donation->amount_cents / 100;
+        $credits = $this->gift->cost_in_credits;
 
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            __('donations.created.sms.body', [
-                'amount' => $amount,
-                'pet_name' => $this->donation->pet->name,
-                'donation_id' => $this->donation->id,
+            __('gifts.created.sms.body', [
+                'credits' => $credits,
+                'pet_name' => $this->gift->pet->name,
+                'gift_id' => $this->gift->id,
             ])
         );
     }
@@ -95,6 +95,6 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
      */
     public function toMarkdown(object $notifiable): string
     {
-        return 'emails.donation_success';
+        return 'emails.gift_success';
     }
 }

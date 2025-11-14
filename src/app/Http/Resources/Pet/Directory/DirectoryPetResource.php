@@ -3,7 +3,7 @@
 namespace App\Http\Resources\Pet\Directory;
 
 /**
- * Resource representation of a public Pet with donation metadata.
+ * Resource representation of a public Pet with gift metadata.
  *
  * @group Pets
  */
@@ -16,6 +16,11 @@ class DirectoryPetResource extends \Illuminate\Http\Resources\Json\JsonResource
      */
     public function toArray(\Illuminate\Http\Request $request): array
     {
+        // Calculate total gift credits (gifts_sum_cost_in_credits is the sum added by withSum in service)
+        $totalCredits = $this->gifts_sum_cost_in_credits ?? 0;
+        // Convert credits to cents (1 credit = 50 cents = $0.50)
+        $totalCents = $totalCredits * 50;
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -24,10 +29,10 @@ class DirectoryPetResource extends \Illuminate\Http\Resources\Json\JsonResource
             'birth_date' => $this->birth_date?->format('Y-m-d'),
             'owner_name' => $this->owner_name,
             'age' => $this->age,
-            'total_donations_cents' => $this->donations_sum_amount_cents ?? 0,
-            'total_donations' => round(($this->donations_sum_amount_cents ?? 0) / 100, 2),
-            'donation_count' => $this->donations->where('status', 'paid')->count(),
-            'popularity_rank' => $this->donations_count ?? 0,
+            'gift_count' => $this->gifts->where('status', 'paid')->count(),
+            'total_gifts_cents' => $totalCents,
+            'total_gifts' => $totalCents / 100,
+            'popularity_rank' => $this->gifts_count ?? 0,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

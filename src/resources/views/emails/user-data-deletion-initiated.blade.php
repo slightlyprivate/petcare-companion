@@ -11,7 +11,7 @@ Your account deletion request is being processed. This is a permanent action tha
 - Your user account
 - Your pets and their records
 - Your appointments
-- Your donations
+- Your gifts
 - Your notification preferences
 - All personally identifiable information
 

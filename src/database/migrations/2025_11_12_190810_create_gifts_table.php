@@ -11,11 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('donations', function (Blueprint $table) {
+        // Skip if gifts table already exists
+        if (Schema::hasTable('gifts')) {
+            return;
+        }
+
+        Schema::create('gifts', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('pet_id')->constrained()->onDelete('cascade');
-            $table->unsignedBigInteger('amount_cents');
+            $table->unsignedBigInteger('cost_in_credits');
 
             $stripeSessionId = $table->string('stripe_session_id')->nullable();
             // Apply utf8_bin collation only for MySQL
@@ -38,6 +43,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('donations');
+        Schema::dropIfExists('gifts');
     }
 };

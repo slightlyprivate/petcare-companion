@@ -29,10 +29,10 @@ class PetDirectoryController extends Controller
     }
 
     /**
-     * Get directory listing of all public pets with donation metadata.
+     * Get directory listing of all public pets with gift metadata.
      *
-     * Returns public pets sorted by popularity (donation count) by default.
-     * Includes total donations and donation count for discovery.
+     * Returns public pets sorted by popularity (gift count) by default.
+     * Includes total gifts and gift count for discovery.
      */
     public function index(ListPetDirectoryRequest $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {

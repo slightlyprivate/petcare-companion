@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\Donation;
+use App\Models\Gift;
 use App\Models\Pet;
 use App\Models\User;
 use App\Notifications\Auth\LoginSuccessNotification;
 use App\Notifications\Auth\OtpSentNotification;
-use App\Notifications\Donation\DonationSuccessNotification;
+use App\Notifications\Gift\GiftSuccessNotification;
 use App\Notifications\Pet\PetUpdatedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -78,43 +78,43 @@ class NotificationTest extends TestCase
     }
 
     /**
-     * Test that donation success notification is sent after payment completion.
+     * Test that gift success notification is sent after payment completion.
      */
-    public function test_donation_success_notification_is_sent(): void
+    public function test_gift_success_notification_is_sent(): void
     {
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'pending',
         ]);
 
-        // Verify donation exists
-        $this->assertNotNull($donation);
-        $this->assertEquals('pending', $donation->status);
+        // Verify gift exists
+        $this->assertNotNull($gift);
+        $this->assertEquals('pending', $gift->status);
     }
 
     /**
-     * Test that donation success notification contains correct information.
+     * Test that gift success notification contains correct information.
      */
-    public function test_donation_success_notification_has_correct_data(): void
+    public function test_gift_success_notification_has_correct_data(): void
     {
         $user = User::factory()->create();
         $pet = Pet::factory()->create(['name' => 'Buddy']);
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
-            'amount_cents' => 10000,
+            'cost_in_credits' => 100,
             'status' => 'pending',
         ]);
 
-        $notification = new DonationSuccessNotification($donation);
+        $notification = new GiftSuccessNotification($gift);
         $data = $notification->toArray(new \stdClass);
 
-        $this->assertEquals('donation_success', $data['type']);
+        $this->assertEquals('gift_success', $data['type']);
         $this->assertEquals('Buddy', $data['pet_name']);
-        $this->assertEquals(100.0, $data['amount']);
+        $this->assertEquals(100, $data['credits']);
         $this->assertStringContainsString('Buddy', $data['message']);
     }
 
@@ -219,25 +219,25 @@ class NotificationTest extends TestCase
     }
 
     /**
-     * Test donation success notification array format.
+     * Test gift success notification array format.
      */
-    public function test_donation_success_notification_array_format(): void
+    public function test_gift_success_notification_array_format(): void
     {
         $user = User::factory()->create();
         $pet = Pet::factory()->create(['name' => 'Buddy']);
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
-            'amount_cents' => 5000,
+            'cost_in_credits' => 100,
         ]);
 
-        $notification = new DonationSuccessNotification($donation);
+        $notification = new GiftSuccessNotification($gift);
         $data = $notification->toArray(new \stdClass);
 
-        $this->assertEquals('donation_success', $data['type']);
-        $this->assertEquals($donation->id, $data['donation_id']);
+        $this->assertEquals('gift_success', $data['type']);
+        $this->assertEquals($gift->id, $data['gift_id']);
         $this->assertEquals('Buddy', $data['pet_name']);
-        $this->assertEquals(50.0, $data['amount']);
+        $this->assertEquals(100, $data['credits']);
         $this->assertStringContainsString('Buddy', $data['message']);
     }
 
@@ -280,32 +280,32 @@ class NotificationTest extends TestCase
     }
 
     /**
-     * Test donation success notification is sent when markAsPaid is called.
+     * Test gift success notification is sent when markAsPaid is called.
      */
-    public function test_donation_success_notification_sent_on_mark_as_paid(): void
+    public function test_gift_success_notification_sent_on_mark_as_paid(): void
     {
         Notification::fake();
 
         $user = User::factory()->create();
         $pet = Pet::factory()->create(['name' => 'Buddy']);
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'pending',
-            'amount_cents' => 5000,
+            'cost_in_credits' => 100,
         ]);
 
         // Directly send notification to verify behavior matches webhook
-        Notification::send($user, new DonationSuccessNotification($donation));
+        Notification::send($user, new GiftSuccessNotification($gift));
 
         // Simply verify a notification was sent to the user
-        Notification::assertSentTo($user, DonationSuccessNotification::class);
+        Notification::assertSentTo($user, GiftSuccessNotification::class);
     }
 
     /**
-     * Test donation success notification contains correct recipient.
+     * Test gift success notification contains correct recipient.
      */
-    public function test_donation_success_notification_sent_to_correct_user(): void
+    public function test_gift_success_notification_sent_to_correct_user(): void
     {
         Notification::fake();
 
@@ -313,46 +313,46 @@ class NotificationTest extends TestCase
         $user2 = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user1->id,
             'pet_id' => $pet->id,
             'status' => 'pending',
         ]);
 
         // Send notification only to user1
-        \Illuminate\Support\Facades\Notification::send($user1, new DonationSuccessNotification($donation));
+        \Illuminate\Support\Facades\Notification::send($user1, new GiftSuccessNotification($gift));
 
         // Verify user1 received the notification
-        Notification::assertSentTo($user1, DonationSuccessNotification::class);
+        Notification::assertSentTo($user1, GiftSuccessNotification::class);
 
         // Verify user2 did NOT receive the notification
-        Notification::assertNotSentTo($user2, DonationSuccessNotification::class);
+        Notification::assertNotSentTo($user2, GiftSuccessNotification::class);
     }
 
     /**
-     * Test donation success notification respects user preferences disabled.
+     * Test gift success notification respects user preferences disabled.
      */
-    public function test_donation_success_notification_respects_disabled_preference(): void
+    public function test_gift_success_notification_respects_disabled_preference(): void
     {
         Notification::fake();
 
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'pending',
         ]);
 
-        // Create notification preference with donation notifications disabled
+        // Create notification preference with gift notifications disabled
         \App\Models\NotificationPreference::create([
             'user_id' => $user->id,
-            'donation_notifications' => false,
+            'gift_notifications' => false,
         ]);
 
         // Verify notification is not sent due to disabled preference
-        $isEnabled = \App\Helpers\NotificationHelper::isNotificationEnabled($user, 'donation');
+        $isEnabled = \App\Helpers\NotificationHelper::isNotificationEnabled($user, 'gift');
         $this->assertFalse($isEnabled);
 
         // No notification should be sent
@@ -360,16 +360,16 @@ class NotificationTest extends TestCase
     }
 
     /**
-     * Test no donation notification sent when status unchanged.
+     * Test no gift notification sent when status unchanged.
      */
-    public function test_no_donation_notification_sent_if_already_paid(): void
+    public function test_no_gift_notification_sent_if_already_paid(): void
     {
         Notification::fake();
 
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'paid', // Already paid
@@ -379,15 +379,15 @@ class NotificationTest extends TestCase
         // Create notification preference enabled
         \App\Models\NotificationPreference::create([
             'user_id' => $user->id,
-            'donation_notifications' => true,
+            'gift_notifications' => true,
         ]);
 
         // Attempt to mark as paid again (status already paid)
-        $result = $donation->markAsPaid();
+        $result = $gift->markAsPaid();
 
         // Verify status update occurred but no notification sent
         $this->assertTrue($result);
-        $this->assertEquals('paid', $donation->fresh()->status);
+        $this->assertEquals('paid', $gift->fresh()->status);
 
         // When checking in StripeWebhookService, it exits early if already paid
         // So no notification should be sent
@@ -448,16 +448,16 @@ class NotificationTest extends TestCase
     }
 
     /**
-     * Test donation notification not sent when failure status already set.
+     * Test gift notification not sent when failure status already set.
      */
-    public function test_no_donation_notification_on_failed_status(): void
+    public function test_no_gift_notification_on_failed_status(): void
     {
         Notification::fake();
 
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'failed',
@@ -467,10 +467,10 @@ class NotificationTest extends TestCase
         // Create notification preference enabled
         \App\Models\NotificationPreference::create([
             'user_id' => $user->id,
-            'donation_notifications' => true,
+            'gift_notifications' => true,
         ]);
 
-        // Verify no success notification would be sent for failed donations
+        // Verify no success notification would be sent for failed gifts
         Notification::assertNothingSent();
     }
 

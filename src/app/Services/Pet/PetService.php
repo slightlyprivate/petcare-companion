@@ -144,7 +144,7 @@ class PetService
     }
 
     /**
-     * Get a paginated list of public pets with filtering and sorting, including donation totals.
+     * Get a paginated list of public pets with filtering and sorting, including gift totals.
      */
     public function directoryList(PetPaginationHelper $helper): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
@@ -169,24 +169,24 @@ class PetService
         $sortDirection = $helper->getSortDirection();
 
         if ($sortBy === 'popularity') {
-            // Sort by total donations (descending by default)
-            $query->withCount(['donations' => function ($q) {
+            // Sort by total gifts (descending by default)
+            $query->withCount(['gifts' => function ($q) {
                 $q->where('status', 'paid');
             }])
-                ->orderBy('donations_count', $sortDirection === 'asc' ? 'asc' : 'desc');
+                ->orderBy('gifts_count', $sortDirection === 'asc' ? 'asc' : 'desc');
         } elseif ($sortBy && in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortDirection === 'desc' ? 'desc' : 'asc');
         } else {
             $query->orderBy('name', 'asc');
         }
 
-        // Load donation totals for all results
-        $query->withSum(['donations' => function ($q) {
+        // Load gift totals for all results
+        $query->withSum(['gifts' => function ($q) {
             $q->where('status', 'paid');
-        }], 'amount_cents');
+        }], 'cost_in_credits');
 
-        // Eager load donations
-        $query->with(['donations' => function ($q) {
+        // Eager load gifts
+        $query->with(['gifts' => function ($q) {
             $q->where('status', 'paid');
         }]);
 

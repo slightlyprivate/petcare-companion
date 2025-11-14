@@ -50,8 +50,8 @@ class DeleteUserDataJob implements ShouldQueue
             // Hard delete user's pets
             $this->user->pets()->forceDelete();
 
-            // Hard delete user's donations
-            $this->user->donations()->forceDelete();
+            // Hard delete user's gifts
+            $this->user->gifts()->forceDelete();
 
             // Hard delete user notification preferences
             $this->user->notificationPreference()?->forceDelete();

@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('donations', function (Blueprint $table) {
-            $table->string('stripe_charge_id')->nullable()->after('stripe_session_id');
-            $table->json('stripe_metadata')->nullable()->after('stripe_charge_id');
+        Schema::table('gifts', function (Blueprint $table) {
+            $table->softDeletes();
         });
     }
 
@@ -22,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('donations', function (Blueprint $table) {
-            $table->dropColumn(['stripe_charge_id', 'stripe_metadata']);
+        Schema::table('gifts', function (Blueprint $table) {
+            $table->dropSoftDeletes();
         });
     }
 };

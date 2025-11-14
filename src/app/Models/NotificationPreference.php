@@ -23,7 +23,7 @@ class NotificationPreference extends Model
         'user_id',
         'otp_notifications',
         'login_notifications',
-        'donation_notifications',
+        'gift_notifications',
         'pet_update_notifications',
         'pet_create_notifications',
         'pet_delete_notifications',
@@ -39,7 +39,7 @@ class NotificationPreference extends Model
     protected $casts = [
         'otp_notifications' => 'boolean',
         'login_notifications' => 'boolean',
-        'donation_notifications' => 'boolean',
+        'gift_notifications' => 'boolean',
         'pet_update_notifications' => 'boolean',
         'pet_create_notifications' => 'boolean',
         'pet_delete_notifications' => 'boolean',
@@ -56,7 +56,7 @@ class NotificationPreference extends Model
             ->logOnly([
                 'otp_notifications',
                 'login_notifications',
-                'donation_notifications',
+                'gift_notifications',
                 'pet_update_notifications',
                 'pet_create_notifications',
                 'pet_delete_notifications',
@@ -101,7 +101,7 @@ class NotificationPreference extends Model
         $this->update([
             'otp_notifications' => false,
             'login_notifications' => false,
-            'donation_notifications' => false,
+            'gift_notifications' => false,
             'pet_update_notifications' => false,
         ]);
     }
@@ -114,7 +114,7 @@ class NotificationPreference extends Model
         $this->update([
             'otp_notifications' => true,
             'login_notifications' => true,
-            'donation_notifications' => true,
+            'gift_notifications' => true,
             'pet_update_notifications' => true,
         ]);
     }

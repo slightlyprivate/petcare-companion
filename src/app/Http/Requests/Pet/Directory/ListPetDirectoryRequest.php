@@ -57,7 +57,7 @@ class ListPetDirectoryRequest extends FormRequest
                 'example' => 'Buddy',
             ],
             'sort_by' => [
-                'description' => 'Field to sort by (popularity sorts by total donations, descending by default).',
+                'description' => 'Field to sort by (popularity sorts by total gifts, descending by default).',
                 'example' => 'popularity',
             ],
             'sort_direction' => [

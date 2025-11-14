@@ -90,7 +90,7 @@
         </div>
 
         <div class="section">
-            <div class="section-title">DONOR INFORMATION</div>
+            <div class="section-title">SENDER INFORMATION</div>
             <div class="section-content">
                 <div class="row">
                     <span class="label">Email:</span>
@@ -125,12 +125,8 @@
             <div class="section-title">GIFT DETAILS</div>
             <div class="section-content">
                 <div class="row">
-                    <span class="label">Amount:</span>
-                    <span class="value amount-highlight">${{ number_format($amountDollars, 2) }}</span>
-                </div>
-                <div class="row">
-                    <span class="label">Currency:</span>
-                    <span class="value">USD</span>
+                    <span class="label">Gift Credits:</span>
+                    <span class="value amount-highlight">{{ $costInCredits }}</span>
                 </div>
                 <div class="row">
                     <span class="label">Status:</span>

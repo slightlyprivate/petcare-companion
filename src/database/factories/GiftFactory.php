@@ -8,9 +8,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Donation>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Gift>
  */
-class DonationFactory extends Factory
+class GiftFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -23,7 +23,7 @@ class DonationFactory extends Factory
             'id' => Str::uuid(),
             'user_id' => User::factory(),
             'pet_id' => Pet::factory(),
-            'amount_cents' => $this->faker->numberBetween(100, 50000), // $1 to $500
+            'cost_in_credits' => $this->faker->numberBetween(10, 1000),
             'stripe_session_id' => 'cs_test_'.Str::random(60),
             'status' => $this->faker->randomElement(['pending', 'paid', 'failed']),
             'completed_at' => $this->faker->optional(0.7)->dateTimeBetween('-1 month', 'now'),
@@ -31,7 +31,7 @@ class DonationFactory extends Factory
     }
 
     /**
-     * Indicate that the donation is pending.
+     * Indicate that the gift is pending.
      */
     public function pending(): static
     {
@@ -42,7 +42,7 @@ class DonationFactory extends Factory
     }
 
     /**
-     * Indicate that the donation is paid.
+     * Indicate that the gift is paid.
      */
     public function paid(): static
     {
@@ -53,7 +53,7 @@ class DonationFactory extends Factory
     }
 
     /**
-     * Indicate that the donation failed.
+     * Indicate that the gift failed.
      */
     public function failed(): static
     {

@@ -32,9 +32,9 @@ class RateLimitingTest extends TestCase
         for ($i = 0; $i < 20; $i++) {
             $response = $this->actingAs($user, 'sanctum')
                 ->postJson('/api/pets', [
-                    'name' => 'Pet '.$i,
+                    'name' => 'Pet ' . $i,
                     'species' => 'dog',
-                    'owner_name' => 'Owner '.$i,
+                    'owner_name' => 'Owner ' . $i,
                 ]);
 
             // All should succeed (might fail due to validation, but not rate limit)
@@ -53,7 +53,7 @@ class RateLimitingTest extends TestCase
     }
 
     #[Test]
-    public function it_throttles_donation_creation()
+    public function it_throttles_gift_creation()
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
@@ -68,8 +68,9 @@ class RateLimitingTest extends TestCase
         // Make 5 requests within an hour (should succeed or fail due to validation/Stripe)
         for ($i = 0; $i < 5; $i++) {
             $response = $this->actingAs($user, 'sanctum')
-                ->postJson("/api/pets/{$pet->id}/donate", [
-                    'amount' => 25.00,
+                ->postJson("/api/pets/{$pet->id}/gifts", [
+                    'cost_in_credits' => 100,
+                    'return_url' => 'https://example.com/success',
                 ]);
 
             // All should not be 429 (rate limit)
@@ -78,8 +79,9 @@ class RateLimitingTest extends TestCase
 
         // 6th request in same hour should be throttled
         $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => 25.00,
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'cost_in_credits' => 100,
+                'return_url' => 'https://example.com/success',
             ]);
 
         $this->assertEquals(429, $response->status());
@@ -138,9 +140,9 @@ class RateLimitingTest extends TestCase
         for ($i = 0; $i < 10; $i++) {
             $response = $this->actingAs($user1, 'sanctum')
                 ->postJson('/api/pets', [
-                    'name' => 'Pet '.$i,
+                    'name' => 'Pet ' . $i,
                     'species' => 'dog',
-                    'owner_name' => 'Owner '.$i,
+                    'owner_name' => 'Owner ' . $i,
                 ]);
 
             $this->assertNotEquals(429, $response->status());

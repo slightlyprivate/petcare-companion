@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Donation;
+namespace App\Http\Requests\Gift;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Request class for exporting donation receipt.
+ * Request class for exporting gift receipt.
  */
-class ExportDonationReceiptRequest extends FormRequest
+class ExportGiftReceiptRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -6,10 +6,10 @@ use App\Http\Controllers\Auth\AuthRequestController;
 use App\Http\Controllers\Auth\AuthVerificationController;
 use App\Http\Controllers\Auth\User\NotificationPreferenceController;
 use App\Http\Controllers\Auth\User\UserDataController;
-use App\Http\Controllers\Donation\DonationController;
+use App\Http\Controllers\Gift\GiftController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetController;
-use App\Http\Controllers\Pet\PetDonationController;
+use App\Http\Controllers\Pet\PetGiftController;
 use App\Http\Controllers\Pet\PetRestoreController;
 use App\Http\Controllers\Pet\Public\PetDirectoryController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
@@ -45,8 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
     });
 
-    Route::prefix('donations')->group(function () {
-        Route::get('/{donation}/receipt', [DonationController::class, 'exportReceipt'])->name('donations.receipt.export');
+    Route::prefix('gifts')->group(function () {
+        Route::get('/{gift}/receipt', [GiftController::class, 'exportReceipt'])->name('gifts.receipt.export');
     });
 
     Route::prefix('pets')->group(function () {
@@ -75,9 +75,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pets/{pet}/restore', [PetRestoreController::class, 'restore'])->name('pets.restore');
     });
 
-    // Write operations - Donation endpoints (throttle:donation.write)
-    Route::middleware('throttle:donation.write')->group(function () {
-        Route::post('/pets/{pet}/donate', [PetDonationController::class, 'store'])->name('pets.donations.store');
+    // Write operations - Gift endpoints (throttle:gift.write)
+    Route::middleware('throttle:gift.write')->group(function () {
+        Route::post('/pets/{pet}/gifts', [PetGiftController::class, 'store'])->name('pets.gifts.store');
     });
 
     // Write operations - Notification endpoints (throttle:notification.write)

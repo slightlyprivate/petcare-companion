@@ -34,7 +34,7 @@ class ExportUserDataJob implements ShouldQueue
             $userData = [
                 'user' => $this->user->only(['id', 'email', 'role', 'created_at', 'updated_at']),
                 'pets' => $this->user->pets()->get()->map(fn ($pet) => $pet->only(['id', 'name', 'species', 'breed', 'owner_name', 'created_at', 'updated_at'])),
-                'donations' => $this->user->donations()->get()->map(fn ($donation) => $donation->only(['id', 'amount_cents', 'status', 'completed_at', 'created_at'])),
+                'gifts' => $this->user->gifts()->get()->map(fn ($gift) => $gift->only(['id', 'amount_cents', 'status', 'completed_at', 'created_at'])),
                 'appointments' => Appointment::whereHas('pet', fn ($q) => $q->where('user_id', $this->user->id))->get()->map(fn ($apt) => $apt->only(['id', 'pet_id', 'date', 'time', 'notes', 'status', 'created_at'])),
             ];
 
@@ -51,7 +51,7 @@ class ExportUserDataJob implements ShouldQueue
             // Add JSON files for each data type
             $zip->addFromString('user.json', json_encode($userData['user'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             $zip->addFromString('pets.json', json_encode($userData['pets'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            $zip->addFromString('donations.json', json_encode($userData['donations'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $zip->addFromString('gifts.json', json_encode($userData['gifts'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             $zip->addFromString('appointments.json', json_encode($userData['appointments'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
             $zip->close();

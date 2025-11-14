@@ -9,7 +9,7 @@
 - Breed: {{ $breed }}
 - Owner: {{ $ownerName }}
 
-You can now start tracking appointments, donations, and more for {{ $petName }}.
+You can now start tracking appointments, gifts, and more for {{ $petName }}.
 
 ---
 

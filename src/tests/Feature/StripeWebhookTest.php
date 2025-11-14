@@ -2,26 +2,25 @@
 
 namespace Tests\Feature;
 
-use App\Models\Donation;
+use App\Models\Gift;
 use App\Models\NotificationPreference;
 use App\Models\Pet;
 use App\Models\User;
-use App\Notifications\Donation\DonationSuccessNotification;
+use App\Notifications\Gift\GiftSuccessNotification;
 use App\Services\Webhook\Stripe\StripeWebhookService;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use Tests\TestCase;
 
 /**
  * Test suite for Stripe webhook handling.
- * 
+ *
  * Tests webhook-driven state changes and notifications by invoking the webhook service
  * directly with real Stripe Event objects constructed from test data.
  * This approach avoids Mockery's class overload mechanism entirely, eliminating lifecycle issues.
- *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
  */
 class StripeWebhookTest extends TestCase
 {
@@ -78,9 +77,11 @@ class StripeWebhookTest extends TestCase
     }
 
     /**
-     * Test that checkout.session.completed webhook marks donation as paid.
+     * Test that checkout.session.completed webhook marks gift as paid.
      */
-    public function test_webhook_checkout_completed_marks_donation_paid(): void
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_webhook_checkout_completed_marks_gift_paid(): void
     {
         Notification::fake();
 
@@ -88,12 +89,12 @@ class StripeWebhookTest extends TestCase
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'pending',
             'stripe_session_id' => 'cs_test_1',
-            'amount_cents' => 2500,
+            'cost_in_credits' => 100,
         ]);
 
         $eventData = [
@@ -106,7 +107,7 @@ class StripeWebhookTest extends TestCase
                     'object' => 'checkout.session',
                     'id' => 'cs_test_1',
                     'payment_intent' => 'pi_test_1',
-                    'metadata' => ['donation_id' => (string) $donation->id],
+                    'metadata' => ['gift_id' => (string) $gift->id],
                 ],
             ],
             'livemode' => false,
@@ -116,16 +117,18 @@ class StripeWebhookTest extends TestCase
 
         $this->handleWebhookEvent($eventData);
 
-        $donation->refresh();
-        $this->assertEquals('paid', $donation->status);
-        $this->assertNotNull($donation->completed_at);
+        $gift->refresh();
+        $this->assertEquals('paid', $gift->status);
+        $this->assertNotNull($gift->completed_at);
 
-        Notification::assertSentTo([$user], DonationSuccessNotification::class);
+        Notification::assertSentTo([$user], GiftSuccessNotification::class);
     }
 
     /**
      * Test webhook respects notification preferences.
      */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_webhook_respects_notification_preferences(): void
     {
         Notification::fake();
@@ -136,10 +139,10 @@ class StripeWebhookTest extends TestCase
 
         NotificationPreference::create([
             'user_id' => $user->id,
-            'donation_notifications' => false,
+            'gift_notifications' => false,
         ]);
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'pending',
@@ -156,7 +159,7 @@ class StripeWebhookTest extends TestCase
                     'object' => 'checkout.session',
                     'id' => 'cs_test_2',
                     'payment_intent' => 'pi_test_2',
-                    'metadata' => ['donation_id' => (string) $donation->id],
+                    'metadata' => ['gift_id' => (string) $gift->id],
                 ],
             ],
             'livemode' => false,
@@ -166,22 +169,24 @@ class StripeWebhookTest extends TestCase
 
         $this->handleWebhookEvent($eventData);
 
-        $donation->refresh();
-        $this->assertEquals('paid', $donation->status);
+        $gift->refresh();
+        $this->assertEquals('paid', $gift->status);
 
-        // Preference disables donations, so no notification should be sent
-        Notification::assertNotSentTo([$user], DonationSuccessNotification::class);
+        // Preference disables gifts, so no notification should be sent
+        Notification::assertNotSentTo([$user], GiftSuccessNotification::class);
     }
 
     /**
-     * Test checkout.session.expired webhook marks donation as failed.
+     * Test checkout.session.expired webhook marks gift as failed.
      */
-    public function test_webhook_checkout_expired_marks_donation_failed(): void
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_webhook_checkout_expired_marks_gift_failed(): void
     {
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'pending',
@@ -197,7 +202,7 @@ class StripeWebhookTest extends TestCase
                 'object' => [
                     'object' => 'checkout.session',
                     'id' => 'cs_test_expired',
-                    'metadata' => ['donation_id' => (string) $donation->id],
+                    'metadata' => ['gift_id' => (string) $gift->id],
                 ],
             ],
             'livemode' => false,
@@ -207,14 +212,16 @@ class StripeWebhookTest extends TestCase
 
         $this->handleWebhookEvent($eventData);
 
-        $donation->refresh();
-        $this->assertEquals('failed', $donation->status);
-        $this->assertNotNull($donation->completed_at);
+        $gift->refresh();
+        $this->assertEquals('failed', $gift->status);
+        $this->assertNotNull($gift->completed_at);
     }
 
     /**
      * Test invalid webhook signature is rejected.
      */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_webhook_rejects_invalid_signature(): void
     {
         $payload = json_encode(['type' => 'test']);
@@ -241,9 +248,11 @@ class StripeWebhookTest extends TestCase
     }
 
     /**
-     * Test webhook handles missing donation gracefully.
+     * Test webhook handles missing gift gracefully.
      */
-    public function test_webhook_handles_missing_donation(): void
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_webhook_handles_missing_gift(): void
     {
         $eventData = [
             'id' => 'evt_test_missing',
@@ -255,7 +264,7 @@ class StripeWebhookTest extends TestCase
                     'object' => 'checkout.session',
                     'id' => 'cs_test_missing',
                     'payment_intent' => 'pi_test_missing',
-                    'metadata' => ['donation_id' => 'nonexistent'],
+                    'metadata' => ['gift_id' => 'nonexistent'],
                 ],
             ],
             'livemode' => false,
@@ -266,13 +275,15 @@ class StripeWebhookTest extends TestCase
         // Should handle gracefully without throwing
         $this->handleWebhookEvent($eventData);
 
-        // Verify no donations were affected
-        $this->assertEquals(0, Donation::count());
+        // Verify no gifts were affected
+        $this->assertEquals(0, Gift::count());
     }
 
     /**
      * Test webhook is idempotent (can be safely processed multiple times).
      */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_webhook_is_idempotent(): void
     {
         Notification::fake();
@@ -280,7 +291,7 @@ class StripeWebhookTest extends TestCase
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        $donation = Donation::factory()->create([
+        $gift = Gift::factory()->create([
             'user_id' => $user->id,
             'pet_id' => $pet->id,
             'status' => 'pending',
@@ -297,7 +308,7 @@ class StripeWebhookTest extends TestCase
                     'object' => 'checkout.session',
                     'id' => 'cs_test_idem',
                     'payment_intent' => 'pi_test_idem',
-                    'metadata' => ['donation_id' => (string) $donation->id],
+                    'metadata' => ['gift_id' => (string) $gift->id],
                 ],
             ],
             'livemode' => false,
@@ -307,14 +318,14 @@ class StripeWebhookTest extends TestCase
 
         // Process the same event twice
         $this->handleWebhookEvent($eventData);
-        Notification::assertSentTimes(DonationSuccessNotification::class, 1);
+        Notification::assertSentTimes(GiftSuccessNotification::class, 1);
 
         // Process again - should not send another notification (idempotent)
         $this->handleWebhookEvent($eventData);
-        // Should still only have one notification sent (donation already marked paid)
-        Notification::assertSentTimes(DonationSuccessNotification::class, 1);
+        // Should still only have one notification sent (gift already marked paid)
+        Notification::assertSentTimes(GiftSuccessNotification::class, 1);
 
-        $donation->refresh();
-        $this->assertEquals('paid', $donation->status);
+        $gift->refresh();
+        $this->assertEquals('paid', $gift->status);
     }
 }
