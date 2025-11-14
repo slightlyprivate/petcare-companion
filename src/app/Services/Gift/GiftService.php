@@ -2,7 +2,9 @@
 
 namespace App\Services\Gift;
 
+use App\Exceptions\Receipt\ReceiptMetadataException;
 use App\Models\Gift;
+use App\Services\Receipt\ReceiptMetadataValidator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Stripe\Stripe;
 
@@ -11,8 +13,17 @@ use Stripe\Stripe;
  */
 class GiftService
 {
+    private ReceiptMetadataValidator $validator;
+
+    public function __construct()
+    {
+        $this->validator = new ReceiptMetadataValidator;
+    }
+
     /**
      * Generate receipt data for a gift.
+     *
+     * @throws ReceiptMetadataException if critical metadata is missing
      */
     public function generateReceiptData(Gift $gift): array
     {
@@ -21,7 +32,7 @@ class GiftService
         $chargeId = $gift->stripe_charge_id;
         $metadata = $gift->stripe_metadata ?? [];
 
-        return [
+        $receiptData = [
             'gift' => $gift,
             'chargeId' => $chargeId,
             'metadata' => $metadata,
@@ -35,12 +46,20 @@ class GiftService
             'status' => ucfirst($gift->status),
             'completedAt' => $gift->completed_at?->format('Y-m-d H:i:s'),
         ];
+
+        // Validate metadata before returning
+        $this->validator->validate($receiptData, $gift->id, $chargeId);
+
+        return $receiptData;
     }
 
     /**
      * Export receipt as PDF content.
      *
+     *
      * @return string PDF binary content
+     *
+     * @throws ReceiptMetadataException if metadata validation fails
      */
     public function exportReceiptAsFile(Gift $gift): string
     {

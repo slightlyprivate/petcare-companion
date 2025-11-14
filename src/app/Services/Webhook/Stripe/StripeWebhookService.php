@@ -104,25 +104,40 @@ class StripeWebhookService
             return;
         }
 
-        // Retrieve payment intent to get charge details
+        // Retrieve payment intent to get charge details with retry logic
         $metadata = $this->extractChargeMetadata($session);
 
         // Update gift with charge metadata
         if ($session['payment_intent']) {
             try {
                 \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-                $paymentIntent = \Stripe\PaymentIntent::retrieve($session['payment_intent']);
 
-                if ($paymentIntent->charges && $paymentIntent->charges->count() > 0) {
+                // Attempt to retrieve payment intent with retry logic (max 3 attempts)
+                $paymentIntent = $this->retrievePaymentIntentWithRetry($session['payment_intent'], 3);
+
+                if ($paymentIntent && $paymentIntent->charges && $paymentIntent->charges->count() > 0) {
                     $charge = $paymentIntent->charges->first();
                     $gift->stripe_charge_id = $charge->id;
                     $metadata = $this->extractChargeMetadata((array) $charge);
+                    Log::info('Successfully retrieved charge metadata via retry', [
+                        'gift_id' => $gift->id,
+                        'charge_id' => $charge->id,
+                        'payment_intent' => $session['payment_intent'],
+                    ]);
+                } else {
+                    Log::warning('No charges found for payment intent', [
+                        'gift_id' => $gift->id,
+                        'payment_intent' => $session['payment_intent'],
+                    ]);
                 }
             } catch (\Exception $e) {
-                Log::error('Error retrieving charge metadata', [
+                Log::error('Failed to retrieve charge metadata after all retries', [
                     'gift_id' => $gift->id,
+                    'payment_intent' => $session['payment_intent'],
                     'error' => $e->getMessage(),
+                    'error_type' => get_class($e),
                 ]);
+                // Continue with partial metadata - receipt rendering will validate completeness
             }
         }
 
@@ -227,5 +242,77 @@ class StripeWebhookService
 
             throw $e;
         }
+    }
+
+    /**
+     * Retrieve payment intent from Stripe with exponential backoff retry logic.
+     *
+     * Retries up to maxRetries times if the Stripe API is temporarily unavailable.
+     * Uses exponential backoff: 1s, 2s, 4s between retries.
+     *
+     * @param  string  $paymentIntentId  The Stripe payment intent ID
+     * @param  int  $maxRetries  Maximum number of retry attempts
+     * @return \Stripe\PaymentIntent|null Payment intent or null if all retries fail
+     */
+    protected function retrievePaymentIntentWithRetry(string $paymentIntentId, int $maxRetries = 3): ?\Stripe\PaymentIntent
+    {
+        $attempt = 0;
+        $lastException = null;
+
+        while ($attempt < $maxRetries) {
+            try {
+                return \Stripe\PaymentIntent::retrieve($paymentIntentId);
+            } catch (\Stripe\Exception\ApiConnectionException $e) {
+                // Transient API connection error - retry
+                $lastException = $e;
+                $attempt++;
+
+                if ($attempt < $maxRetries) {
+                    // Exponential backoff: 1s, 2s, 4s
+                    $backoffSeconds = (2 ** ($attempt - 1));
+                    Log::warning('Stripe API connection error, retrying', [
+                        'payment_intent' => $paymentIntentId,
+                        'attempt' => $attempt,
+                        'max_retries' => $maxRetries,
+                        'backoff_seconds' => $backoffSeconds,
+                        'error' => $e->getMessage(),
+                    ]);
+                    sleep($backoffSeconds);
+                }
+            } catch (\Stripe\Exception\RateLimitException $e) {
+                // Rate limited - retry with longer backoff
+                $lastException = $e;
+                $attempt++;
+
+                if ($attempt < $maxRetries) {
+                    $backoffSeconds = (2 ** $attempt); // Longer backoff for rate limits
+                    Log::warning('Stripe rate limit reached, retrying', [
+                        'payment_intent' => $paymentIntentId,
+                        'attempt' => $attempt,
+                        'max_retries' => $maxRetries,
+                        'backoff_seconds' => $backoffSeconds,
+                    ]);
+                    sleep($backoffSeconds);
+                }
+            } catch (\Exception $e) {
+                // Non-retryable error (auth, not found, etc.)
+                Log::error('Non-retryable Stripe error', [
+                    'payment_intent' => $paymentIntentId,
+                    'error' => $e->getMessage(),
+                    'error_type' => get_class($e),
+                ]);
+
+                return null;
+            }
+        }
+
+        // All retries exhausted
+        Log::error('Failed to retrieve payment intent after all retries', [
+            'payment_intent' => $paymentIntentId,
+            'max_retries' => $maxRetries,
+            'last_error' => $lastException?->getMessage(),
+        ]);
+
+        return null;
     }
 }

@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Foundation\Application;
 
-// Schedule cleanup of expired user data exports nightly at 2 AM
-Schedule::command('exports:cleanup')->dailyAt('02:00');
+Application::getInstance()->booted(function () {
+    $schedule = app(Schedule::class);
+
+    // Schedule cleanup of expired user data exports nightly at 2 AM
+    $schedule->command('exports:cleanup')->dailyAt('02:00');
+});
