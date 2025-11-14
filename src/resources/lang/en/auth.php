@@ -15,6 +15,18 @@ return [
             'message' => 'Your one-time passcode is :code. It is valid for 5 minutes.',
             'sms' => 'Your PetCare Companion code is :code. Valid for 5 minutes.',
         ],
+        // Data Deletion Initiated Notification
+        'delete-data-initiated' => [
+            'subject' => 'Your PetCare Companion Data Deletion Request Initiated',
+            'message' => 'We have received your data deletion request. We are processing it and will notify you once it is complete.',
+            'sms' => 'Your PetCare Companion data deletion request has been received. We will notify you once it is complete.',
+        ],
+        // Data Deletion Confirmation Notification
+        'delete-data' => [
+            'subject' => 'Your PetCare Companion Data Deletion Request',
+            'message' => 'Your data deletion request has been processed. Your data has been permanently removed from our system.',
+            'sms' => 'Your PetCare Companion data deletion request has been completed. Your data is no longer stored with us.',
+        ],
     ],
     // Display texts for authentication errors and messages
     'otp' => [

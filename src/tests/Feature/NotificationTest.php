@@ -440,6 +440,7 @@ class NotificationTest extends TestCase
             PetUpdatedNotification::class,
             function (PetUpdatedNotification $notification) {
                 $data = $notification->toArray(new \stdClass);
+
                 return in_array('name', $data['changed_fields']) &&
                     in_array('species', $data['changed_fields']);
             }

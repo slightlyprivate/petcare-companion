@@ -93,6 +93,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('throttle:user.data.delete')->group(function () {
-        Route::delete('/user/data/delete', [UserDataController::class, 'deleteData'])->name('user.data.delete');
+        Route::delete('/user/data', [UserDataController::class, 'deleteData'])->name('user.data.delete');
     });
 });

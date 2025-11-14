@@ -2,12 +2,15 @@
 
 namespace App\Jobs;
 
+use App\Mail\Auth\UserDataDeletionInitiated;
+use App\Mail\Auth\UserDataDeletionNotification;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -30,42 +33,61 @@ class DeleteUserDataJob implements ShouldQueue
         try {
             $userEmail = $this->user->email;
 
-            // Delete user's appointments through pets
-            $this->user->pets()->each(fn ($pet) => $pet->appointments()->delete());
-
-            // Delete user's pets
-            $this->user->pets()->delete();
-
-            // Delete user's donations
-            $this->user->donations()->delete();
-
-            // Delete user notification preferences
-            $this->user->notificationPreference()->delete();
-
-            // Delete the user account
-            $this->user->delete();
-
-            // Send confirmation email to the user's former email address
+            // Send initiation confirmation email before deletion
             try {
-                Mail::send('emails.data-deletion-confirmation', [
-                    'email' => $userEmail,
-                ], function ($message) use ($userEmail) {
-                    $message->to($userEmail)
-                        ->subject('Your PetCare Companion Account Has Been Deleted');
-                });
+                Mail::send(new UserDataDeletionInitiated($userEmail));
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::warning('Error sending data deletion email', [
+                Log::warning('Error sending data deletion initiation email', [
+                    'email' => $userEmail,
+                    'error' => $e->getMessage(),
+                ]);
+                // Continue even if email fails - the deletion should proceed
+            }
+
+            // Hard delete user's appointments through pets
+            $this->user->pets()->each(fn($pet) => $pet->appointments()->forceDelete());
+
+            // Hard delete user's pets
+            $this->user->pets()->forceDelete();
+
+            // Hard delete user's donations
+            $this->user->donations()->forceDelete();
+
+            // Hard delete user notification preferences
+            $this->user->notificationPreference()?->forceDelete();
+
+            // Anonymize sensitive data before final deletion
+            $this->anonymizeUser();
+
+            // Hard delete the user account
+            $this->user->forceDelete();
+
+            // Send completion confirmation email to the user's former email address
+            try {
+                Mail::send(new UserDataDeletionNotification($userEmail));
+            } catch (\Throwable $e) {
+                Log::warning('Error sending data deletion confirmation email', [
                     'email' => $userEmail,
                     'error' => $e->getMessage(),
                 ]);
                 // Continue even if email fails - the account was still deleted
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error deleting user data', [
+            Log::error('Error deleting user data', [
                 'user_id' => $this->user->id,
                 'error' => $e->getMessage(),
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * Anonymize user data before hard deletion.
+     */
+    private function anonymizeUser(): void
+    {
+        $this->user->update([
+            'email' => 'deleted-' . $this->user->id . '@deleted.local',
+        ]);
     }
 }

@@ -66,7 +66,7 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
             'pet_id' => $this->pet->id,
             'pet_name' => $this->pet->name,
             'changed_fields' => $changedFields,
-            'message' => __('pet.notify.updated.message', ['pet_name' => $this->pet->name])
+            'message' => __('pet.notify.updated.message', ['pet_name' => $this->pet->name]),
         ];
     }
 
