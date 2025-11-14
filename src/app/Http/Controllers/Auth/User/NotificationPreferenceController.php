@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\User\UpdateNotificationPreferenceRequest;
 use App\Services\Auth\Notifications\NotificationPreferencesService;
-use App\Support\Messages\NotificationsMessages;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -59,12 +58,12 @@ class NotificationPreferenceController extends Controller
             Log::error($e);
 
             return response()->json([
-                'message' => NotificationsMessages::notificationPreferenceUpdateFailed(),
+                'message' => __('notifications.preferences.update.failure'),
             ], 500);
         }
 
         return response()->json([
-            'message' => NotificationsMessages::notificationPreferenceUpdated(),
+            'message' => __('notifications.preferences.update.success'),
             'data' => [
                 'type' => $type,
                 'enabled' => $enabled,
@@ -84,7 +83,7 @@ class NotificationPreferenceController extends Controller
         $preferences->disableAll();
 
         return response()->json([
-            'message' => NotificationsMessages::notificationsDisabledSuccessfully(),
+            'message' => __('notifications.preferences.disable_all.success'),
         ]);
     }
 
@@ -100,7 +99,7 @@ class NotificationPreferenceController extends Controller
         $preferences->enableAll();
 
         return response()->json([
-            'message' => NotificationsMessages::notificationsEnabledSuccessfully(),
+            'message' => __('notifications.preferences.enable_all.success'),
         ]);
     }
 }

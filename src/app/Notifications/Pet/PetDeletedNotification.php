@@ -1,27 +1,25 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Notifications\Pet;
 
 use App\Messages\TwilioMessage;
-use App\Models\Donation;
+use App\Models\Pet;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * Notification sent when a donation is successfully processed.
+ * Notification sent when a pet is deleted.
  */
-class DonationSuccessNotification extends Notification implements ShouldQueue
+class PetDeletedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(
-        public Donation $donation,
-    ) {}
+    public function __construct(public Pet $pet) {}
 
     /**
      * Get the notification's delivery channels.
@@ -38,17 +36,14 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $petName = $this->donation->pet->name;
-        $amount = $this->donation->amount_cents / 100;
-
         return (new MailMessage)
-            ->markdown('emails.donation_success', [
-                'petName' => $petName,
-                'amount' => $amount,
-                'donationId' => $this->donation->id,
-                'date' => $this->donation->completed_at?->format('M d, Y H:i:s') ?? 'Pending',
+            ->markdown('emails.pet_deleted', [
+                'petName' => $this->pet->name,
+                'species' => $this->pet->species,
+                'breed' => $this->pet->breed ?? 'Not specified',
+                'ownerName' => $this->pet->owner_name,
             ])
-            ->subject('Thank You for Your Donation');
+            ->subject(__('pet.notify.deleted.subject', ['pet_name' => $this->pet->name]));
     }
 
     /**
@@ -58,15 +53,12 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        $amount = $this->donation->amount_cents / 100;
-
         return [
-            'type' => 'donation_success',
-            'donation_id' => $this->donation->id,
-            'pet_id' => $this->donation->pet_id,
-            'amount' => $amount,
-            'pet_name' => $this->donation->pet->name,
-            'message' => "Thank you for your \${$amount} donation to {$this->donation->pet->name}!",
+            'type' => 'pet_deleted',
+            'pet_id' => $this->pet->id,
+            'pet_name' => $this->pet->name,
+            'species' => $this->pet->species,
+            'message' => __('pet.notify.deleted.message', ['pet_name' => $this->pet->name]),
         ];
     }
 
@@ -75,11 +67,9 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
      */
     public function toTwilio(object $notifiable): ?TwilioMessage
     {
-        $amount = $this->donation->amount_cents / 100;
-
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            "Thank you for your \${$amount} donation to {$this->donation->pet->name}! Your donation ID: {$this->donation->id}"
+            __('pet.notify.deleted.sms', ['pet_name' => $this->pet->name])
         );
     }
 
@@ -88,6 +78,6 @@ class DonationSuccessNotification extends Notification implements ShouldQueue
      */
     public function toMarkdown(object $notifiable): string
     {
-        return 'emails.donation_success';
+        return 'emails.pet_deleted';
     }
 }

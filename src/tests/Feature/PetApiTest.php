@@ -4,9 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Pet;
 use App\Models\User;
+use App\Notifications\Pet\PetCreatedNotification;
+use App\Notifications\Pet\PetDeletedNotification;
+use App\Notifications\Pet\PetUpdatedNotification;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Testing\Fluent\AssertableJson;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -330,5 +334,165 @@ class PetApiTest extends TestCase
             'id' => $pet->id,
             'name' => 'Updated Name',
         ]);
+    }
+
+    #[Test]
+    public function it_sends_notification_when_creating_a_pet()
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $petData = [
+            'name' => 'Buddy',
+            'species' => 'Dog',
+            'breed' => 'Golden Retriever',
+            'birth_date' => '2020-05-15',
+            'owner_name' => 'John Smith',
+        ];
+
+        $response = $this->actingAs($user, 'sanctum')->postJson('/api/pets', $petData);
+
+        $response->assertStatus(201);
+
+        Notification::assertSentTo($user, PetCreatedNotification::class);
+    }
+
+    #[Test]
+    public function it_respects_pet_create_notification_preference()
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $user->notificationPreference()->create(['pet_create_notifications' => false]);
+
+        $petData = [
+            'name' => 'Buddy',
+            'species' => 'Dog',
+            'breed' => 'Golden Retriever',
+            'birth_date' => '2020-05-15',
+            'owner_name' => 'John Smith',
+        ];
+
+        $response = $this->actingAs($user, 'sanctum')->postJson('/api/pets', $petData);
+
+        $response->assertStatus(201);
+
+        Notification::assertNotSentTo($user, PetCreatedNotification::class);
+    }
+
+    #[Test]
+    public function it_sends_notification_when_deleting_a_pet()
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
+
+        $response = $this->actingAs($user, 'sanctum')->deleteJson("/api/pets/{$pet->id}");
+
+        $response->assertNoContent();
+
+        Notification::assertSentTo($user, PetDeletedNotification::class);
+    }
+
+    #[Test]
+    public function it_respects_pet_delete_notification_preference()
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $user->notificationPreference()->create(['pet_delete_notifications' => false]);
+        $pet = Pet::factory()->for($user)->create();
+
+        $response = $this->actingAs($user, 'sanctum')->deleteJson("/api/pets/{$pet->id}");
+
+        $response->assertNoContent();
+
+        Notification::assertNotSentTo($user, PetDeletedNotification::class);
+    }
+
+    #[Test]
+    public function it_sends_notification_when_updating_a_pet_with_changes()
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $pet = Pet::factory()->for($user)->create([
+            'name' => 'Original',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ]);
+
+        $updatePayload = [
+            'name' => 'Updated Name',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ];
+
+        $response = $this->actingAs($user, 'sanctum')->putJson("/api/pets/{$pet->id}", $updatePayload);
+
+        $response->assertOk();
+
+        Notification::assertSentTo($user, PetUpdatedNotification::class, function (PetUpdatedNotification $notification) {
+            return isset($notification->changes['name']) && $notification->changes['name'] === 'Updated Name';
+        });
+    }
+
+    #[Test]
+    public function it_does_not_send_notification_when_updating_pet_without_changes()
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $pet = Pet::factory()->for($user)->create([
+            'name' => 'Original',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ]);
+
+        $updatePayload = [
+            'name' => 'Original',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ];
+
+        $response = $this->actingAs($user, 'sanctum')->putJson("/api/pets/{$pet->id}", $updatePayload);
+
+        $response->assertOk();
+
+        Notification::assertNotSentTo($user, PetUpdatedNotification::class);
+    }
+
+    #[Test]
+    public function it_respects_pet_update_notification_preference()
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $user->notificationPreference()->create(['pet_update_notifications' => false]);
+        $pet = Pet::factory()->for($user)->create([
+            'name' => 'Original',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ]);
+
+        $updatePayload = [
+            'name' => 'Updated Name',
+            'species' => 'Dog',
+            'owner_name' => 'Owner Name',
+        ];
+
+        $response = $this->actingAs($user, 'sanctum')->putJson("/api/pets/{$pet->id}", $updatePayload);
+
+        $response->assertOk();
+
+        Notification::assertNotSentTo($user, PetUpdatedNotification::class);
     }
 }

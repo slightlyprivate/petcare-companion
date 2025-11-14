@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Notifications\Pet;
 
 use App\Messages\TwilioMessage;
 use App\Models\Pet;
@@ -49,7 +49,7 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
                 'status' => $this->pet->is_public ? 'Public' : 'Private',
                 'changedFields' => implode(', ', $changedFields),
             ])
-            ->subject("{$this->pet->name} Information Updated");
+            ->subject(__('pet.notify.updated.subject', ['pet_name' => $this->pet->name]));
     }
 
     /**
@@ -66,7 +66,7 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
             'pet_id' => $this->pet->id,
             'pet_name' => $this->pet->name,
             'changed_fields' => $changedFields,
-            'message' => "{$this->pet->name} information has been updated. Fields changed: ".implode(', ', $changedFields),
+            'message' => __('pet.notify.updated.message', ['pet_name' => $this->pet->name])
         ];
     }
 
@@ -79,7 +79,7 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
 
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            "{$this->pet->name} information updated. Changed: ".implode(', ', $changedFields)
+            __('pet.notify.updated.sms', ['pet_name' => $this->pet->name])
         );
     }
 

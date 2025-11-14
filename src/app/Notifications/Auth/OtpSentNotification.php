@@ -1,18 +1,17 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Notifications\Auth;
 
 use App\Messages\TwilioMessage;
-use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * Notification sent when user successfully authenticates.
+ * Notification sent when OTP is requested for authentication.
  */
-class LoginSuccessNotification extends Notification implements ShouldQueue
+class OtpSentNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -20,7 +19,8 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
      * Create a new notification instance.
      */
     public function __construct(
-        public User $user,
+        public string $code,
+        public string $email,
     ) {}
 
     /**
@@ -39,11 +39,10 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->markdown('emails.login_success', [
-                'email' => $this->user->email,
-                'time' => now()->format('M d, Y H:i:s'),
+            ->markdown('emails.otp_sent', [
+                'code' => $this->code,
             ])
-            ->subject('Successful Login to PetCare Companion');
+            ->subject(__('auth.notify.otp.subject'));
     }
 
     /**
@@ -54,10 +53,10 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'type' => 'login_success',
-            'user_id' => $this->user->id,
-            'email' => $this->user->email,
-            'message' => 'You have successfully logged in to PetCare Companion at '.now()->format('M d, Y H:i:s'),
+            'type' => 'otp_sent',
+            'code' => $this->code,
+            'email' => $this->email,
+            'message' => __('auth.notify.otp.message', ['code' => $this->code]),
         ];
     }
 
@@ -68,7 +67,7 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
     {
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            'Welcome back to PetCare Companion! You successfully logged in at '.now()->format('H:i').". If this wasn't you, contact support."
+            __('auth.notify.otp.sms', ['code' => $this->code])
         );
     }
 
@@ -77,6 +76,6 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
      */
     public function toMarkdown(object $notifiable): string
     {
-        return 'emails.login_success';
+        return 'emails.otp_sent';
     }
 }

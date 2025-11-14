@@ -25,6 +25,8 @@ class NotificationPreference extends Model
         'login_notifications',
         'donation_notifications',
         'pet_update_notifications',
+        'pet_create_notifications',
+        'pet_delete_notifications',
         'sms_enabled',
         'email_enabled',
     ];
@@ -39,6 +41,8 @@ class NotificationPreference extends Model
         'login_notifications' => 'boolean',
         'donation_notifications' => 'boolean',
         'pet_update_notifications' => 'boolean',
+        'pet_create_notifications' => 'boolean',
+        'pet_delete_notifications' => 'boolean',
         'sms_enabled' => 'boolean',
         'email_enabled' => 'boolean',
     ];
@@ -54,6 +58,8 @@ class NotificationPreference extends Model
                 'login_notifications',
                 'donation_notifications',
                 'pet_update_notifications',
+                'pet_create_notifications',
+                'pet_delete_notifications',
                 'sms_enabled',
                 'email_enabled',
             ]);

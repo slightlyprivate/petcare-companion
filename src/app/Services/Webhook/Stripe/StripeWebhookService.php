@@ -4,7 +4,7 @@ namespace App\Services\Webhook\Stripe;
 
 use App\Helpers\NotificationHelper;
 use App\Models\Donation;
-use App\Notifications\DonationSuccessNotification;
+use App\Notifications\Donation\DonationSuccessNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 

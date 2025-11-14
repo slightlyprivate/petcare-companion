@@ -1,27 +1,25 @@
 <?php
 
-namespace App\Notifications;
+namespace App\Notifications\Pet;
 
 use App\Messages\TwilioMessage;
+use App\Models\Pet;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * Notification sent when OTP is requested for authentication.
+ * Notification sent when a pet is created.
  */
-class OtpSentNotification extends Notification implements ShouldQueue
+class PetCreatedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(
-        public string $code,
-        public string $email,
-    ) {}
+    public function __construct(public Pet $pet) {}
 
     /**
      * Get the notification's delivery channels.
@@ -39,10 +37,13 @@ class OtpSentNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->markdown('emails.otp_sent', [
-                'code' => $this->code,
+            ->markdown('emails.pet_created', [
+                'petName' => $this->pet->name,
+                'species' => $this->pet->species,
+                'breed' => $this->pet->breed ?? 'Not specified',
+                'ownerName' => $this->pet->owner_name,
             ])
-            ->subject('Your PetCare Companion Authentication Code');
+            ->subject(__('pet.notify.created.subject', ['pet_name' => $this->pet->name]));
     }
 
     /**
@@ -53,10 +54,11 @@ class OtpSentNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         return [
-            'type' => 'otp_sent',
-            'code' => $this->code,
-            'email' => $this->email,
-            'message' => "Your code is {$this->code}. Valid for 5 minutes.",
+            'type' => 'pet_created',
+            'pet_id' => $this->pet->id,
+            'pet_name' => $this->pet->name,
+            'species' => $this->pet->species,
+            'message' => __('pet.notify.created.message', ['pet_name' => $this->pet->name]),
         ];
     }
 
@@ -67,7 +69,7 @@ class OtpSentNotification extends Notification implements ShouldQueue
     {
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
-            "Your PetCare Companion OTP: {$this->code}. Valid for 5 minutes."
+            __('pet.notify.created.sms', ['pet_name' => $this->pet->name]),
         );
     }
 
@@ -76,6 +78,6 @@ class OtpSentNotification extends Notification implements ShouldQueue
      */
     public function toMarkdown(object $notifiable): string
     {
-        return 'emails.otp_sent';
+        return 'emails.pet_created';
     }
 }

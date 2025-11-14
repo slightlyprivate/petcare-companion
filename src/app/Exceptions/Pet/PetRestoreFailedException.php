@@ -11,6 +11,6 @@ class PetRestoreFailedException extends Exception
 {
     public function __construct()
     {
-        parent::__construct(__('pets.restore.failure'));
+        parent::__construct(__('pet.restore.failure'));
     }
 }

@@ -7,7 +7,9 @@ use App\Helpers\NotificationHelper;
 use App\Helpers\PetPaginationHelper;
 use App\Models\Pet;
 use App\Models\User;
-use App\Notifications\PetUpdatedNotification;
+use App\Notifications\Pet\PetCreatedNotification;
+use App\Notifications\Pet\PetDeletedNotification;
+use App\Notifications\Pet\PetUpdatedNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 
@@ -27,7 +29,14 @@ class PetService
             $data['user_id'] = Auth::user()->id;
         }
 
-        return Pet::create($data);
+        $pet = Pet::create($data);
+
+        // Send pet created notification to owner if preference is enabled
+        if ($pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_create')) {
+            Notification::send($pet->user, new PetCreatedNotification($pet));
+        }
+
+        return $pet;
     }
 
     /**
@@ -53,6 +62,11 @@ class PetService
      */
     public function delete(Pet $pet): void
     {
+        // Send pet deleted notification to owner if preference is enabled
+        if ($pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_delete')) {
+            Notification::send($pet->user, new PetDeletedNotification($pet));
+        }
+
         $pet->delete();
     }
 

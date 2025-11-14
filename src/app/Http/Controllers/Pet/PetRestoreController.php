@@ -54,13 +54,13 @@ class PetRestoreController extends Controller
             $this->petService->restore($petModel);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => __('pets.restore.failure'),
+                'message' => __('pet.restore.failure'),
                 'error' => $e->getMessage(),
             ], 500);
         }
 
         return response()->json([
-            'message' => __('pets.restore.success'),
+            'message' => __('pet.restore.success'),
             'pet' => $petModel,
         ], 200);
     }

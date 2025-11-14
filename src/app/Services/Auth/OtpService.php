@@ -5,7 +5,7 @@ namespace App\Services\Auth;
 use App\Helpers\NotificationHelper;
 use App\Models\Otp;
 use App\Models\User;
-use App\Notifications\OtpSentNotification;
+use App\Notifications\Auth\OtpSentNotification;
 use Illuminate\Support\Facades\Notification;
 
 /**
