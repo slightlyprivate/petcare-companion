@@ -14,11 +14,16 @@ class CreditTransaction extends Model
     protected $fillable = [
         'wallet_id',
         'amount',
+        'amount_credits',
         'type',
+        'reason',
+        'related_type',
+        'related_id',
     ];
 
     protected $casts = [
         'amount' => 'integer',
+        'amount_credits' => 'integer',
     ];
 
     public function wallet(): BelongsTo

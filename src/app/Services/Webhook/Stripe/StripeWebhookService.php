@@ -5,6 +5,7 @@ namespace App\Services\Webhook\Stripe;
 use App\Helpers\NotificationHelper;
 use App\Models\CreditPurchase;
 use App\Models\Gift;
+use App\Models\User;
 use App\Notifications\Gift\GiftSuccessNotification;
 use App\Services\Credit\CreditPurchaseService;
 use Illuminate\Support\Facades\Log;
@@ -161,6 +162,9 @@ class StripeWebhookService
 
         $gift->stripe_metadata = $metadata;
         $gift->markAsPaid();
+
+        // Deduct credits from user's wallet when gift is confirmed as paid
+        $this->deductCreditsFromWallet($gift->user, $gift->cost_in_credits);
 
         // Send gift success notification to user if enabled
         if (NotificationHelper::isNotificationEnabled($gift->user, 'gift')) {
@@ -406,5 +410,52 @@ class StripeWebhookService
         ]);
 
         return null;
+    }
+
+    /**
+     * Deduct credits from user's wallet and create a transaction record.
+     *
+     * Uses atomic operations to prevent race conditions. Checks if credits have
+     * already been deducted to prevent double-deduction on webhook retry.
+     */
+    protected function deductCreditsFromWallet(User $user, int $credits): void
+    {
+        // Get wallet with lock to prevent concurrent modification
+        $wallet = $user->wallet()->lockForUpdate()->first();
+
+        if (! $wallet) {
+            Log::warning('Wallet not found for user', ['user_id' => $user->id]);
+
+            return;
+        }
+
+        // Check if transaction already exists for this webhook to prevent double-deduction
+        // In case of webhook retry
+        $existingTransaction = $wallet->transactions()
+            ->where('amount_credits', $credits)
+            ->where('reason', 'gift_sent')
+            ->where('created_at', '>=', now()->subMinutes(5))
+            ->first();
+
+        if ($existingTransaction) {
+            Log::info('Gift credit deduction already processed', [
+                'user_id' => $user->id,
+                'wallet_id' => $wallet->id,
+                'credits' => $credits,
+            ]);
+
+            return;
+        }
+
+        // Decrement wallet balance
+        $wallet->decrement('balance_credits', $credits);
+
+        // Log the transaction
+        $wallet->transactions()->create([
+            'type' => 'debit',
+            'amount_credits' => $credits,
+            'reason' => 'gift_sent',
+            'related_type' => 'gift',
+        ]);
     }
 }

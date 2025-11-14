@@ -49,7 +49,7 @@ class PetGiftService
             throw new PaymentSessionFailed;
         }
 
-        // Update the gift with the Stripe session ID
+        // Update the gift with the Stripe session ID after successful session creation
         $gift->stripe_session_id = $session->id;
         $gift->save();
 
@@ -105,5 +105,29 @@ class PetGiftService
     protected function generateUniqueId(): string
     {
         return (string) \Illuminate\Support\Str::uuid();
+    }
+
+    /**
+     * Deduct credits from user's wallet and create a transaction record.
+     *
+     * Uses atomic operations to prevent race conditions.
+     */
+    protected function deductCreditsFromWallet(User $user, int $credits): void
+    {
+        // Get wallet with lock to prevent concurrent modification
+        $wallet = $user->wallet()->lockForUpdate()->first();
+
+        if ($wallet) {
+            // Decrement wallet balance
+            $wallet->decrement('balance_credits', $credits);
+
+            // Log the transaction
+            $wallet->transactions()->create([
+                'type' => 'debit',
+                'amount_credits' => $credits,
+                'reason' => 'gift_sent',
+                'related_type' => 'gift',
+            ]);
+        }
     }
 }

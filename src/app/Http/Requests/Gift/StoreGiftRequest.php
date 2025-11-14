@@ -27,7 +27,7 @@ class StoreGiftRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'cost_in_credits' => ['required', 'integer', 'min:10', 'max:1000000'],
+            'cost_in_credits' => ['required', 'integer', 'min:10', 'max:1000000', new \App\Rules\SufficientWalletBalance($this->user())],
             'return_url' => ['required', 'url'],
         ];
     }
