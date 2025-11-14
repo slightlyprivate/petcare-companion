@@ -25,6 +25,7 @@ class RateLimitHelper
         self::configureAppointmentRateLimits();
         self::configureGiftRateLimits();
         self::configureCreditRateLimits();
+        self::configureAdminRateLimits();
         self::configureUserDataRateLimits();
         self::configureNotificationRateLimits();
         self::configureWebhookRateLimits();
@@ -93,6 +94,19 @@ class RateLimitHelper
         RateLimiter::for('credit.write', function () {
             // Allow 10 credit purchases per hour per user
             return Limit::perHour(10)->by(request()->user()->id);
+        });
+    }
+
+    /**
+     * Configure admin operation rate limiters.
+     *
+     * Controls the rate of admin-only operations like gift type management.
+     */
+    private static function configureAdminRateLimits(): void
+    {
+        RateLimiter::for('admin.write', function () {
+            // Allow 50 admin writes per hour per admin user
+            return Limit::perHour(50)->by(request()->user()->id);
         });
     }
 

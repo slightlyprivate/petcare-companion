@@ -27,6 +27,7 @@ class Gift extends Model
     protected $fillable = [
         'user_id',
         'pet_id',
+        'gift_type_id',
         'cost_in_credits',
         'stripe_session_id',
         'stripe_charge_id',
@@ -69,6 +70,14 @@ class Gift extends Model
     public function pet(): BelongsTo
     {
         return $this->belongsTo(Pet::class);
+    }
+
+    /**
+     * Get the gift type for this gift.
+     */
+    public function giftType(): BelongsTo
+    {
+        return $this->belongsTo(GiftType::class);
     }
 
     /**

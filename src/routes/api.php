@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\User\UserDataController;
 use App\Http\Controllers\Auth\User\UserExportDownloadController;
 use App\Http\Controllers\Credit\CreditPurchaseController;
 use App\Http\Controllers\Gift\GiftController;
+use App\Http\Controllers\GiftType\GiftTypeController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetController;
 use App\Http\Controllers\Pet\PetGiftController;
@@ -33,6 +34,8 @@ Route::prefix('auth')->group(function () {
 // Public endpoints (no rate limiting)
 Route::prefix('public')->group(function () {
     Route::get('pets', [PetDirectoryController::class, 'index'])->name('public.pets.index');
+    Route::get('gift-types', [GiftTypeController::class, 'index'])->name('public.gift-types.index');
+    Route::get('gift-types/{giftType}', [GiftTypeController::class, 'show'])->name('public.gift-types.show');
 });
 
 // Webhook endpoints (no authentication required) - with rate limiting
@@ -89,6 +92,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // Write operations - Credit endpoints (throttle:credit.write)
     Route::middleware('throttle:credit.write')->group(function () {
         Route::post('/credits/purchase', [CreditPurchaseController::class, 'store'])->name('credits.purchase');
+    });
+
+    // Admin endpoints - Gift Types (throttle:admin.write)
+    Route::middleware('throttle:admin.write')->group(function () {
+        Route::post('/gift-types', [GiftTypeController::class, 'store'])->name('gift-types.store');
+        Route::put('/gift-types/{giftType}', [GiftTypeController::class, 'update'])->name('gift-types.update');
+        Route::delete('/gift-types/{giftType}', [GiftTypeController::class, 'destroy'])->name('gift-types.destroy');
     });
 
     // Write operations - Notification endpoints (throttle:notification.write)
