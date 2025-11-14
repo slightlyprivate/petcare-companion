@@ -15,6 +15,7 @@ use App\Http\Controllers\Pet\PetController;
 use App\Http\Controllers\Pet\PetGiftController;
 use App\Http\Controllers\Pet\PetRestoreController;
 use App\Http\Controllers\Pet\Public\PetDirectoryController;
+use App\Http\Controllers\Pet\Public\PetReportController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,7 @@ Route::prefix('auth')->group(function () {
 // Public endpoints (no rate limiting)
 Route::prefix('public')->group(function () {
     Route::get('pets', [PetDirectoryController::class, 'index'])->name('public.pets.index');
+    Route::get('pet-reports/{petId}', [PetReportController::class, 'show'])->name('public.pet-reports.show');
     Route::get('gift-types', [GiftTypeController::class, 'index'])->name('public.gift-types.index');
     Route::get('gift-types/{giftType}', [GiftTypeController::class, 'show'])->name('public.gift-types.show');
 });

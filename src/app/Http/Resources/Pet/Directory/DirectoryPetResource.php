@@ -23,6 +23,9 @@ class DirectoryPetResource extends \Illuminate\Http\Resources\Json\JsonResource
         // Convert credits to cents using the standardized credit constant (1 credit = $1.00 = 100 cents)
         $totalCents = CreditConstants::toCents($totalCredits);
 
+        // Count paid gifts
+        $giftCount = $this->gifts->where('status', 'paid')->count();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -31,12 +34,45 @@ class DirectoryPetResource extends \Illuminate\Http\Resources\Json\JsonResource
             'birth_date' => $this->birth_date?->format('Y-m-d'),
             'owner_name' => $this->owner_name,
             'age' => $this->age,
-            'gift_count' => $this->gifts->where('status', 'paid')->count(),
+            'gift_count' => $giftCount,
             'total_gifts_cents' => $totalCents,
             'total_gifts' => $totalCents / 100,
             'popularity_rank' => $this->gifts_count ?? 0,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
+
+            // Include gift type distribution
+            'gift_types' => $this->when(
+                $this->relationLoaded('gifts'),
+                fn () => $this->getGiftTypeDistribution()
+            ),
+
+            // Link to detailed report
+            'report_url' => route('public.pet-reports.show', $this->id),
         ];
+    }
+
+    /**
+     * Get distribution of gifts by type.
+     *
+     * @return array<string, mixed>
+     */
+    private function getGiftTypeDistribution(): array
+    {
+        return $this->gifts
+            ->where('status', 'paid')
+            ->groupBy(fn ($gift) => $gift->gift_type_id)
+            ->map(function ($gifts, $typeId) {
+                $giftType = $gifts->first()?->giftType;
+
+                return [
+                    'gift_type_id' => $typeId,
+                    'gift_type_name' => $giftType?->name ?? 'Unknown',
+                    'gift_type_icon' => $giftType?->icon_emoji ?? null,
+                    'count' => $gifts->count(),
+                ];
+            })
+            ->values()
+            ->all();
     }
 }
