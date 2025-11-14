@@ -184,6 +184,11 @@ class PetService
             $q->where('status', 'paid');
         }], 'amount_cents');
 
+        // Eager load donations
+        $query->with(['donations' => function ($q) {
+            $q->where('status', 'paid');
+        }]);
+
         // Apply pagination
         $perPage = $helper->getPerPage();
 

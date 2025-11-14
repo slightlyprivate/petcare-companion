@@ -41,7 +41,7 @@ class PetDonationService
         ]);
 
         try {
-            $session = $this->createStripeCheckoutSession($donation);
+            $session = $this->createStripeCheckoutSession($donation, $data['return_url']);
         } catch (\Exception $e) {
             // Mark donation as failed if Stripe session creation fails
             $donation->markAsFailed();
@@ -68,7 +68,7 @@ class PetDonationService
     /**
      * Create a Stripe Checkout Session for the donation.
      */
-    protected function createStripeCheckoutSession(Donation $donation): \Stripe\Checkout\Session
+    protected function createStripeCheckoutSession(Donation $donation, string $returnUrl): \Stripe\Checkout\Session
     {
         $pet = $donation->pet;
 
@@ -88,8 +88,8 @@ class PetDonationService
                 ],
             ],
             'mode' => 'payment',
-            'success_url' => config('app.url').'/donations/success?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => config('app.url').'/donations/cancel',
+            'success_url' => $returnUrl.'?donation_id={CHECKOUT_SESSION_ID}&status=success',
+            'cancel_url' => $returnUrl.'?donation_id={CHECKOUT_SESSION_ID}&status=cancel',
             'metadata' => [
                 'donation_id' => $donation->id,
             ],

@@ -52,7 +52,7 @@ class DonationReceiptAndUserDataComplianceTest extends TestCase
 
         $response->assertStatus(200)
             ->assertHeader('Content-Type', 'application/pdf')
-            ->assertHeader('Content-Disposition', 'attachment; filename="receipt_' . $donation->id . '.pdf"');
+            ->assertHeader('Content-Disposition', 'attachment; filename="receipt_'.$donation->id.'.pdf"');
 
         // Verify receipt is a valid PDF (starts with PDF header)
         $this->assertStringStartsWith('%PDF', $response->getContent());

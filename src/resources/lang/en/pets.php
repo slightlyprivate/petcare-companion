@@ -5,7 +5,7 @@ return [
     'created' => [
         'email' => [
             'subject' => 'New Pet Created: :pet_name',
-            'intro'   => ':pet_name has been added to your account.',
+            'intro' => ':pet_name has been added to your account.',
         ],
         'sms' => [
             'body' => ':pet_name has been added to your account.',
@@ -17,7 +17,7 @@ return [
     'updated' => [
         'email' => [
             'subject' => 'Pet Updated: :pet_name',
-            'intro'   => 'Details for :pet_name have been updated.',
+            'intro' => 'Details for :pet_name have been updated.',
         ],
         'sms' => [
             'body' => ':pet_name has been updated.',
@@ -29,7 +29,7 @@ return [
     'deleted' => [
         'email' => [
             'subject' => 'Pet Deleted: :pet_name',
-            'intro'   => ':pet_name has been removed from your account.',
+            'intro' => ':pet_name has been removed from your account.',
         ],
         'sms' => [
             'body' => ':pet_name has been deleted.',
@@ -41,7 +41,7 @@ return [
     'restore' => [
         'email' => [
             'subject' => 'Pet Restored: :pet_name',
-            'intro'   => ':pet_name has been restored to your account.',
+            'intro' => ':pet_name has been restored to your account.',
         ],
         'sms' => [
             'body' => ':pet_name has been restored.',

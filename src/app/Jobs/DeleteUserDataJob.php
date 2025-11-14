@@ -45,7 +45,7 @@ class DeleteUserDataJob implements ShouldQueue
             }
 
             // Hard delete user's appointments through pets
-            $this->user->pets()->each(fn($pet) => $pet->appointments()->forceDelete());
+            $this->user->pets()->each(fn ($pet) => $pet->appointments()->forceDelete());
 
             // Hard delete user's pets
             $this->user->pets()->forceDelete();
@@ -87,7 +87,7 @@ class DeleteUserDataJob implements ShouldQueue
     private function anonymizeUser(): void
     {
         $this->user->update([
-            'email' => 'deleted-' . $this->user->id . '@deleted.local',
+            'email' => 'deleted-'.$this->user->id.'@deleted.local',
         ]);
     }
 }

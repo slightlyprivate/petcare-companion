@@ -5,7 +5,7 @@ return [
     'login' => [
         'email' => [
             'subject' => 'Successful Login to PetCare Companion',
-            'intro'   => 'You successfully logged in at :time.',
+            'intro' => 'You successfully logged in at :time.',
         ],
         'sms' => [
             'body' => 'Login at :time. If this wasn\'t you, contact support.',
@@ -17,7 +17,7 @@ return [
     'otp' => [
         'email' => [
             'subject' => 'Your Authentication Code',
-            'intro'   => 'Your one-time passcode is :code, valid for 5 minutes.',
+            'intro' => 'Your one-time passcode is :code, valid for 5 minutes.',
         ],
         'sms' => [
             'body' => 'Your code is :code. Valid 5 minutes.',
@@ -34,8 +34,8 @@ return [
         'initiated' => [
             'email' => [
                 'subject' => 'Data Deletion Started',
-                'intro'   => 'We received your request to delete your data.',
-                'outro'   => 'We will notify you upon completion.',
+                'intro' => 'We received your request to delete your data.',
+                'outro' => 'We will notify you upon completion.',
             ],
             'sms' => [
                 'body' => 'Deletion request received. We\'ll notify you when complete.',
@@ -46,8 +46,8 @@ return [
         'completed' => [
             'email' => [
                 'subject' => 'Data Deletion Complete',
-                'intro'   => 'Your data has been permanently deleted.',
-                'outro'   => 'Thank you for using PetCare Companion.',
+                'intro' => 'Your data has been permanently deleted.',
+                'outro' => 'Thank you for using PetCare Companion.',
             ],
             'sms' => [
                 'body' => 'Your data has been deleted.',
