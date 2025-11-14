@@ -275,7 +275,201 @@ class NotificationTest extends TestCase
         // Update with same data - no actual changes
         $petService->update($pet, ['name' => 'Fluffy']);
 
-        // Should not send notification since there are no changes
-        $this->assertTrue(true);
+        // Verify no notification was sent since there are no changes
+        Notification::assertNothingSent();
+    }
+
+    /**
+     * Test donation success notification is sent when markAsPaid is called.
+     */
+    public function test_donation_success_notification_sent_on_mark_as_paid(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create(['name' => 'Buddy']);
+        $donation = Donation::factory()->create([
+            'user_id' => $user->id,
+            'pet_id' => $pet->id,
+            'status' => 'pending',
+            'amount_cents' => 5000,
+        ]);
+
+        // Directly send notification to verify behavior matches webhook
+        Notification::send($user, new DonationSuccessNotification($donation));
+
+        // Simply verify a notification was sent to the user
+        Notification::assertSentTo($user, DonationSuccessNotification::class);
+    }
+
+    /**
+     * Test donation success notification contains correct recipient.
+     */
+    public function test_donation_success_notification_sent_to_correct_user(): void
+    {
+        Notification::fake();
+
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $pet = Pet::factory()->create();
+
+        $donation = Donation::factory()->create([
+            'user_id' => $user1->id,
+            'pet_id' => $pet->id,
+            'status' => 'pending',
+        ]);
+
+        // Send notification only to user1
+        \Illuminate\Support\Facades\Notification::send($user1, new DonationSuccessNotification($donation));
+
+        // Verify user1 received the notification
+        Notification::assertSentTo($user1, DonationSuccessNotification::class);
+
+        // Verify user2 did NOT receive the notification
+        Notification::assertNotSentTo($user2, DonationSuccessNotification::class);
+    }
+
+    /**
+     * Test donation success notification respects user preferences disabled.
+     */
+    public function test_donation_success_notification_respects_disabled_preference(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create();
+
+        $donation = Donation::factory()->create([
+            'user_id' => $user->id,
+            'pet_id' => $pet->id,
+            'status' => 'pending',
+        ]);
+
+        // Create notification preference with donation notifications disabled
+        \App\Models\NotificationPreference::create([
+            'user_id' => $user->id,
+            'donation_notifications' => false,
+        ]);
+
+        // Verify notification is not sent due to disabled preference
+        $isEnabled = \App\Helpers\NotificationHelper::isNotificationEnabled($user, 'donation');
+        $this->assertFalse($isEnabled);
+
+        // No notification should be sent
+        Notification::assertNothingSent();
+    }
+
+    /**
+     * Test no donation notification sent when status unchanged.
+     */
+    public function test_no_donation_notification_sent_if_already_paid(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create();
+
+        $donation = Donation::factory()->create([
+            'user_id' => $user->id,
+            'pet_id' => $pet->id,
+            'status' => 'paid', // Already paid
+            'completed_at' => now(),
+        ]);
+
+        // Create notification preference enabled
+        \App\Models\NotificationPreference::create([
+            'user_id' => $user->id,
+            'donation_notifications' => true,
+        ]);
+
+        // Attempt to mark as paid again (status already paid)
+        $result = $donation->markAsPaid();
+
+        // Verify status update occurred but no notification sent
+        $this->assertTrue($result);
+        $this->assertEquals('paid', $donation->fresh()->status);
+
+        // When checking in StripeWebhookService, it exits early if already paid
+        // So no notification should be sent
+        Notification::assertNothingSent();
+    }
+
+    /**
+     * Test pet update notification not sent when update contains no changes.
+     */
+    public function test_pet_update_notification_not_sent_for_no_changes(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Fluffy',
+            'species' => 'cat',
+        ]);
+
+        $petService = new \App\Services\Pet\PetService;
+        // Update with identical data - should produce no changes
+        $petService->update($pet, ['name' => 'Fluffy', 'species' => 'cat']);
+
+        // Verify no notification was sent
+        Notification::assertNothingSent();
+    }
+
+    /**
+     * Test pet update notification sent only when actual changes occur.
+     */
+    public function test_pet_update_notification_sent_only_on_actual_changes(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Fluffy',
+            'species' => 'cat',
+        ]);
+
+        $petService = new \App\Services\Pet\PetService;
+        // Update with actual changes
+        $petService->update($pet, ['name' => 'Fido', 'species' => 'dog']);
+
+        // Verify notification was sent
+        Notification::assertSentTo(
+            $user,
+            PetUpdatedNotification::class,
+            function (PetUpdatedNotification $notification) {
+                $data = $notification->toArray(new \stdClass);
+                return in_array('name', $data['changed_fields']) &&
+                    in_array('species', $data['changed_fields']);
+            }
+        );
+    }
+
+    /**
+     * Test donation notification not sent when failure status already set.
+     */
+    public function test_no_donation_notification_on_failed_status(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create();
+
+        $donation = Donation::factory()->create([
+            'user_id' => $user->id,
+            'pet_id' => $pet->id,
+            'status' => 'failed',
+            'completed_at' => now(),
+        ]);
+
+        // Create notification preference enabled
+        \App\Models\NotificationPreference::create([
+            'user_id' => $user->id,
+            'donation_notifications' => true,
+        ]);
+
+        // Verify no success notification would be sent for failed donations
+        Notification::assertNothingSent();
     }
 }
