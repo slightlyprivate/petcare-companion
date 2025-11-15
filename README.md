@@ -332,6 +332,8 @@ src/
 - **app**: PHP 8.3 + Laravel application  
 - **web**: Nginx reverse proxy
 - **db**: MySQL 8.0 database with persistent storage
+- **redis**: Redis 7 for caching/queue experiments
+- **frontend**: Node BFF + built React UI (serves UI and proxies `/api/*` to `web`)
 
 ### UI + BFF
 
@@ -346,6 +348,7 @@ An additional container can serve the React UI and run the Node BFF proxy.
 - API: `http://localhost:8080`
 - MySQL: `localhost:3307` (host access)
 - App direct: `http://localhost:9000` (development)
+- Frontend: `http://localhost:5174`
 
 **Database Configuration**:
 
