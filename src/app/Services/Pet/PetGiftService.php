@@ -4,11 +4,9 @@ namespace App\Services\Pet;
 
 use App\Constants\CreditConstants;
 use App\Exceptions\Gift\CreditCostRequiredException;
-use App\Exceptions\Stripe\PaymentSessionFailed;
 use App\Models\Gift;
 use App\Models\Pet;
 use App\Models\User;
-use Stripe\Stripe;
 
 /**
  * Service for handling pet gifts.
@@ -23,39 +21,31 @@ class PetGiftService
      */
     public function createGift(array $data, User $user, Pet $pet): array
     {
-        // Set Stripe API key
-        Stripe::setApiKey(config('services.stripe.secret'));
-
         $costInCredits = (int) $data['cost_in_credits'];
 
         if ($costInCredits <= 0) {
             throw new CreditCostRequiredException('Gift cost must be greater than zero credits.');
         }
 
-        // Create gift record
+        // Create gift record in pending state with catalog association
         $gift = Gift::create([
             'id' => $this->generateUniqueId(),
             'user_id' => $user->id,
             'pet_id' => $pet->id,
+            'gift_type_id' => $data['gift_type_id'] ?? null,
             'cost_in_credits' => $costInCredits,
             'status' => 'pending',
         ]);
 
-        try {
-            $session = $this->createStripeCheckoutSession($gift, $data['return_url']);
-        } catch (\Exception $e) {
-            // Mark gift as failed if Stripe session creation fails
-            $gift->markAsFailed();
-            throw new PaymentSessionFailed;
-        }
+        // Deduct credits immediately from wallet and record transaction
+        $this->deductCreditsFromWallet($user, $costInCredits, $gift->id);
 
-        // Update the gift with the Stripe session ID after successful session creation
-        $gift->stripe_session_id = $session->id;
-        $gift->save();
+        // Mark gift as paid/completed since wallet credits cover the cost
+        $gift->markAsPaid();
 
         return [
             'gift_id' => $gift->id,
-            'checkout_url' => $session->url,
+            'status' => $gift->status,
             'cost_in_credits' => $costInCredits,
             'pet' => [
                 'id' => $pet->id,
@@ -69,35 +59,7 @@ class PetGiftService
     /**
      * Create a Stripe Checkout Session for the gift.
      */
-    protected function createStripeCheckoutSession(Gift $gift, string $returnUrl): \Stripe\Checkout\Session
-    {
-        $pet = $gift->pet;
-        // Convert credits to cents using the standardized credit constant
-        $amountCents = CreditConstants::toCents($gift->cost_in_credits);
-
-        return \Stripe\Checkout\Session::create([
-            'payment_method_types' => ['card'],
-            'line_items' => [
-                [
-                    'price_data' => [
-                        'currency' => 'usd',
-                        'product_data' => [
-                            'name' => "Send Gift to {$pet->name}",
-                            'description' => "Send a gift to {$pet->name} ({$pet->species}) owned by {$pet->owner_name}",
-                        ],
-                        'unit_amount' => $amountCents,
-                    ],
-                    'quantity' => 1,
-                ],
-            ],
-            'mode' => 'payment',
-            'success_url' => $returnUrl.'?gift_id={CHECKOUT_SESSION_ID}&status=success',
-            'cancel_url' => $returnUrl.'?gift_id={CHECKOUT_SESSION_ID}&status=cancel',
-            'metadata' => [
-                'gift_id' => $gift->id,
-            ],
-        ]);
-    }
+    // Stripe checkout session creation removed: gifts are funded via wallet credits
 
     /**
      * Generate a unique identifier for a gift.
@@ -112,7 +74,7 @@ class PetGiftService
      *
      * Uses atomic operations to prevent race conditions.
      */
-    protected function deductCreditsFromWallet(User $user, int $credits): void
+    protected function deductCreditsFromWallet(User $user, int $credits, ?string $giftId = null): void
     {
         // Get wallet with lock to prevent concurrent modification
         $wallet = $user->wallet()->lockForUpdate()->first();
@@ -121,12 +83,14 @@ class PetGiftService
             // Decrement wallet balance
             $wallet->decrement('balance_credits', $credits);
 
-            // Log the transaction
+            // Log the transaction in cents for consistency
             $wallet->transactions()->create([
                 'type' => 'debit',
+                'amount' => CreditConstants::toCents($credits),
                 'amount_credits' => $credits,
                 'reason' => 'gift_sent',
                 'related_type' => 'gift',
+                'related_id' => $giftId,
             ]);
         }
     }
