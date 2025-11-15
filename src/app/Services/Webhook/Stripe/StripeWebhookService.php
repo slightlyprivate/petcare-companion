@@ -275,16 +275,37 @@ class StripeWebhookService
      */
     protected function handleCheckoutSessionExpired(array $session): void
     {
-        $giftId = $session['metadata']['gift_id'] ?? null;
+        // 1) Handle credit purchase expirations
+        $purchaseId = $session['metadata']['purchase_id'] ?? null;
+        $purchase = $purchaseId ? CreditPurchase::find($purchaseId) : null;
+        if (! $purchase) {
+            $purchase = $this->findCreditPurchaseByFallback($session);
+        }
 
-        if (! $giftId) {
-            Log::warning('Checkout session expired without gift_id in metadata', [
+        if ($purchase) {
+            if ($purchase->status !== 'pending') {
+                Log::info('Credit purchase not pending, skipping expiration handling', [
+                    'purchase_id' => $purchase->id,
+                    'session_id' => $session['id'],
+                    'current_status' => $purchase->status,
+                ]);
+
+                return;
+            }
+
+            // Mark credit purchase as failed via service for consistency
+            $this->creditPurchaseService->failPurchase($session['id']);
+
+            Log::info('Credit purchase marked as failed due to session expiration', [
+                'purchase_id' => $purchase->id,
                 'session_id' => $session['id'],
             ]);
 
             return;
         }
 
+        // 2) Handle gift expirations (legacy path)
+        $giftId = $session['metadata']['gift_id'] ?? null;
         $gift = Gift::where('stripe_session_id', $session['id'])->first();
 
         if (! $gift) {
