@@ -12,10 +12,10 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
         "knuckleswtf/scribe": "^5.5",
-        "laravel/cashier": "^16.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "stripe/stripe-php": "^13.9",
         "spatie/laravel-activitylog": "^4.10",
         "twilio/sdk": "^8.8"
     },

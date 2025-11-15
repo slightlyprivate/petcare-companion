@@ -104,7 +104,6 @@ This centralized constant ensures uniform credit valuation across all payment fl
   - `Wallet` hasMany `CreditTransaction`
   - `Appointment` belongsTo `Pet`
   - `Gift` belongsTo `Pet` and `User`
-- Laravel Cashier tables for subscription and customer management.
 
 ### 10. Testing Layer
 
@@ -148,7 +147,7 @@ This centralized constant ensures uniform credit valuation across all payment fl
 
 - Laravel selected for rapid development and MVC familiarity.
 - Lightweight passwordless auth paired with explicit role-based authorization using policies.
-- Laravel Cashier chosen for robust Stripe integration with minimal custom code.
+- Stripe Checkout chosen for simple, explicit credit purchase flows without subscription scaffolding.
 - Docker chosen for parity and environment reproducibility.
 - Service layer introduced for complex business logic (payment processing, webhooks).
 - Small dataset seeded for deterministic demo output.
@@ -785,7 +784,6 @@ PublicPetReportResource::toArray()
 ## References
 
 - Laravel Documentation (Routing, Eloquent, Validation, Resources, Testing)
-- Laravel Cashier Documentation (Stripe Integration)
 - Stripe API Documentation (Webhooks, Checkout Sessions)
 - MySQL 8 Reference Manual (Foreign Keys, Indexes)
 - Docker Compose Documentation
