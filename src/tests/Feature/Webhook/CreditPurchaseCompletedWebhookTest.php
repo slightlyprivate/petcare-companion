@@ -5,7 +5,7 @@ namespace Tests\Feature\Webhook;
 use App\Models\CreditBundle;
 use App\Models\CreditPurchase;
 use App\Models\User;
-use App\Services\Webhook\Stripe\StripeWebhookService;
+use Tests\Support\Webhook\TestableStripeWebhookService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -34,14 +34,8 @@ class CreditPurchaseCompletedWebhookTest extends TestCase
             'stripe_session_id' => 'cs_test_complete_123',
         ]);
 
-        // Use a subclass to expose the protected handler directly
-        $service = new class extends StripeWebhookService
-        {
-            public function triggerCompleted(array $session): void
-            {
-                $this->handleCheckoutSessionCompleted($session);
-            }
-        };
+        // Use a testable subclass to expose the protected handler directly
+        $service = new TestableStripeWebhookService();
 
         $session = [
             'id' => $purchase->stripe_session_id,

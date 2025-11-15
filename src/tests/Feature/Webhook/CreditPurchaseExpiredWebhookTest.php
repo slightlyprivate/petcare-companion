@@ -5,7 +5,7 @@ namespace Tests\Feature\Webhook;
 use App\Models\CreditBundle;
 use App\Models\CreditPurchase;
 use App\Models\User;
-use App\Services\Webhook\Stripe\StripeWebhookService;
+use Tests\Support\Webhook\TestableStripeWebhookService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -45,13 +45,7 @@ class CreditPurchaseExpiredWebhookTest extends TestCase
         ]);
 
         // Create a testable webhook service exposing the expired handler
-        $service = new class extends StripeWebhookService
-        {
-            public function triggerExpired(array $session): void
-            {
-                $this->handleCheckoutSessionExpired($session);
-            }
-        };
+        $service = new TestableStripeWebhookService();
 
         $session = [
             'id' => $purchase->stripe_session_id,
