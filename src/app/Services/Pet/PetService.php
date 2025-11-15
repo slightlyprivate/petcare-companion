@@ -7,7 +7,9 @@ use App\Helpers\NotificationHelper;
 use App\Helpers\PetPaginationHelper;
 use App\Models\Pet;
 use App\Models\User;
-use App\Notifications\PetUpdatedNotification;
+use App\Notifications\Pet\PetCreatedNotification;
+use App\Notifications\Pet\PetDeletedNotification;
+use App\Notifications\Pet\PetUpdatedNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 
@@ -27,7 +29,14 @@ class PetService
             $data['user_id'] = Auth::user()->id;
         }
 
-        return Pet::create($data);
+        $pet = Pet::create($data);
+
+        // Send pet created notification to owner if preference is enabled
+        if ($pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_create')) {
+            Notification::send($pet->user, new PetCreatedNotification($pet));
+        }
+
+        return $pet;
     }
 
     /**
@@ -35,10 +44,11 @@ class PetService
      */
     public function update(Pet $pet, array $data): Pet
     {
-        // Track changes for notification
-        $changes = array_diff_assoc($data, $pet->getAttributes());
+        $pet->fill($data);
 
-        $pet->update($data);
+        $changes = $pet->getDirty();
+
+        $pet->save();
 
         // Send pet updated notification to owner if there are changes and preference is enabled
         if (! empty($changes) && $pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_update')) {
@@ -53,6 +63,11 @@ class PetService
      */
     public function delete(Pet $pet): void
     {
+        // Send pet deleted notification to owner if preference is enabled
+        if ($pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_delete')) {
+            Notification::send($pet->user, new PetDeletedNotification($pet));
+        }
+
         $pet->delete();
     }
 
@@ -129,7 +144,7 @@ class PetService
     }
 
     /**
-     * Get a paginated list of public pets with filtering and sorting, including donation totals.
+     * Get a paginated list of public pets with filtering and sorting, including gift totals.
      */
     public function directoryList(PetPaginationHelper $helper): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
@@ -154,25 +169,51 @@ class PetService
         $sortDirection = $helper->getSortDirection();
 
         if ($sortBy === 'popularity') {
-            // Sort by total donations (descending by default)
-            $query->withCount(['donations' => function ($q) {
+            // Sort by total gifts (descending by default)
+            $query->withCount(['gifts' => function ($q) {
                 $q->where('status', 'paid');
             }])
-                ->orderBy('donations_count', $sortDirection === 'asc' ? 'asc' : 'desc');
+                ->orderBy('gifts_count', $sortDirection === 'asc' ? 'asc' : 'desc');
         } elseif ($sortBy && in_array($sortBy, $allowedSortFields)) {
             $query->orderBy($sortBy, $sortDirection === 'desc' ? 'desc' : 'asc');
         } else {
             $query->orderBy('name', 'asc');
         }
 
-        // Load donation totals for all results
-        $query->withSum(['donations' => function ($q) {
+        // Load gift totals for all results
+        $query->withSum(['gifts' => function ($q) {
             $q->where('status', 'paid');
-        }], 'amount_cents');
+        }], 'cost_in_credits');
+
+        // Eager load gifts and their types for summary grouping
+        $query->with(['gifts' => function ($q) {
+            $q->where('status', 'paid');
+        }, 'gifts.giftType']);
 
         // Apply pagination
         $perPage = $helper->getPerPage();
 
         return $query->paginate($perPage);
+    }
+
+    /**
+     * Get a single public pet with gift totals and type data.
+     */
+    public function directoryShow(string $petId): Pet
+    {
+        $query = Pet::where('is_public', true)
+            ->whereId($petId);
+
+        // Load gift totals
+        $query->withSum(['gifts' => function ($q) {
+            $q->where('status', 'paid');
+        }], 'cost_in_credits');
+
+        // Eager load paid gifts and their types
+        $query->with(['gifts' => function ($q) {
+            $q->where('status', 'paid');
+        }, 'gifts.giftType']);
+
+        return $query->firstOrFail();
     }
 }

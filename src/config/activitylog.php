@@ -40,7 +40,7 @@ return [
     | - deleted: Model was removed
     |
     | Custom events can be logged via:
-    |   activity()->event('donation_completed')->log('...');
+    |   activity()->event('gift_completed')->log('...');
     |
     */
 

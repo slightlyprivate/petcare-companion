@@ -23,7 +23,7 @@ class NotificationPreferenceTest extends TestCase
             'user_id' => $user->id,
             'otp_notifications' => true,
             'login_notifications' => false,
-            'donation_notifications' => true,
+            'gift_notifications' => true,
             'pet_update_notifications' => false,
             'sms_enabled' => true,
             'email_enabled' => false,
@@ -34,7 +34,7 @@ class NotificationPreferenceTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.otp_notifications', true)
             ->assertJsonPath('data.login_notifications', false)
-            ->assertJsonPath('data.donation_notifications', true)
+            ->assertJsonPath('data.gift_notifications', true)
             ->assertJsonPath('data.pet_update_notifications', false)
             ->assertJsonPath('data.sms_enabled', true)
             ->assertJsonPath('data.email_enabled', false);
@@ -53,8 +53,10 @@ class NotificationPreferenceTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.otp_notifications', true)
             ->assertJsonPath('data.login_notifications', true)
-            ->assertJsonPath('data.donation_notifications', true)
+            ->assertJsonPath('data.gift_notifications', true)
             ->assertJsonPath('data.pet_update_notifications', true)
+            ->assertJsonPath('data.pet_create_notifications', true)
+            ->assertJsonPath('data.pet_delete_notifications', true)
             ->assertJsonPath('data.sms_enabled', true)
             ->assertJsonPath('data.email_enabled', true);
 
@@ -101,8 +103,10 @@ class NotificationPreferenceTest extends TestCase
             'user_id' => $user->id,
             'otp_notifications' => true,
             'login_notifications' => true,
-            'donation_notifications' => true,
+            'gift_notifications' => true,
             'pet_update_notifications' => true,
+            'pet_create_notifications' => true,
+            'pet_delete_notifications' => true,
         ]);
 
         $response = $this->actingAs($user, 'sanctum')->postJson('/api/user/notification-preferences/disable-all');
@@ -113,8 +117,10 @@ class NotificationPreferenceTest extends TestCase
         $preferences->refresh();
         $this->assertFalse($preferences->otp_notifications);
         $this->assertFalse($preferences->login_notifications);
-        $this->assertFalse($preferences->donation_notifications);
+        $this->assertFalse($preferences->gift_notifications);
         $this->assertFalse($preferences->pet_update_notifications);
+        $this->assertFalse($preferences->pet_create_notifications);
+        $this->assertFalse($preferences->pet_delete_notifications);
     }
 
     /**
@@ -128,8 +134,10 @@ class NotificationPreferenceTest extends TestCase
             'user_id' => $user->id,
             'otp_notifications' => false,
             'login_notifications' => false,
-            'donation_notifications' => false,
+            'gift_notifications' => false,
             'pet_update_notifications' => false,
+            'pet_create_notifications' => false,
+            'pet_delete_notifications' => false,
         ]);
 
         $response = $this->actingAs($user, 'sanctum')->postJson('/api/user/notification-preferences/enable-all');
@@ -140,8 +148,10 @@ class NotificationPreferenceTest extends TestCase
         $preferences->refresh();
         $this->assertTrue($preferences->otp_notifications);
         $this->assertTrue($preferences->login_notifications);
-        $this->assertTrue($preferences->donation_notifications);
+        $this->assertTrue($preferences->gift_notifications);
         $this->assertTrue($preferences->pet_update_notifications);
+        $this->assertTrue($preferences->pet_create_notifications);
+        $this->assertTrue($preferences->pet_delete_notifications);
     }
 
     /**
@@ -211,17 +221,17 @@ class NotificationPreferenceTest extends TestCase
     /**
      * Test updating multiple preferences at once.
      */
-    public function test_user_can_update_donation_preference(): void
+    public function test_user_can_update_gift_preference(): void
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
         NotificationPreference::create([
             'user_id' => $user->id,
-            'donation_notifications' => true,
+            'gift_notifications' => true,
         ]);
 
         $response = $this->actingAs($user, 'sanctum')->putJson('/api/user/notification-preferences', [
-            'type' => 'donation',
+            'type' => 'gift',
             'enabled' => false,
         ]);
 
@@ -229,7 +239,57 @@ class NotificationPreferenceTest extends TestCase
 
         $this->assertDatabaseHas('notification_preferences', [
             'user_id' => $user->id,
-            'donation_notifications' => false,
+            'gift_notifications' => false,
+        ]);
+    }
+
+    /**
+     * Test updating pet_create notification preference.
+     */
+    public function test_user_can_update_pet_create_preference(): void
+    {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        NotificationPreference::create([
+            'user_id' => $user->id,
+            'pet_create_notifications' => true,
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')->putJson('/api/user/notification-preferences', [
+            'type' => 'pet_create',
+            'enabled' => false,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('notification_preferences', [
+            'user_id' => $user->id,
+            'pet_create_notifications' => false,
+        ]);
+    }
+
+    /**
+     * Test updating pet_delete notification preference.
+     */
+    public function test_user_can_update_pet_delete_preference(): void
+    {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        NotificationPreference::create([
+            'user_id' => $user->id,
+            'pet_delete_notifications' => true,
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')->putJson('/api/user/notification-preferences', [
+            'type' => 'pet_delete',
+            'enabled' => false,
+        ]);
+
+        $response->assertOk();
+
+        $this->assertDatabaseHas('notification_preferences', [
+            'user_id' => $user->id,
+            'pet_delete_notifications' => false,
         ]);
     }
 }

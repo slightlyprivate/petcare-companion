@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Requests\Auth\AuthRequest;
 use App\Services\Auth\AuthUserService;
-use App\Support\Messages\AuthMessages;
 
 /**
  * Controller for handling authentication requests.
+ *
+ * @unauthenticated
  *
  * @group Authentication
  */
@@ -32,6 +33,6 @@ class AuthRequestController extends AuthController
         $email = $request->email;
         $this->userService->processAuthenticationRequest($email);
 
-        return response()->json(['message' => AuthMessages::otpSent()], 200);
+        return response()->json(['message' => __('auth.otp.success')], 200);
     }
 }

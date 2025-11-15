@@ -23,7 +23,9 @@ class RateLimitHelper
         self::configureAuthRateLimits();
         self::configurePetRateLimits();
         self::configureAppointmentRateLimits();
-        self::configureDonationRateLimits();
+        self::configureGiftRateLimits();
+        self::configureCreditRateLimits();
+        self::configureAdminRateLimits();
         self::configureUserDataRateLimits();
         self::configureNotificationRateLimits();
         self::configureWebhookRateLimits();
@@ -70,15 +72,41 @@ class RateLimitHelper
     }
 
     /**
-     * Configure donation operation rate limiters.
+     * Configure gift operation rate limiters.
      *
      * Uses strict limits to prevent spam and abuse.
      */
-    private static function configureDonationRateLimits(): void
+    private static function configureGiftRateLimits(): void
     {
-        RateLimiter::for('donation.write', function () {
-            // Allow 5 donations per hour per user
+        RateLimiter::for('gift.write', function () {
+            // Allow 5 gifts per hour per user
             return Limit::perHour(5)->by(request()->user()->id);
+        });
+    }
+
+    /**
+     * Configure credit operation rate limiters.
+     *
+     * Controls the rate of credit purchases to prevent abuse.
+     */
+    private static function configureCreditRateLimits(): void
+    {
+        RateLimiter::for('credit.write', function () {
+            // Allow 10 credit purchases per hour per user
+            return Limit::perHour(10)->by(request()->user()->id);
+        });
+    }
+
+    /**
+     * Configure admin operation rate limiters.
+     *
+     * Controls the rate of admin-only operations like gift type management.
+     */
+    private static function configureAdminRateLimits(): void
+    {
+        RateLimiter::for('admin.write', function () {
+            // Allow 50 admin writes per hour per admin user
+            return Limit::perHour(50)->by(request()->user()->id);
         });
     }
 

@@ -3,16 +3,19 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
         "knuckleswtf/scribe": "^5.5",
-        "laravel/cashier": "^16.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
+        "stripe/stripe-php": "^13.9",
         "spatie/laravel-activitylog": "^4.10",
         "twilio/sdk": "^8.8"
     },
@@ -24,6 +27,7 @@
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
+        "phpstan/phpstan": "^1.11",
         "phpunit/phpunit": "^11.5.3"
     },
     "autoload": {
@@ -54,6 +58,9 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "stan": [
+            "@php -d memory_limit=512M ./vendor/bin/phpstan analyse app"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

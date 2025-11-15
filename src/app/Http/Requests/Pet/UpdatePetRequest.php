@@ -46,4 +46,35 @@ class UpdatePetRequest extends \Illuminate\Foundation\Http\FormRequest
             'birth_date.after' => 'Birth date must be after 1900.',
         ];
     }
+
+    /**
+     * Body parameters for API docs.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'name' => [
+                'description' => 'Pet name.',
+                'example' => 'Buddy',
+            ],
+            'species' => [
+                'description' => 'Species of the pet.',
+                'example' => 'Dog',
+            ],
+            'breed' => [
+                'description' => 'Breed of the pet (optional).',
+                'example' => 'Labrador Retriever',
+            ],
+            'birth_date' => [
+                'description' => 'Birth date (YYYY-MM-DD).',
+                'example' => '2020-01-15',
+            ],
+            'owner_name' => [
+                'description' => 'Owner full name.',
+                'example' => 'Alex Doe',
+            ],
+        ];
+    }
 }

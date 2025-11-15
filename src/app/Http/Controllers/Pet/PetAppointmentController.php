@@ -13,6 +13,8 @@ use App\Services\Pet\PetAppointmentService;
 /**
  * Controller for managing pet appointments.
  *
+ * @authenticated
+ *
  * @group Pets
  *
  * @subgroup Appointments
