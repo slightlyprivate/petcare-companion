@@ -37,6 +37,7 @@ class AppointmentController extends Controller
      */
     public function store(StoreAppointmentRequest $request)
     {
+        $this->authorize('create', Appointment::class);
         $appointment = $this->appointmentService->create($request->validated());
 
         return new AppointmentResource($appointment);
@@ -47,6 +48,7 @@ class AppointmentController extends Controller
      */
     public function update(UpdateAppointmentRequest $request, Appointment $appointment)
     {
+        $this->authorize('update', $appointment);
         $appointment = $this->appointmentService->update($appointment, $request->validated());
 
         return new AppointmentResource($appointment);
@@ -57,6 +59,7 @@ class AppointmentController extends Controller
      */
     public function destroy(Appointment $appointment): \Illuminate\Http\Response
     {
+        $this->authorize('delete', $appointment);
         $this->appointmentService->delete($appointment);
 
         return response()->noContent();
@@ -67,6 +70,7 @@ class AppointmentController extends Controller
      */
     public function index(ListAppointmentRequest $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
+        $this->authorize('viewAny', Appointment::class);
         $helper = new AppointmentPaginationHelper($request);
 
         $appointments = $this->appointmentService->list($helper);
@@ -79,6 +83,7 @@ class AppointmentController extends Controller
      */
     public function show(ShowAppointmentRequest $request, Appointment $appointment): AppointmentResource
     {
+        $this->authorize('view', $appointment);
         $resource = $this->appointmentService->findById($appointment->id);
         // Load related pet if requested
         if ($request->has('include') && $request->get('include') === 'pet') {

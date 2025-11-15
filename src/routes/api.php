@@ -62,8 +62,12 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('credits')->group(function () {
-        Route::get('/purchases', [CreditPurchaseController::class, 'index'])->name('credits.purchases.index');
-        Route::get('/{creditPurchase}', [CreditPurchaseController::class, 'show'])->name('credits.show');
+        Route::get('/purchases', [CreditPurchaseController::class, 'index'])
+            ->middleware('can:viewAny,'.\App\Models\CreditPurchase::class)
+            ->name('credits.purchases.index');
+        Route::get('/{creditPurchase}', [CreditPurchaseController::class, 'show'])
+            ->middleware('can:view,creditPurchase')
+            ->name('credits.show');
     });
 
     Route::prefix('pets')->group(function () {
@@ -103,11 +107,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/credits/purchase', [CreditPurchaseController::class, 'store'])->name('credits.purchase');
     });
 
-    // Admin endpoints - Gift Types (throttle:admin.write)
+    // Admin endpoints - Gift Types (rate-limited and authorization via route middleware)
     Route::middleware('throttle:admin.write')->group(function () {
-        Route::post('/gift-types', [GiftTypeController::class, 'store'])->name('gift-types.store');
-        Route::put('/gift-types/{giftType}', [GiftTypeController::class, 'update'])->name('gift-types.update');
-        Route::delete('/gift-types/{giftType}', [GiftTypeController::class, 'destroy'])->name('gift-types.destroy');
+        Route::post('/gift-types', [GiftTypeController::class, 'store'])
+            ->middleware('can:create,'.\App\Models\GiftType::class)
+            ->name('gift-types.store');
+        Route::put('/gift-types/{giftType}', [GiftTypeController::class, 'update'])
+            ->middleware('can:update,giftType')
+            ->name('gift-types.update');
+        Route::delete('/gift-types/{giftType}', [GiftTypeController::class, 'destroy'])
+            ->middleware('can:delete,giftType')
+            ->name('gift-types.destroy');
     });
 
     // Write operations - Notification endpoints (throttle:notification.write)

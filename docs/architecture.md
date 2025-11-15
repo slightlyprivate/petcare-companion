@@ -141,6 +141,7 @@ This centralized constant ensures uniform credit valuation across all payment fl
 - `.env.example` stored for reproducibility.
 - CSRF enabled for Blade routes; REST endpoints expect token-based or stateless access.
 - Authorization checks use Laravel policies invoked from controllers (`authorize` helpers) to protect resource endpoints.
+- Admin-only write endpoints (e.g., Gift Type CRUD) are protected via both Form Requests and route `can:*` middleware, with policies registered in `AuthServiceProvider`.
 - Stripe webhook signature verification ensures payment security.
 - Sensitive data (like DB credentials and Stripe keys) excluded from version control.
 
@@ -159,6 +160,13 @@ This centralized constant ensures uniform credit valuation across all payment fl
 - Docker chosen for parity and environment reproducibility.
 - Service layer introduced for complex business logic (payment processing, webhooks).
 - Small dataset seeded for deterministic demo output.
+
+## Restore Endpoints Strategy
+
+- Pattern: follow `PetRestoreController` for soft-deleted resource restoration.
+- Authorization: enforce via model policies (owner or admin only).
+- Endpoints: add `POST /api/gifts/{gift}/restore` and `POST /api/appointments/{appointment}/restore` if/when implemented.
+- Tests: include success paths (owner/admin) and denial paths (non-owner), plus validation for already-restored entities.
 
 ## Data Flow Diagrams
 
