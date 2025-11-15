@@ -69,7 +69,11 @@ class PetPolicy
      */
     public function restore(User $user, Pet $pet): bool
     {
-        return false;
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $user->id === $pet->user_id;
     }
 
     /**

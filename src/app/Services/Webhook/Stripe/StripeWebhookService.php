@@ -126,7 +126,7 @@ class StripeWebhookService
         $metadata = $this->extractChargeMetadata($session);
 
         // Update gift with charge metadata
-        if ($session['payment_intent']) {
+        if ($session['payment_intent'] ?? false) {
             try {
                 \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
@@ -216,7 +216,7 @@ class StripeWebhookService
             $chargeId = null;
 
             // Retrieve charge ID from payment intent if available
-            if ($session['payment_intent']) {
+            if ($session['payment_intent'] ?? false) {
                 try {
                     \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
                     $paymentIntent = $this->retrievePaymentIntentWithRetry($session['payment_intent'], 3);

@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Mail\Auth\UserDataDeletionInitiated;
 use App\Mail\Auth\UserDataDeletionNotification;
+use App\Models\CreditPurchase;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -52,6 +53,18 @@ class DeleteUserDataJob implements ShouldQueue
 
             // Hard delete user's gifts
             $this->user->gifts()->forceDelete();
+
+            // Purge wallets, purchases, and credit transactions
+            if ($wallet = $this->user->wallet) {
+                // Delete credit transactions
+                $wallet->transactions()->forceDelete();
+
+                // Delete credit purchases
+                CreditPurchase::where('wallet_id', $wallet->id)->forceDelete();
+
+                // Delete wallet
+                $wallet->forceDelete();
+            }
 
             // Hard delete user notification preferences
             $this->user->notificationPreference()?->forceDelete();

@@ -95,28 +95,30 @@ class CreditPurchaseService
             return $purchase;
         }
 
-        $wallet = $purchase->wallet;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($purchase, $chargeId) {
+            $wallet = $purchase->wallet()->lockForUpdate()->first();
 
-        // Update wallet balance
-        $wallet->increment('balance_credits', $purchase->credits);
+            // Update wallet balance
+            $wallet->increment('balance_credits', $purchase->credits);
 
-        // Update purchase record
-        $purchase->update([
-            'stripe_charge_id' => $chargeId,
-            'status' => 'completed',
-            'completed_at' => now(),
-        ]);
+            // Update purchase record
+            $purchase->update([
+                'stripe_charge_id' => $chargeId,
+                'status' => 'completed',
+                'completed_at' => now(),
+            ]);
 
-        // Log credit transaction (store amount in cents and credits for consistency)
-        $wallet->transactions()->create([
-            'amount' => CreditConstants::toCents($purchase->credits),
-            'amount_credits' => $purchase->credits,
-            'type' => 'purchase',
-            'related_type' => 'credit_purchase',
-            'related_id' => $purchase->id,
-        ]);
+            // Log credit transaction (store amount in cents and credits for consistency)
+            $wallet->transactions()->create([
+                'amount' => CreditConstants::toCents($purchase->credits),
+                'amount_credits' => $purchase->credits,
+                'type' => 'purchase',
+                'related_type' => 'credit_purchase',
+                'related_id' => $purchase->id,
+            ]);
+        });
 
-        return $purchase;
+        return $purchase->fresh();
     }
 
     /**

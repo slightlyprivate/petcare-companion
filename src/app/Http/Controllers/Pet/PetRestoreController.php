@@ -39,10 +39,8 @@ class PetRestoreController extends Controller
         // Retrieve pet including soft-deleted ones
         $petModel = Pet::withTrashed()->findOrFail($pet);
 
-        // Check if user owns this pet
-        if ($petModel->user_id !== $request->user()->id) {
-            throw new AuthorizationException('Unauthorized to restore this pet');
-        }
+        // Authorize via policy (allows owners or admins)
+        $this->authorize('restore', $petModel);
 
         // Check if pet is already not deleted
         if (! $petModel->trashed()) {
