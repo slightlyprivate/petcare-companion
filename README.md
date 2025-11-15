@@ -68,7 +68,7 @@ graph LR
 - BFF Server: `src/server/README.md`
 - UI (Vite + React): `src/ui/README.md`
 - Architecture: `docs/architecture.md`
-- Postman: `docs/postman_collection.json`
+- Postman: `src/storage/app/private/scribe/collection.json`
 
 ## CI
 

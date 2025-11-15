@@ -2,8 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\Appointment;
+use App\Models\CreditPurchase;
+use App\Models\GiftType;
 use App\Models\Pet;
 use App\Models\User;
+use App\Policies\AppointmentPolicy;
+use App\Policies\CreditPurchasePolicy;
+use App\Policies\GiftTypePolicy;
 use App\Policies\PetPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -23,6 +29,9 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Pet::class => PetPolicy::class,
         User::class => UserPolicy::class,
+        GiftType::class => GiftTypePolicy::class,
+        CreditPurchase::class => CreditPurchasePolicy::class,
+        Appointment::class => AppointmentPolicy::class,
     ];
 
     /**

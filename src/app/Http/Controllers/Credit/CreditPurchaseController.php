@@ -28,6 +28,7 @@ class CreditPurchaseController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', CreditPurchase::class);
         $user = request()->user();
 
         $purchases = CreditPurchase::where('user_id', $user->id)
@@ -54,6 +55,7 @@ class CreditPurchaseController extends Controller
      */
     public function store(StoreCreditPurchaseRequest $request)
     {
+        $this->authorize('create', CreditPurchase::class);
         $validated = $request->validated();
         $bundle = CreditBundle::findOrFail($validated['credit_bundle_id']);
 

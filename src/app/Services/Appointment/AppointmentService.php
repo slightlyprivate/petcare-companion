@@ -4,6 +4,7 @@ namespace App\Services\Appointment;
 
 use App\Helpers\AppointmentPaginationHelper;
 use App\Models\Appointment;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Service for managing appointments.
@@ -59,7 +60,11 @@ class AppointmentService
      */
     public function list(AppointmentPaginationHelper $helper): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $query = Appointment::query();
+        $user = Auth::user();
+        $query = Appointment::query()
+            ->whereHas('pet', function ($q) use ($user) {
+                $q->where('user_id', optional($user)->id);
+            });
 
         $filters = $helper->getFilters();
 
