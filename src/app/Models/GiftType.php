@@ -29,6 +29,7 @@ class GiftType extends Model
         'description',
         'icon_emoji',
         'color_code',
+        'cost_in_credits',
         'sort_order',
         'is_active',
     ];
@@ -41,6 +42,7 @@ class GiftType extends Model
     protected $casts = [
         'sort_order' => 'integer',
         'is_active' => 'boolean',
+        'cost_in_credits' => 'integer',
     ];
 
     /**

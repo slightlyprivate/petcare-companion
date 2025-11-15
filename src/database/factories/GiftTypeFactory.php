@@ -26,6 +26,7 @@ class GiftTypeFactory extends Factory
             'description' => $this->faker->sentence(),
             'icon_emoji' => $this->faker->randomElement(['🎁', '🧸', '🍖', '🎀', '🛁']),
             'color_code' => '#' . substr(md5(rand()), 0, 6),
+            'cost_in_credits' => $this->faker->numberBetween(10, 500),
             'sort_order' => $this->faker->numberBetween(0, 100),
             'is_active' => $this->faker->boolean(80),
         ];

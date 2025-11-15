@@ -5,6 +5,11 @@ namespace App\Http\Requests\GiftType;
 use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Request class for storing a new gift type.
+ *
+ * @group Gift Types
+ */
 class StoreGiftTypeRequest extends FormRequest
 {
     /**
@@ -27,6 +32,7 @@ class StoreGiftTypeRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'icon_emoji' => ['required', 'string', 'max:10'],
             'color_code' => ['required', 'regex:/^#[0-9A-F]{6}$/i'],
+            'cost_in_credits' => ['nullable', 'integer', 'min:10', 'max:1000000'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'is_active' => ['nullable', 'boolean'],
         ];
@@ -43,6 +49,9 @@ class StoreGiftTypeRequest extends FormRequest
             'icon_emoji.required' => 'Icon emoji is required.',
             'color_code.required' => 'Color code is required.',
             'color_code.regex' => 'Color code must be a valid hex color (e.g., #FF6B6B).',
+            'cost_in_credits.integer' => 'Cost must be an integer number of credits.',
+            'cost_in_credits.min' => 'Minimum cost is 10 credits.',
+            'cost_in_credits.max' => 'Maximum cost is 1,000,000 credits.',
         ];
     }
 }

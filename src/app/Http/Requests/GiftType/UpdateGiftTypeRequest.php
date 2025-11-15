@@ -6,6 +6,11 @@ use App\Enums\UserRole;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Request class for updating an existing gift type.
+ *
+ * @group Gift Types
+ */
 class UpdateGiftTypeRequest extends FormRequest
 {
     /**
@@ -28,6 +33,7 @@ class UpdateGiftTypeRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'icon_emoji' => ['sometimes', 'required', 'string', 'max:10'],
             'color_code' => ['sometimes', 'required', 'regex:/^#[0-9A-F]{6}$/i'],
+            'cost_in_credits' => ['nullable', 'integer', 'min:10', 'max:1000000'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'is_active' => ['nullable', 'boolean'],
         ];

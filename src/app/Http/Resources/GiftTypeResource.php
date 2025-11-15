@@ -20,6 +20,7 @@ class GiftTypeResource extends JsonResource
             'description' => $this->description,
             'icon_emoji' => $this->icon_emoji,
             'color_code' => $this->color_code,
+            'cost_in_credits' => $this->cost_in_credits,
             'sort_order' => $this->sort_order,
             'is_active' => $this->is_active,
             'created_at' => $this->created_at,
