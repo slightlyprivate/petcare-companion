@@ -1,17 +1,23 @@
 <?php
 
 return [
-    'preferences' => [
-        'disable_all' => [
-            'success' => 'All notifications have been disabled.',
-        ],
-        'enable_all' => [
-            'success' => 'All notifications have been enabled.',
-        ],
-        'update' => [
-            'success' => 'Notification preference updated successfully.',
-            'failure' => 'Failed to update notification preference.',
+
+    'disable_all' => [
+        'success' => 'All notifications have been disabled.',
+        'failure' => 'Unable to disable notifications.',
+    ],
+
+    'enable_all' => [
+        'success' => 'All notifications have been enabled.',
+        'failure' => 'Unable to enable notifications.',
+    ],
+
+    'update' => [
+        'success' => 'Notification preference updated.',
+        'failure' => 'Unable to update notification preference.',
+        'errors' => [
             'not_found' => 'Notification preference not found.',
         ],
     ],
+
 ];

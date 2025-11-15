@@ -53,7 +53,7 @@ class RateLimitingTest extends TestCase
     }
 
     #[Test]
-    public function it_throttles_donation_creation()
+    public function it_throttles_gift_creation()
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
@@ -65,11 +65,11 @@ class RateLimitingTest extends TestCase
             'services.stripe.secret' => 'sk_test_fake_secret',
         ]);
 
-        // Make 5 requests within an hour (should succeed or fail due to validation/Stripe)
+        // Make 5 requests within an hour (should succeed or fail due to validation)
         for ($i = 0; $i < 5; $i++) {
             $response = $this->actingAs($user, 'sanctum')
-                ->postJson("/api/pets/{$pet->id}/donate", [
-                    'amount' => 25.00,
+                ->postJson("/api/pets/{$pet->id}/gifts", [
+                    'gift_type_id' => (string) \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true])->id,
                 ]);
 
             // All should not be 429 (rate limit)
@@ -78,8 +78,8 @@ class RateLimitingTest extends TestCase
 
         // 6th request in same hour should be throttled
         $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/donate", [
-                'amount' => 25.00,
+            ->postJson("/api/pets/{$pet->id}/gifts", [
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true])->id,
             ]);
 
         $this->assertEquals(429, $response->status());

@@ -1,8 +1,14 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Application;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+Application::getInstance()->booted(function () {
+    $schedule = app(Schedule::class);
+
+    // Schedule cleanup of expired user data exports nightly at 2 AM
+    $schedule->command('exports:cleanup')->dailyAt('02:00');
+
+    // Scan for stale pending credit purchases every 15 minutes
+    $schedule->command('credits:scan-stale --minutes=30')->everyFifteenMinutes();
+});

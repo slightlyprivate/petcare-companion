@@ -5,7 +5,7 @@ namespace App\Services\Auth;
 use App\Exceptions\OtpVerificationFailedException;
 use App\Helpers\NotificationHelper;
 use App\Models\User;
-use App\Notifications\LoginSuccessNotification;
+use App\Notifications\Auth\LoginSuccessNotification;
 use Illuminate\Support\Facades\Notification;
 
 /**

@@ -2,9 +2,13 @@
 
 namespace App\Services\Webhook\Stripe;
 
+use App\Constants\CreditConstants;
 use App\Helpers\NotificationHelper;
-use App\Models\Donation;
-use App\Notifications\DonationSuccessNotification;
+use App\Models\CreditPurchase;
+use App\Models\Gift;
+use App\Models\User;
+use App\Notifications\Gift\GiftSuccessNotification;
+use App\Services\Credit\CreditPurchaseService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
@@ -13,6 +17,13 @@ use Illuminate\Support\Facades\Notification;
  */
 class StripeWebhookService
 {
+    private CreditPurchaseService $creditPurchaseService;
+
+    public function __construct(?CreditPurchaseService $creditPurchaseService = null)
+    {
+        $this->creditPurchaseService = $creditPurchaseService ?? new CreditPurchaseService;
+    }
+
     /**
      * Handle incoming Stripe webhook.
      */
@@ -38,11 +49,11 @@ class StripeWebhookService
         // Handle the event
         switch ($event['type']) {
             case 'checkout.session.completed':
-                $this->handleCheckoutSessionCompleted($event['data']['object']);
+                $this->handleCheckoutSessionCompleted($this->toArray($event['data']['object']));
                 break;
 
             case 'checkout.session.expired':
-                $this->handleCheckoutSessionExpired($event['data']['object']);
+                $this->handleCheckoutSessionExpired($this->toArray($event['data']['object']));
                 break;
 
             default:
@@ -54,77 +65,190 @@ class StripeWebhookService
     }
 
     /**
+     * Convert Stripe objects to arrays recursively.
+     */
+    protected function toArray(mixed $value): mixed
+    {
+        if (\is_array($value)) {
+            return \array_map([$this, 'toArray'], $value);
+        }
+
+        if ($value instanceof \Stripe\StripeObject) {
+            return \array_map([$this, 'toArray'], $value->toArray());
+        }
+
+        return $value;
+    }
+
+    /**
      * Handle successful checkout session completion.
      */
     protected function handleCheckoutSessionCompleted(array $session): void
     {
-        $donationId = $session['metadata']['donation_id'] ?? null;
+        // Check if this is a credit purchase
+        $purchaseId = $session['metadata']['purchase_id'] ?? null;
+        if ($purchaseId) {
+            $this->handleCreditPurchaseCompletion($session);
 
-        if (! $donationId) {
-            Log::warning('Checkout session completed without donation_id in metadata', [
+            return;
+        }
+
+        // Otherwise handle as gift
+        $giftId = $session['metadata']['gift_id'] ?? null;
+
+        $gift = $giftId ? Gift::find($giftId) : null;
+
+        // If gift not found by ID metadata, attempt fallback identification
+        if (! $gift) {
+            $gift = $this->findGiftByFallback($session);
+        }
+
+        if (! $gift) {
+            Log::warning('Gift not found via primary or fallback lookup', [
+                'session_id' => $session['id'],
+                'gift_id_metadata' => $giftId,
+                'client_reference_id' => $session['client_reference_id'] ?? null,
+            ]);
+
+            return;
+        }
+
+        if ($gift->status === 'paid') {
+            Log::info('Gift already marked as paid', [
+                'gift_id' => $gift->id,
                 'session_id' => $session['id'],
             ]);
 
             return;
         }
 
-        $donation = Donation::where('stripe_session_id', $session['id'])->first();
-
-        if (! $donation) {
-            Log::warning('Donation not found for completed checkout session', [
-                'session_id' => $session['id'],
-                'donation_id' => $donationId,
-            ]);
-
-            return;
-        }
-
-        if ($donation->status === 'paid') {
-            Log::info('Donation already marked as paid', [
-                'donation_id' => $donation->id,
-                'session_id' => $session['id'],
-            ]);
-
-            return;
-        }
-
-        // Retrieve payment intent to get charge details
+        // Retrieve payment intent to get charge details with retry logic
         $metadata = $this->extractChargeMetadata($session);
 
-        // Update donation with charge metadata
-        if ($session['payment_intent']) {
+        // Update gift with charge metadata
+        if ($session['payment_intent'] ?? false) {
             try {
                 \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-                $paymentIntent = \Stripe\PaymentIntent::retrieve($session['payment_intent']);
 
-                if ($paymentIntent->charges && $paymentIntent->charges->count() > 0) {
+                // Attempt to retrieve payment intent with retry logic (max 3 attempts)
+                $paymentIntent = $this->retrievePaymentIntentWithRetry($session['payment_intent'], 3);
+
+                if ($paymentIntent && $paymentIntent->charges && $paymentIntent->charges->count() > 0) {
                     $charge = $paymentIntent->charges->first();
-                    $donation->stripe_charge_id = $charge->id;
+                    $gift->stripe_charge_id = $charge->id;
                     $metadata = $this->extractChargeMetadata((array) $charge);
+                    Log::info('Successfully retrieved charge metadata via retry', [
+                        'gift_id' => $gift->id,
+                        'charge_id' => $charge->id,
+                        'payment_intent' => $session['payment_intent'],
+                    ]);
+                } else {
+                    Log::warning('No charges found for payment intent', [
+                        'gift_id' => $gift->id,
+                        'payment_intent' => $session['payment_intent'],
+                    ]);
                 }
             } catch (\Exception $e) {
-                Log::error('Error retrieving charge metadata', [
-                    'donation_id' => $donation->id,
+                Log::error('Failed to retrieve charge metadata after all retries', [
+                    'gift_id' => $gift->id,
+                    'payment_intent' => $session['payment_intent'],
                     'error' => $e->getMessage(),
+                    'error_type' => get_class($e),
                 ]);
+                // Continue with partial metadata - receipt rendering will validate completeness
             }
         }
 
-        $donation->stripe_metadata = $metadata;
-        $donation->markAsPaid();
+        $gift->stripe_metadata = $metadata;
+        $gift->markAsPaid();
 
-        // Send donation success notification to user if enabled
-        if (NotificationHelper::isNotificationEnabled($donation->user, 'donation')) {
-            Notification::send($donation->user, new DonationSuccessNotification($donation));
+        // Do NOT deduct wallet credits for Stripe-paid gifts.
+        // Stripe has already charged the user for this gift; wallet-based gifts
+        // are handled at creation time via PetGiftService and do the deduction there.
+
+        // Send gift success notification to user if enabled
+        if (NotificationHelper::isNotificationEnabled($gift->user, 'gift')) {
+            Notification::send($gift->user, new GiftSuccessNotification($gift));
         }
 
-        Log::info('Donation marked as paid via webhook', [
-            'donation_id' => $donation->id,
+        Log::info('Gift marked as paid via webhook (no wallet deduction)', [
+            'gift_id' => $gift->id,
             'session_id' => $session['id'],
-            'amount_cents' => $donation->amount_cents,
-            'pet_id' => $donation->pet_id,
-            'user_id' => $donation->user_id,
+            'cost_in_credits' => $gift->cost_in_credits,
+            'pet_id' => $gift->pet_id,
+            'user_id' => $gift->user_id,
         ]);
+    }
+
+    /**
+     * Handle credit purchase completion via webhook.
+     */
+    protected function handleCreditPurchaseCompletion(array $session): void
+    {
+        $purchaseId = $session['metadata']['purchase_id'] ?? null;
+        $purchase = $purchaseId ? CreditPurchase::find($purchaseId) : null;
+
+        // If purchase not found by ID metadata, attempt fallback identification
+        if (! $purchase) {
+            $purchase = $this->findCreditPurchaseByFallback($session);
+        }
+
+        if (! $purchase) {
+            Log::warning('Credit purchase not found via primary or fallback lookup', [
+                'session_id' => $session['id'],
+                'purchase_id_metadata' => $purchaseId,
+                'client_reference_id' => $session['client_reference_id'] ?? null,
+            ]);
+
+            return;
+        }
+
+        if ($purchase->status === 'completed') {
+            Log::info('Credit purchase already marked as completed', [
+                'purchase_id' => $purchase->id,
+                'session_id' => $session['id'],
+            ]);
+
+            return;
+        }
+
+        try {
+            $chargeId = null;
+
+            // Retrieve charge ID from payment intent if available
+            if ($session['payment_intent'] ?? false) {
+                try {
+                    \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+                    $paymentIntent = $this->retrievePaymentIntentWithRetry($session['payment_intent'], 3);
+
+                    if ($paymentIntent && $paymentIntent->charges && $paymentIntent->charges->count() > 0) {
+                        $chargeId = $paymentIntent->charges->first()->id;
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('Could not retrieve charge ID for credit purchase', [
+                        'purchase_id' => $purchase->id,
+                        'payment_intent' => $session['payment_intent'],
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Complete the purchase and update wallet
+            $this->creditPurchaseService->completePurchase($session['id'], $chargeId);
+
+            Log::info('Credit purchase completed and wallet updated via webhook', [
+                'purchase_id' => $purchase->id,
+                'session_id' => $session['id'],
+                'credits' => $purchase->credits,
+                'user_id' => $purchase->user_id,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to complete credit purchase via webhook', [
+                'purchase_id' => $purchase->id,
+                'session_id' => $session['id'],
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -151,42 +275,63 @@ class StripeWebhookService
      */
     protected function handleCheckoutSessionExpired(array $session): void
     {
-        $donationId = $session['metadata']['donation_id'] ?? null;
+        // 1) Handle credit purchase expirations
+        $purchaseId = $session['metadata']['purchase_id'] ?? null;
+        $purchase = $purchaseId ? CreditPurchase::find($purchaseId) : null;
+        if (! $purchase) {
+            $purchase = $this->findCreditPurchaseByFallback($session);
+        }
 
-        if (! $donationId) {
-            Log::warning('Checkout session expired without donation_id in metadata', [
+        if ($purchase) {
+            if ($purchase->status !== 'pending') {
+                Log::info('Credit purchase not pending, skipping expiration handling', [
+                    'purchase_id' => $purchase->id,
+                    'session_id' => $session['id'],
+                    'current_status' => $purchase->status,
+                ]);
+
+                return;
+            }
+
+            // Mark credit purchase as failed via service for consistency
+            $this->creditPurchaseService->failPurchase($session['id']);
+
+            Log::info('Credit purchase marked as failed due to session expiration', [
+                'purchase_id' => $purchase->id,
                 'session_id' => $session['id'],
             ]);
 
             return;
         }
 
-        $donation = Donation::where('stripe_session_id', $session['id'])->first();
+        // 2) Handle gift expirations (legacy path)
+        $giftId = $session['metadata']['gift_id'] ?? null;
+        $gift = Gift::where('stripe_session_id', $session['id'])->first();
 
-        if (! $donation) {
-            Log::warning('Donation not found for expired checkout session', [
+        if (! $gift) {
+            Log::warning('Gift not found for expired checkout session', [
                 'session_id' => $session['id'],
-                'donation_id' => $donationId,
+                'gift_id' => $giftId,
             ]);
 
             return;
         }
 
-        if ($donation->status !== 'pending') {
-            Log::info('Donation not pending, skipping expiration handling', [
-                'donation_id' => $donation->id,
+        if ($gift->status !== 'pending') {
+            Log::info('Gift not pending, skipping expiration handling', [
+                'gift_id' => $gift->id,
                 'session_id' => $session['id'],
-                'current_status' => $donation->status,
+                'current_status' => $gift->status,
             ]);
 
             return;
         }
 
-        // Mark donation as failed due to expiration
-        $donation->markAsFailed();
+        // Mark gift as failed due to expiration
+        $gift->markAsFailed();
 
-        Log::info('Donation marked as failed due to session expiration', [
-            'donation_id' => $donation->id,
+        Log::info('Gift marked as failed due to session expiration', [
+            'gift_id' => $gift->id,
             'session_id' => $session['id'],
         ]);
     }
@@ -211,5 +356,206 @@ class StripeWebhookService
 
             throw $e;
         }
+    }
+
+    /**
+     * Retrieve payment intent from Stripe with exponential backoff retry logic.
+     *
+     * Retries up to maxRetries times if the Stripe API is temporarily unavailable.
+     * Uses exponential backoff: 1s, 2s, 4s between retries.
+     *
+     * @param  string  $paymentIntentId  The Stripe payment intent ID
+     * @param  int  $maxRetries  Maximum number of retry attempts
+     * @return \Stripe\PaymentIntent|null Payment intent or null if all retries fail
+     */
+    protected function retrievePaymentIntentWithRetry(string $paymentIntentId, int $maxRetries = 3): ?\Stripe\PaymentIntent
+    {
+        $attempt = 0;
+        $lastException = null;
+
+        while ($attempt < $maxRetries) {
+            try {
+                return \Stripe\PaymentIntent::retrieve($paymentIntentId);
+            } catch (\Stripe\Exception\ApiConnectionException $e) {
+                // Transient API connection error - retry
+                $lastException = $e;
+                $attempt++;
+
+                if ($attempt < $maxRetries) {
+                    // Exponential backoff: 1s, 2s, 4s
+                    $backoffSeconds = (2 ** ($attempt - 1));
+                    Log::warning('Stripe API connection error, retrying', [
+                        'payment_intent' => $paymentIntentId,
+                        'attempt' => $attempt,
+                        'max_retries' => $maxRetries,
+                        'backoff_seconds' => $backoffSeconds,
+                        'error' => $e->getMessage(),
+                    ]);
+                    sleep($backoffSeconds);
+                }
+            } catch (\Stripe\Exception\RateLimitException $e) {
+                // Rate limited - retry with longer backoff
+                $lastException = $e;
+                $attempt++;
+
+                if ($attempt < $maxRetries) {
+                    $backoffSeconds = (2 ** $attempt); // Longer backoff for rate limits
+                    Log::warning('Stripe rate limit reached, retrying', [
+                        'payment_intent' => $paymentIntentId,
+                        'attempt' => $attempt,
+                        'max_retries' => $maxRetries,
+                        'backoff_seconds' => $backoffSeconds,
+                    ]);
+                    sleep($backoffSeconds);
+                }
+            } catch (\Exception $e) {
+                // Non-retryable error (auth, not found, etc.)
+                Log::error('Non-retryable Stripe error', [
+                    'payment_intent' => $paymentIntentId,
+                    'error' => $e->getMessage(),
+                    'error_type' => get_class($e),
+                ]);
+
+                return null;
+            }
+        }
+
+        // All retries exhausted
+        Log::error('Failed to retrieve payment intent after all retries', [
+            'payment_intent' => $paymentIntentId,
+            'max_retries' => $maxRetries,
+            'last_error' => $lastException?->getMessage(),
+        ]);
+
+        return null;
+    }
+
+    /**
+     * Deduct credits from user's wallet and create a transaction record.
+     *
+     * Uses atomic operations to prevent race conditions. Checks if credits have
+     * already been deducted to prevent double-deduction on webhook retry.
+     */
+    protected function deductCreditsFromWallet(User $user, int $credits, ?string $giftId = null): void
+    {
+        // Get wallet with lock to prevent concurrent modification
+        $wallet = $user->wallet()->lockForUpdate()->first();
+
+        if (! $wallet) {
+            Log::warning('Wallet not found for user', ['user_id' => $user->id]);
+
+            return;
+        }
+
+        // Check if transaction already exists for this webhook to prevent double-deduction
+        // In case of webhook retry
+        $existingTransaction = $wallet->transactions()
+            ->where('amount_credits', $credits)
+            ->where('reason', 'gift_sent')
+            ->where('created_at', '>=', now()->subMinutes(5))
+            ->first();
+
+        if ($existingTransaction) {
+            Log::info('Gift credit deduction already processed', [
+                'user_id' => $user->id,
+                'wallet_id' => $wallet->id,
+                'credits' => $credits,
+            ]);
+
+            return;
+        }
+
+        // Decrement wallet balance
+        $wallet->decrement('balance_credits', $credits);
+
+        // Log the transaction using centralized credit-to-cents conversion
+        $wallet->transactions()->create([
+            'amount' => CreditConstants::toCents($credits),
+            'type' => 'debit',
+            'amount_credits' => $credits,
+            'reason' => 'gift_sent',
+            'related_type' => 'gift',
+            'related_id' => $giftId,
+        ]);
+    }
+
+    /**
+     * Find Gift using fallback identification when metadata is missing.
+     *
+     * Attempts to identify gift using (in order):
+     * 1. Session ID lookup (primary fallback)
+     * 2. Client reference ID lookup (user-created gift ID)
+     */
+    protected function findGiftByFallback(array $session): ?Gift
+    {
+        $sessionId = $session['id'];
+        $clientRefId = $session['client_reference_id'] ?? null;
+
+        // Attempt 1: Look up by session ID (most reliable)
+        $gift = Gift::where('stripe_session_id', $sessionId)->first();
+        if ($gift) {
+            Log::info('Gift found via session ID fallback', [
+                'gift_id' => $gift->id,
+                'session_id' => $sessionId,
+            ]);
+
+            return $gift;
+        }
+
+        // Attempt 2: Look up by client reference ID if available
+        if ($clientRefId) {
+            $gift = Gift::find($clientRefId);
+            if ($gift) {
+                Log::info('Gift found via client_reference_id fallback', [
+                    'gift_id' => $gift->id,
+                    'client_reference_id' => $clientRefId,
+                    'session_id' => $sessionId,
+                ]);
+
+                return $gift;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Find CreditPurchase using fallback identification when metadata is missing.
+     *
+     * Attempts to identify purchase using (in order):
+     * 1. Session ID lookup (primary fallback)
+     * 2. Client reference ID lookup (purchase ID stored by client)
+     */
+    protected function findCreditPurchaseByFallback(array $session): ?CreditPurchase
+    {
+        $sessionId = $session['id'];
+        $clientRefId = $session['client_reference_id'] ?? null;
+
+        // Attempt 1: Look up by session ID (most reliable)
+        $purchase = CreditPurchase::where('stripe_session_id', $sessionId)->first();
+        if ($purchase) {
+            Log::info('Credit purchase found via session ID fallback', [
+                'purchase_id' => $purchase->id,
+                'session_id' => $sessionId,
+            ]);
+
+            return $purchase;
+        }
+
+        // Attempt 2: Look up by client reference ID if available
+        if ($clientRefId) {
+            $purchase = CreditPurchase::find($clientRefId);
+            if ($purchase) {
+                Log::info('Credit purchase found via client_reference_id fallback', [
+                    'purchase_id' => $purchase->id,
+                    'client_reference_id' => $clientRefId,
+                    'session_id' => $sessionId,
+                ]);
+
+                return $purchase;
+            }
+        }
+
+        return null;
     }
 }

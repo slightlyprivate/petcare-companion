@@ -5,7 +5,6 @@ namespace App\Services\Auth\Notifications;
 use App\Exceptions\Auth\InvalidUserException;
 use App\Models\NotificationPreference;
 use App\Models\User;
-use App\Support\Messages\NotificationsMessages;
 
 /**
  * Service for managing user notification preferences.
@@ -33,8 +32,10 @@ class NotificationPreferencesService
                 'user_id' => $user->id,
                 'otp_notifications' => true,
                 'login_notifications' => true,
-                'donation_notifications' => true,
+                'gift_notifications' => true,
                 'pet_update_notifications' => true,
+                'pet_create_notifications' => true,
+                'pet_delete_notifications' => true,
                 'sms_enabled' => true,
                 'email_enabled' => true,
             ]);
@@ -59,8 +60,10 @@ class NotificationPreferencesService
         $typeMapping = [
             'otp' => 'otp_notifications',
             'login' => 'login_notifications',
-            'donation' => 'donation_notifications',
+            'gift' => 'gift_notifications',
             'pet_update' => 'pet_update_notifications',
+            'pet_create' => 'pet_create_notifications',
+            'pet_delete' => 'pet_delete_notifications',
             'sms' => 'sms_enabled',
             'email' => 'email_enabled',
         ];
@@ -70,12 +73,14 @@ class NotificationPreferencesService
         if (! $columnName || ! in_array($columnName, [
             'otp_notifications',
             'login_notifications',
-            'donation_notifications',
+            'gift_notifications',
             'pet_update_notifications',
+            'pet_create_notifications',
+            'pet_delete_notifications',
             'sms_enabled',
             'email_enabled',
         ])) {
-            throw new \InvalidArgumentException(NotificationsMessages::notificationPreferenceNotFound());
+            throw new \InvalidArgumentException(__('notifications.update.errors.not_found'));
         }
 
         $preferences->$columnName = $enabled;

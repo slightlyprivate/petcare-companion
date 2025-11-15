@@ -3,11 +3,12 @@
 namespace App\Notifications;
 
 use App\Messages\TwilioMessage;
+use Illuminate\Notifications\Notification as BaseNotification;
 
 /**
  * Base Notification class extended by all notifications.
  */
-class Notification implements \Illuminate\Notifications\Notification
+class Notification extends BaseNotification
 {
     /**
      * Get the Twilio representation of the notification.

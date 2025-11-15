@@ -3,19 +3,19 @@
 ## Context
 
 PetCare Companion is a comprehensive Laravel + MySQL application designed to demonstrate production-quality PHP skills for a backend engineering role emphasizing MVC architecture, RESTful APIs, authentication systems, payment processing, and Dockerized deployment.  
-This project's purpose is **portfolio credibility**—to showcase clean, modern PHP practices within a complete domain: pet management, appointment scheduling, user authentication, and one-time donation processing.
+This project's purpose is **portfolio credibility**—to showcase clean, modern PHP practices within a complete domain: pet management, appointment scheduling, user authentication, and a virtual gift economy system with credit-based gifting.
 
 ## Key Points
 
 - **Primary Goal:** Deliver a polished, working application that highlights strong PHP, MySQL, Docker, and modern web development fundamentals.
-- **Scope:** Authenticated CRUD APIs for managing pets and appointments, OTP-based authentication, role-based access control, and one-time donation system via Stripe.
+- **Scope:** Authenticated CRUD APIs for managing pets and appointments, OTP-based authentication, role-based access control, and a virtual gift economy system with credit purchases and gifting.
 - **Target User:** Developer recruiter or hiring manager evaluating code style, organization, fluency, and understanding of modern web application architecture.
 - **Technical Stack:**  
   - PHP 8.2+  
   - Laravel 12  
   - MySQL 8  
   - Laravel Sanctum (API Authentication)
-  - Stripe (Payment Processing)
+  - Stripe (Credit Purchase Processing)
   - Nginx  
   - Docker & Docker Compose  
   - Postman Collection for API demonstration
@@ -52,16 +52,22 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
   - Search functionality (title/notes)
   - Sorting capabilities
 
-#### Payment System (Planned)
+#### Gift Economy System
 
-- **One-time Pet Donations**
-  - Stripe integration for secure payment processing
-  - Users can donate to any pet in the system
-  - Flexible donation amounts set by users
-  - Multiple donations allowed per pet (no restrictions)
-  - Donation history and tracking
-  - Payment confirmation and receipts
-  - Pet-specific donation analytics
+- **Virtual Credit System**
+  - Users purchase virtual credits via Stripe (retains existing payment infrastructure)
+  - Credits stored on user's wallet account
+  - Minimum purchase: 10 credits, no real-world currency outside platform
+  - Full purchase history and transaction logging
+  - Wallet balance tracking and management
+
+- **Virtual Gifting**
+  - Users send symbolic gifts to public pets using credits
+  - Gift system supports multiple gifts per pet (no restrictions)
+  - Gifts can include optional messages and metadata
+  - Gift history and tracking per user and pet
+  - Receipt generation for credit purchases and gifts sent
+  - Pet-specific gift analytics and popularity metrics
 
 ### Non-Functional Requirements
 
@@ -69,9 +75,10 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
 - **Security:**
   - OTP-based authentication with Sanctum
   - Input validation and sanitization
-  - Rate limiting on auth endpoints
+  - Rate limiting on auth and gift operation endpoints
   - CSRF protection (for future UI)
   - Secure token storage and management
+  - Credit transaction logging for audit trail
 - **Data Integrity:** FK constraints, cascade delete on appointments, validated data types
 - **Performance:**
   - Pagination on list endpoints
@@ -124,7 +131,7 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
 
 ### Planned Enhancements
 
-- **Payment Processing:** Stripe integration for one-time pet donations
+- **Payment Processing:** Stripe integration for virtual credit purchases
 - **User Roles:** Admin/user role system using enum-based roles
 - **Enhanced Security:** API rate limiting, request logging, audit trails
 - **Performance:** Query optimization, caching layer, pagination improvements
@@ -149,16 +156,19 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
 
 ### Future Entities (Planned)
 
-1. **Donation**: One-time payment records for pet support
-2. **PaymentMethod**: Stripe-managed payment sources
-3. **Transaction**: Individual payment transaction records
+1. **Gift**: Virtual gift records representing gifts sent to pets
+2. **Wallet**: User credit wallet with balance tracking
+3. **CreditTransaction**: Transaction history for credit purchases and usage
+4. **PaymentMethod**: Stripe-managed payment sources for credit purchases
 
 ### Relationships
 
-- User → Pets (future: one-to-many when user ownership implemented)
+- User → Pets (one-to-many with user ownership)
+- User → Wallet (one-to-one with balance tracking)
+- User → Gifts (one-to-many for gifts sent)
 - Pet → Appointments (one-to-many with cascade delete)
-- Pet → Donations (future: one-to-many for received donations)
-- User → Donations (future: one-to-many for made donations)
+- Pet → Gifts (one-to-many for gifts received)
+- Wallet → CreditTransaction (one-to-many for transaction history)
 
 ## Security Considerations
 
@@ -185,11 +195,15 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
 - ✅ Implement OTP-based authentication system
 - ✅ Comprehensive test coverage
 - ✅ API documentation and Postman collection
+- ✅ Stripe payment integration for credit purchases
+- ✅ Virtual gift economy system with wallets and credits
+- ✅ Gift transaction logging and history
 
 ### Phase 2 (Planned)
 
-- [ ] Stripe payment integration for one-time donations
-- [ ] User-pet ownership relationships
+- [ ] Premium gift types with special effects/badges
+- [ ] Gift leaderboards and pet popularity rankings
+- [ ] Bulk credit pack discounts and subscription tiers
 - [ ] Admin role and management capabilities
 - [ ] Enhanced filtering and search features
 

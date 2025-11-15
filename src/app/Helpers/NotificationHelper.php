@@ -2,7 +2,6 @@
 
 namespace App\Helpers;
 
-use App\Models\NotificationPreference;
 use App\Models\User;
 
 /**
@@ -13,7 +12,7 @@ class NotificationHelper
     /**
      * Check if a user has a specific notification type enabled.
      *
-     * @param  string  $notificationType  One of: otp, login, donation, pet_update
+     * @param  string  $notificationType  The type of notification to check (e.g., otp_notifications)
      */
     public static function isNotificationEnabled(?User $user, string $notificationType): bool
     {
@@ -21,10 +20,13 @@ class NotificationHelper
             return false;
         }
 
-        // Get or create preferences (defaults to true)
-        $preferences = $user->notificationPreference ?? NotificationPreference::create([
-            'user_id' => $user->id,
-        ]);
+        // Get preferences if they exist, otherwise default to true
+        $preferences = $user->notificationPreference;
+
+        if (! $preferences) {
+            // Default to enabled for all notification types if no preference exists yet
+            return true;
+        }
 
         return $preferences->isNotificationEnabled($notificationType);
     }
@@ -40,10 +42,13 @@ class NotificationHelper
             return false;
         }
 
-        // Get or create preferences (defaults to true)
-        $preferences = $user->notificationPreference ?? NotificationPreference::create([
-            'user_id' => $user->id,
-        ]);
+        // Get preferences if they exist, otherwise default to true
+        $preferences = $user->notificationPreference;
+
+        if (! $preferences) {
+            // Default to enabled for all channels if no preference exists yet
+            return true;
+        }
 
         return $preferences->isChannelEnabled($channel);
     }
