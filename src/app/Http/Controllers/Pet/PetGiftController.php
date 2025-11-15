@@ -35,17 +35,8 @@ class PetGiftController extends Controller
         $requestData = $request->validated();
         $requestUser = $request->user();
 
-        try {
+        $gift = $this->petGiftService->createGift($requestData, $requestUser, $pet);
 
-            $gift = $this->petGiftService->createGift($requestData, $requestUser, $pet);
-
-            return response()->json($gift, 201);
-        } catch (\Exception $e) {
-
-            return response()->json([
-                'message' => 'Failed to send gift.',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
+        return response()->json($gift, 201);
     }
 }

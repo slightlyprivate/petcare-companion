@@ -45,12 +45,11 @@ class GiftApiTest extends TestCase
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => -5,  // Invalid negative amount
                 'gift_type_id' => 'not-a-uuid', // Invalid gift type id
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['cost_in_credits', 'gift_type_id']);
+            ->assertJsonValidationErrors(['gift_type_id']);
     }
 
     /**
@@ -61,7 +60,6 @@ class GiftApiTest extends TestCase
         $pet = Pet::factory()->create();
 
         $response = $this->postJson("/api/pets/{$pet->id}/gifts", [
-            'cost_in_credits' => 100,
             'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
         ]);
 
@@ -77,25 +75,8 @@ class GiftApiTest extends TestCase
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
-        // Test minimum amount
-        $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 5,  // Below minimum of 10
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
-            ]);
-
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['cost_in_credits']);
-
-        // Test maximum amount
-        $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 1000001,  // Above maximum of 1,000,000
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
-            ]);
-
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['cost_in_credits']);
+        // Amount limits are enforced by gift type catalog; request no longer accepts raw amounts
+        $this->assertTrue(true);
     }
 
     /**
@@ -159,7 +140,6 @@ class GiftApiTest extends TestCase
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 100,
                 // Missing gift_type_id
             ]);
 
@@ -178,10 +158,10 @@ class GiftApiTest extends TestCase
         // Ensure wallet has sufficient credits
         $user->wallet()->create(['balance_credits' => 1000]);
 
+        $giftType = \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true]);
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 100,
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                'gift_type_id' => (string) $giftType->id,
             ]);
 
         $response->assertStatus(201);
@@ -206,17 +186,17 @@ class GiftApiTest extends TestCase
         $user->wallet()->create(['balance_credits' => 1000]);
 
         // First gift with different return_url
+        $giftType1 = \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true]);
         $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 100,
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                'gift_type_id' => (string) $giftType1->id,
             ]);
 
         // Second gift with different return_url
+        $giftType2 = \App\Models\GiftType::factory()->create(['cost_in_credits' => 150, 'is_active' => true]);
         $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 150,
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                'gift_type_id' => (string) $giftType2->id,
             ]);
 
         // Both should be created

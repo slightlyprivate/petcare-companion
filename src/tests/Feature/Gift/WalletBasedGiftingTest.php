@@ -54,14 +54,14 @@ class WalletBasedGiftingTest extends TestCase
         ]);
 
         // Try to send 100 credit gift (should fail)
+        $giftType = \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true]);
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 100,
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                'gift_type_id' => (string) $giftType->id,
             ]);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['cost_in_credits']);
+        $response->assertJsonValidationErrors(['gift_type_id']);
     }
 
     /**
@@ -87,13 +87,12 @@ class WalletBasedGiftingTest extends TestCase
         ]);
 
         // Send 100 credit gift (should succeed until Stripe call)
+        $giftType = \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true]);
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 100,
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                'gift_type_id' => (string) $giftType->id,
             ]);
 
-        // Should fail at Stripe but gift should be created
         $this->assertDatabaseHas('gifts', ['user_id' => $user->id, 'cost_in_credits' => 100]);
     }
 
@@ -293,14 +292,14 @@ class WalletBasedGiftingTest extends TestCase
         ]);
 
         // Try to send gift
+        $giftType = \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true]);
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 100,
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                'gift_type_id' => (string) $giftType->id,
             ]);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['cost_in_credits']);
+        $response->assertJsonValidationErrors(['gift_type_id']);
     }
 
     /**
@@ -326,14 +325,14 @@ class WalletBasedGiftingTest extends TestCase
         ]);
 
         // Try to send gift
+        $giftType = \App\Models\GiftType::factory()->create(['cost_in_credits' => 10, 'is_active' => true]);
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 10,
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                'gift_type_id' => (string) $giftType->id,
             ]);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['cost_in_credits']);
+        $response->assertJsonValidationErrors(['gift_type_id']);
     }
 
     /**
@@ -359,10 +358,10 @@ class WalletBasedGiftingTest extends TestCase
         ]);
 
         // Try to send 100 credit gift
+        $giftType = \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true]);
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 100,
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                'gift_type_id' => (string) $giftType->id,
             ]);
 
         $response->assertStatus(422);

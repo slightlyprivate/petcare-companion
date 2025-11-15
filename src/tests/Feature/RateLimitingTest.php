@@ -69,8 +69,7 @@ class RateLimitingTest extends TestCase
         for ($i = 0; $i < 5; $i++) {
             $response = $this->actingAs($user, 'sanctum')
                 ->postJson("/api/pets/{$pet->id}/gifts", [
-                    'cost_in_credits' => 100,
-                    'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                    'gift_type_id' => (string) \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true])->id,
                 ]);
 
             // All should not be 429 (rate limit)
@@ -80,8 +79,7 @@ class RateLimitingTest extends TestCase
         // 6th request in same hour should be throttled
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 100,
-                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create(['cost_in_credits' => 100, 'is_active' => true])->id,
             ]);
 
         $this->assertEquals(429, $response->status());

@@ -21,39 +21,69 @@ class PetGiftService
      */
     public function createGift(array $data, User $user, Pet $pet): array
     {
-        $costInCredits = (int) $data['cost_in_credits'];
+        // Enforce catalog price based on selected gift type
+        $giftTypeId = $data['gift_type_id'] ?? null;
+        $giftType = \App\Models\GiftType::where('id', $giftTypeId)->where('is_active', true)->firstOrFail();
+        $costInCredits = (int) $giftType->cost_in_credits;
 
-        if ($costInCredits <= 0) {
-            throw new CreditCostRequiredException('Gift cost must be greater than zero credits.');
-        }
+        // Atomic creation + deduction to avoid race conditions
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($user, $pet, $giftTypeId, $costInCredits) {
+            $wallet = $user->wallet()->lockForUpdate()->first();
 
-        // Create gift record in pending state with catalog association
-        $gift = Gift::create([
-            'id' => $this->generateUniqueId(),
-            'user_id' => $user->id,
-            'pet_id' => $pet->id,
-            'gift_type_id' => $data['gift_type_id'] ?? null,
-            'cost_in_credits' => $costInCredits,
-            'status' => 'pending',
-        ]);
+            if (! $wallet) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'gift_type_id' => __('wallet.errors.insufficient_balance', [
+                        'required' => $costInCredits,
+                        'available' => 0,
+                    ]),
+                ]);
+            }
 
-        // Deduct credits immediately from wallet and record transaction
-        $this->deductCreditsFromWallet($user, $costInCredits, $gift->id);
+            if ($wallet->balance_credits < $costInCredits) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'gift_type_id' => __('wallet.errors.insufficient_balance', [
+                        'required' => $costInCredits,
+                        'available' => $wallet->balance_credits,
+                    ]),
+                ]);
+            }
 
-        // Mark gift as paid/completed since wallet credits cover the cost
-        $gift->markAsPaid();
+            // Create gift record in pending state with catalog association
+            $gift = Gift::create([
+                'id' => $this->generateUniqueId(),
+                'user_id' => $user->id,
+                'pet_id' => $pet->id,
+                'gift_type_id' => $giftTypeId,
+                'cost_in_credits' => $costInCredits,
+                'status' => 'pending',
+            ]);
 
-        return [
-            'gift_id' => $gift->id,
-            'status' => $gift->status,
-            'cost_in_credits' => $costInCredits,
-            'pet' => [
-                'id' => $pet->id,
-                'name' => $pet->name,
-                'species' => $pet->species,
-                'owner_name' => $pet->owner_name,
-            ],
-        ];
+            // Deduct credits immediately from wallet and record transaction
+            $wallet->decrement('balance_credits', $costInCredits);
+            $wallet->transactions()->create([
+                'type' => 'debit',
+                'amount' => CreditConstants::toCents($costInCredits),
+                'amount_credits' => $costInCredits,
+                'reason' => 'gift_sent',
+                'related_type' => 'gift',
+                'related_id' => $gift->id,
+            ]);
+
+            // Mark gift as paid/completed since wallet credits cover the cost
+            $gift->markAsPaid();
+
+            return [
+                'gift_id' => $gift->id,
+                'status' => $gift->status,
+                'cost_in_credits' => $costInCredits,
+                'pet' => [
+                    'id' => $pet->id,
+                    'name' => $pet->name,
+                    'species' => $pet->species,
+                    'owner_name' => $pet->owner_name,
+                ],
+            ];
+        });
     }
 
     /**

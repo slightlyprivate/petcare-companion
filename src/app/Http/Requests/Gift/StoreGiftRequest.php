@@ -27,8 +27,12 @@ class StoreGiftRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'gift_type_id' => ['required', 'uuid', 'exists:gift_types,id'],
-            'cost_in_credits' => ['required', 'integer', 'min:10', 'max:1000000', new \App\Rules\SufficientWalletBalance($this->user())],
+            'gift_type_id' => [
+                'required',
+                'uuid',
+                'exists:gift_types,id,is_active,1',
+                new \App\Rules\SufficientWalletForGiftType($this->user()),
+            ],
         ];
     }
 
@@ -40,11 +44,7 @@ class StoreGiftRequest extends FormRequest
         return [
             'gift_type_id.required' => 'Gift type is required.',
             'gift_type_id.uuid' => 'Gift type must be a valid ID.',
-            'gift_type_id.exists' => 'Selected gift type does not exist.',
-            'cost_in_credits.required' => 'Gift cost in credits is required.',
-            'cost_in_credits.integer' => 'Gift cost must be an integer.',
-            'cost_in_credits.min' => 'Minimum gift cost is 10 credits.',
-            'cost_in_credits.max' => 'Maximum gift cost is 1,000,000 credits.',
+            'gift_type_id.exists' => 'Selected gift type does not exist or is inactive.',
         ];
     }
 
@@ -59,10 +59,6 @@ class StoreGiftRequest extends FormRequest
             'gift_type_id' => [
                 'description' => 'The catalog gift type ID to associate with this gift.',
                 'example' => 'a3f0e2b4-7f2a-4c1d-8a17-3a1d9c123456',
-            ],
-            'cost_in_credits' => [
-                'description' => 'The gift cost in credits (10 - 1000000).',
-                'example' => 100,
             ],
         ];
     }
