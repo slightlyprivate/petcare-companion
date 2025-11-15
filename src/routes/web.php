@@ -21,6 +21,7 @@ if (app()->environment('testing')) {
 
     \Illuminate\Support\Facades\Route::get('/docs.openapi', function () {
         $yaml = "openapi: 3.0.0\ninfo:\n  title: ".config('app.name')." API\n  version: '1.0.0'\npaths: {}\n";
+
         return response($yaml, 200)->header('Content-Type', 'text/yaml');
     });
 }

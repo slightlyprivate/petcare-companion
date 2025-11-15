@@ -23,7 +23,7 @@ class CreditConstants
      * - Displaying total gift values to users
      * - Calculating donation totals in public directory views
      */
-    public const int CREDITS_PER_DOLLAR = 5;
+    public const CREDITS_PER_DOLLAR = 5;
 
     /**
      * Get the dollar amount for a given number of credits.
