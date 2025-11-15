@@ -37,5 +37,30 @@ services:
     volumes:
       - dbdata:/var/lib/mysql
 
+  redis:
+    container_name: petcare_redis
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+
+  frontend:
+    container_name: petcare_frontend
+    build:
+      context: .
+      dockerfile: docker/ui.Dockerfile
+    environment:
+      SERVER_PORT: ${FRONTEND_SERVER_PORT:-3000}
+      BACKEND_URL: ${FRONTEND_BACKEND_URL:-http://web}
+      SESSION_SECRET: ${FRONTEND_SESSION_SECRET:-change_me}
+      LARAVEL_API_KEY: ${LARAVEL_API_KEY:-}
+    ports:
+      - "5174:3000"
+    depends_on:
+      - web
+
 volumes:
   dbdata:
+  redisdata:

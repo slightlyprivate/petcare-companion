@@ -1,5 +1,13 @@
 # PetCare Companion — Architecture Overview
 
+## Docs Index
+
+- Root overview: `README.md`
+- API (Laravel): `src/README.md`
+- BFF Server: `src/server/README.md`
+- UI (Vite + React): `src/ui/README.md`
+- Compose and containers: `docker-compose.yml`, `docker/`
+
 ## Context
 
 This document explains the system architecture and design decisions for **PetCare Companion**, a Laravel + MySQL micro-app created to demonstrate modern PHP engineering practices. It reflects a focus on maintainability, clarity, and proper MVC separation in a Dockerized environment.
