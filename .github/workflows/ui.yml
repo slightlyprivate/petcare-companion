@@ -1,4 +1,4 @@
-name: Build and Push UI+BFF
+name: Build and Push UI
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/${{ github.repository_owner }}/petcare-ui-bff
+            ghcr.io/${{ github.repository_owner }}/petcare-ui
           tags: |
             type=ref,event=branch
             type=sha
@@ -42,7 +42,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: docker/ui-bff.Dockerfile
+          file: docker/ui.Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
