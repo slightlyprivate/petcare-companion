@@ -185,10 +185,10 @@ class PetService
             $q->where('status', 'paid');
         }], 'cost_in_credits');
 
-        // Eager load gifts
+        // Eager load gifts and their types for summary grouping
         $query->with(['gifts' => function ($q) {
             $q->where('status', 'paid');
-        }]);
+        }, 'gifts.giftType']);
 
         // Apply pagination
         $perPage = $helper->getPerPage();

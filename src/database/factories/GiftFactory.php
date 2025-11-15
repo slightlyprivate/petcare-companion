@@ -23,6 +23,7 @@ class GiftFactory extends Factory
             'id' => Str::uuid(),
             'user_id' => User::factory(),
             'pet_id' => Pet::factory(),
+            'gift_type_id' => \App\Models\GiftType::factory(),
             'cost_in_credits' => $this->faker->numberBetween(10, 1000),
             'stripe_session_id' => 'cs_test_'.Str::random(60),
             'status' => $this->faker->randomElement(['pending', 'paid', 'failed']),

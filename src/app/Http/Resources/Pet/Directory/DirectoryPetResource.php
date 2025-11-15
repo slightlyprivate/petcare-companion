@@ -20,7 +20,7 @@ class DirectoryPetResource extends \Illuminate\Http\Resources\Json\JsonResource
     {
         // Calculate total gift credits (gifts_sum_cost_in_credits is the sum added by withSum in service)
         $totalCredits = $this->gifts_sum_cost_in_credits ?? 0;
-        // Convert credits to cents using the standardized credit constant (1 credit = $1.00 = 100 cents)
+        // Convert credits to cents using the standardized credit constant (1 credit = $0.20 = 20 cents)
         $totalCents = CreditConstants::toCents($totalCredits);
 
         // Count paid gifts
