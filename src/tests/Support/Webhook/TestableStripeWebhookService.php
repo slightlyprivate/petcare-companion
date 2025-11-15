@@ -19,4 +19,3 @@ class TestableStripeWebhookService extends StripeWebhookService
         $this->handleCheckoutSessionExpired($session);
     }
 }
-

@@ -5,8 +5,8 @@ namespace Tests\Feature\Webhook;
 use App\Models\CreditBundle;
 use App\Models\CreditPurchase;
 use App\Models\User;
-use Tests\Support\Webhook\TestableStripeWebhookService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\Webhook\TestableStripeWebhookService;
 use Tests\TestCase;
 
 class CreditPurchaseCompletedWebhookTest extends TestCase
@@ -35,7 +35,7 @@ class CreditPurchaseCompletedWebhookTest extends TestCase
         ]);
 
         // Use a testable subclass to expose the protected handler directly
-        $service = new TestableStripeWebhookService();
+        $service = new TestableStripeWebhookService;
 
         $session = [
             'id' => $purchase->stripe_session_id,
