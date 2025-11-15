@@ -161,15 +161,16 @@ class StripeWebhookService
         $gift->stripe_metadata = $metadata;
         $gift->markAsPaid();
 
-        // Deduct credits from user's wallet when gift is confirmed as paid
-        $this->deductCreditsFromWallet($gift->user, $gift->cost_in_credits, $gift->id);
+        // Do NOT deduct wallet credits for Stripe-paid gifts.
+        // Stripe has already charged the user for this gift; wallet-based gifts
+        // are handled at creation time via PetGiftService and do the deduction there.
 
         // Send gift success notification to user if enabled
         if (NotificationHelper::isNotificationEnabled($gift->user, 'gift')) {
             Notification::send($gift->user, new GiftSuccessNotification($gift));
         }
 
-        Log::info('Gift marked as paid via webhook', [
+        Log::info('Gift marked as paid via webhook (no wallet deduction)', [
             'gift_id' => $gift->id,
             'session_id' => $session['id'],
             'cost_in_credits' => $gift->cost_in_credits,
