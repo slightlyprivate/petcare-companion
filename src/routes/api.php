@@ -6,12 +6,16 @@ use App\Http\Controllers\Auth\AuthRequestController;
 use App\Http\Controllers\Auth\AuthVerificationController;
 use App\Http\Controllers\Auth\User\NotificationPreferenceController;
 use App\Http\Controllers\Auth\User\UserDataController;
-use App\Http\Controllers\Donation\DonationController;
+use App\Http\Controllers\Auth\User\UserExportDownloadController;
+use App\Http\Controllers\Credit\CreditPurchaseController;
+use App\Http\Controllers\Gift\GiftController;
+use App\Http\Controllers\GiftType\GiftTypeController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetController;
-use App\Http\Controllers\Pet\PetDonationController;
+use App\Http\Controllers\Pet\PetGiftController;
 use App\Http\Controllers\Pet\PetRestoreController;
 use App\Http\Controllers\Pet\Public\PetDirectoryController;
+use App\Http\Controllers\Pet\Public\PetReportController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,12 +35,20 @@ Route::prefix('auth')->group(function () {
 // Public endpoints (no rate limiting)
 Route::prefix('public')->group(function () {
     Route::get('pets', [PetDirectoryController::class, 'index'])->name('public.pets.index');
+    Route::get('pets/{petId}', [PetDirectoryController::class, 'show'])->name('public.pets.show');
+    Route::get('pet-reports/{petId}', [PetReportController::class, 'show'])->name('public.pet-reports.show');
+    Route::get('gift-types', [GiftTypeController::class, 'index'])->name('public.gift-types.index');
+    Route::get('gift-types/{giftType}', [GiftTypeController::class, 'show'])->name('public.gift-types.show');
 });
 
 // Webhook endpoints (no authentication required) - with rate limiting
 Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
     ->middleware('throttle:webhook.stripe')
     ->name('webhooks.stripe');
+
+// Download endpoint for user exports (controller validates signature & auth)
+Route::get('/user/data/exports/{export}/download', [UserExportDownloadController::class, 'download'])
+    ->name('user.data.exports.download');
 
 // Authenticated endpoints
 Route::middleware('auth:sanctum')->group(function () {
@@ -45,8 +57,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
     });
 
-    Route::prefix('donations')->group(function () {
-        Route::get('/{donation}/receipt', [DonationController::class, 'exportReceipt'])->name('donations.receipt.export');
+    Route::prefix('gifts')->group(function () {
+        Route::get('/{gift}/receipt', [GiftController::class, 'exportReceipt'])->name('gifts.receipt.export');
+    });
+
+    Route::prefix('credits')->group(function () {
+        Route::get('/purchases', [CreditPurchaseController::class, 'index'])->name('credits.purchases.index');
+        Route::get('/{creditPurchase}', [CreditPurchaseController::class, 'show'])->name('credits.show');
     });
 
     Route::prefix('pets')->group(function () {
@@ -75,9 +92,22 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pets/{pet}/restore', [PetRestoreController::class, 'restore'])->name('pets.restore');
     });
 
-    // Write operations - Donation endpoints (throttle:donation.write)
-    Route::middleware('throttle:donation.write')->group(function () {
-        Route::post('/pets/{pet}/donate', [PetDonationController::class, 'store'])->name('pets.donations.store');
+    // Write operations - Gift endpoints (throttle:gift.write)
+    Route::middleware('throttle:gift.write')->group(function () {
+        Route::post('/gifts', [GiftController::class, 'store'])->name('gifts.store');
+        Route::post('/pets/{pet}/gifts', [PetGiftController::class, 'store'])->name('pets.gifts.store');
+    });
+
+    // Write operations - Credit endpoints (throttle:credit.write)
+    Route::middleware('throttle:credit.write')->group(function () {
+        Route::post('/credits/purchase', [CreditPurchaseController::class, 'store'])->name('credits.purchase');
+    });
+
+    // Admin endpoints - Gift Types (throttle:admin.write)
+    Route::middleware('throttle:admin.write')->group(function () {
+        Route::post('/gift-types', [GiftTypeController::class, 'store'])->name('gift-types.store');
+        Route::put('/gift-types/{giftType}', [GiftTypeController::class, 'update'])->name('gift-types.update');
+        Route::delete('/gift-types/{giftType}', [GiftTypeController::class, 'destroy'])->name('gift-types.destroy');
     });
 
     // Write operations - Notification endpoints (throttle:notification.write)
@@ -93,6 +123,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('throttle:user.data.delete')->group(function () {
-        Route::delete('/user/data/delete', [UserDataController::class, 'deleteData'])->name('user.data.delete');
+        Route::delete('/user/data', [UserDataController::class, 'deleteData'])->name('user.data.delete');
     });
+
+    // Note: Moved the signed download route outside auth group to avoid redirect issues for unauthenticated requests.
 });

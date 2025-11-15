@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Donation Receipt</title>
+    <title>Gift Receipt</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -75,7 +75,7 @@
     <div class="receipt-container">
         <div class="header">
             <h1>PETCARE COMPANION</h1>
-            <p>DONATION RECEIPT</p>
+            <p>GIFT RECEIPT</p>
         </div>
 
         <div class="section">
@@ -84,8 +84,8 @@
                 <span class="value">{{ $receiptDate }}</span>
             </div>
             <div class="row">
-                <span class="label">Donation ID:</span>
-                <span class="value">{{ $donation->id }}</span>
+                <span class="label">Gift ID:</span>
+                <span class="value">{{ $gift->id }}</span>
             </div>
         </div>
 
@@ -122,7 +122,7 @@
         </div>
 
         <div class="section">
-            <div class="section-title">DONATION DETAILS</div>
+            <div class="section-title">GIFT DETAILS</div>
             <div class="section-content">
                 <div class="row">
                     <span class="label">Amount:</span>
@@ -180,17 +180,17 @@
                         <span class="value" style="font-size: 11px; word-break: break-all;">{{ $chargeId }}</span>
                     </div>
                 @endif
-                @if ($donation->stripe_session_id)
+                @if ($gift->stripe_session_id)
                     <div class="row">
                         <span class="label">Stripe Session ID:</span>
-                        <span class="value" style="font-size: 11px; word-break: break-all;">{{ $donation->stripe_session_id }}</span>
+                        <span class="value" style="font-size: 11px; word-break: break-all;">{{ $gift->stripe_session_id }}</span>
                     </div>
                 @endif
             </div>
         </div>
 
         <div class="footer">
-            <p>Thank you for your generous donation!</p>
+            <p>Thank you for your generous gift!</p>
             <p>Your support helps improve pet care and services.</p>
         </div>
     </div>

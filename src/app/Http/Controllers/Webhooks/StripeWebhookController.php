@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Log;
 /**
  * Controller for handling Stripe webhooks.
  *
+ * @unauthenticated
+ *
  * @group Webhooks
  */
 class StripeWebhookController extends Controller

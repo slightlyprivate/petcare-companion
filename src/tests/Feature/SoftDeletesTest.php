@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Appointment;
-use App\Models\Donation;
+use App\Models\Gift;
 use App\Models\Pet;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -122,36 +122,36 @@ class SoftDeletesTest extends TestCase
     }
 
     #[Test]
-    public function donation_can_be_soft_deleted(): void
+    public function gift_can_be_soft_deleted(): void
     {
-        $donation = Donation::factory()
+        $gift = Gift::factory()
             ->for($this->user)
             ->for($this->pet)
             ->create();
 
-        $this->assertFalse($donation->trashed());
+        $this->assertFalse($gift->trashed());
 
-        // Note: We don't have a direct delete endpoint for donations,
+        // Note: We don't have a direct delete endpoint for gifts,
         // so we test the soft delete at the model level
-        $donation->delete();
+        $gift->delete();
 
-        $this->assertTrue($donation->refresh()->trashed());
+        $this->assertTrue($gift->refresh()->trashed());
     }
 
     #[Test]
-    public function soft_deleted_donation_can_be_restored(): void
+    public function soft_deleted_gift_can_be_restored(): void
     {
-        $donation = Donation::factory()
+        $gift = Gift::factory()
             ->for($this->user)
             ->for($this->pet)
             ->create();
 
-        $donation->delete();
-        $this->assertTrue($donation->refresh()->trashed());
+        $gift->delete();
+        $this->assertTrue($gift->refresh()->trashed());
 
-        $donation->restore();
+        $gift->restore();
 
-        $this->assertFalse($donation->refresh()->trashed());
+        $this->assertFalse($gift->refresh()->trashed());
     }
 
     #[Test]

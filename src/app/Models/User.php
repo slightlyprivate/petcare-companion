@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -19,7 +18,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  */
 class User extends Authenticatable
 {
-    use Billable, HasApiTokens, HasFactory, LogsActivity, Notifiable;
+    use HasApiTokens, HasFactory, LogsActivity, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -67,11 +66,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the donations made by the user.
+     * Get the gifts sent by the user.
      */
-    public function donations(): HasMany
+    public function gifts(): HasMany
     {
-        return $this->hasMany(Donation::class);
+        return $this->hasMany(Gift::class);
+    }
+
+    /**
+     * Get the user's wallet.
+     */
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
     }
 
     /**

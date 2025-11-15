@@ -23,8 +23,10 @@ class NotificationPreference extends Model
         'user_id',
         'otp_notifications',
         'login_notifications',
-        'donation_notifications',
+        'gift_notifications',
         'pet_update_notifications',
+        'pet_create_notifications',
+        'pet_delete_notifications',
         'sms_enabled',
         'email_enabled',
     ];
@@ -37,8 +39,10 @@ class NotificationPreference extends Model
     protected $casts = [
         'otp_notifications' => 'boolean',
         'login_notifications' => 'boolean',
-        'donation_notifications' => 'boolean',
+        'gift_notifications' => 'boolean',
         'pet_update_notifications' => 'boolean',
+        'pet_create_notifications' => 'boolean',
+        'pet_delete_notifications' => 'boolean',
         'sms_enabled' => 'boolean',
         'email_enabled' => 'boolean',
     ];
@@ -52,8 +56,10 @@ class NotificationPreference extends Model
             ->logOnly([
                 'otp_notifications',
                 'login_notifications',
-                'donation_notifications',
+                'gift_notifications',
                 'pet_update_notifications',
+                'pet_create_notifications',
+                'pet_delete_notifications',
                 'sms_enabled',
                 'email_enabled',
             ]);
@@ -95,8 +101,10 @@ class NotificationPreference extends Model
         $this->update([
             'otp_notifications' => false,
             'login_notifications' => false,
-            'donation_notifications' => false,
+            'gift_notifications' => false,
             'pet_update_notifications' => false,
+            'pet_create_notifications' => false,
+            'pet_delete_notifications' => false,
         ]);
     }
 
@@ -108,8 +116,10 @@ class NotificationPreference extends Model
         $this->update([
             'otp_notifications' => true,
             'login_notifications' => true,
-            'donation_notifications' => true,
+            'gift_notifications' => true,
             'pet_update_notifications' => true,
+            'pet_create_notifications' => true,
+            'pet_delete_notifications' => true,
         ]);
     }
 }

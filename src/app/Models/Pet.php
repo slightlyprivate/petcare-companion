@@ -75,11 +75,11 @@ class Pet extends Model
     }
 
     /**
-     * Get the donations made to this pet.
+     * Get the gifts sent to this pet.
      */
-    public function donations(): HasMany
+    public function gifts(): HasMany
     {
-        return $this->hasMany(Donation::class);
+        return $this->hasMany(Gift::class);
     }
 
     /**
