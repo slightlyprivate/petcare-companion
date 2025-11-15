@@ -46,8 +46,9 @@ Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
     ->middleware('throttle:webhook.stripe')
     ->name('webhooks.stripe');
 
-// Download endpoint for user exports (no auth middleware; controller enforces ownership, expiry, and returns appropriate statuses)
+// Download endpoint for user exports (signed + authenticated)
 Route::get('/user/data/exports/{export}/download', [UserExportDownloadController::class, 'download'])
+    ->middleware(['auth:sanctum', 'signed'])
     ->name('user.data.exports.download');
 
 // Authenticated endpoints
