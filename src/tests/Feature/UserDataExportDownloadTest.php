@@ -303,11 +303,10 @@ class UserDataExportDownloadTest extends TestCase
             'expires_at' => now()->subDay(),
         ]);
 
-        // Run cleanup job (should not throw error)
-        $this->expectNotToPerformAssertions();
+        // Run cleanup job (should not throw error) and still delete DB record
         (new DeleteExpiredExportsJob)->handle();
 
-        // Verify export record is still deleted even if file doesn't exist
+        // Verify export record is deleted even if file doesn't exist
         $this->assertDatabaseMissing('user_exports', ['id' => $expiredExport->id]);
     }
 
