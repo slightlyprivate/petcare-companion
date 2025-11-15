@@ -7,6 +7,7 @@ use App\Models\UserExport;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL as UrlFacade;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -31,22 +32,31 @@ class UserExportDownloadController extends Controller
      */
     public function download(Request $request, UserExport $export)
     {
-        // Require authentication explicitly to avoid null user errors in edge cases
-        if (! $request->user()) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
-
-        // Verify the user owns this export
-        if ($export->user_id !== $request->user()->id) {
-            throw new AuthorizationException('You cannot access this export.');
-        }
-
         // Check if export is still within validity window
         if ($export->expires_at->isPast()) {
             return response()->json([
                 'message' => 'This export link has expired. Please request a new data export.',
                 'status' => 'expired',
             ], 410);
+        }
+
+        // Validate the signature only after checking expiry so we can return 410 for expired links
+        if (! UrlFacade::hasValidSignature($request)) {
+            return response()->json([
+                'message' => 'Invalid or tampered link.',
+            ], 403);
+        }
+
+        // Resolve user via Sanctum guard (without relying on middleware)
+        $user = $request->user('sanctum') ?? $request->user();
+
+        if (! $user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        // Verify the user owns this export
+        if ($export->user_id !== $user->id) {
+            throw new AuthorizationException('You cannot access this export.');
         }
 
         $disk = Storage::disk('local');
