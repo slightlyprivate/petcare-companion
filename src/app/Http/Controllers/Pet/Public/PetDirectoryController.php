@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pet\Directory\ListPetDirectoryRequest;
 use App\Http\Resources\Pet\Directory\DirectoryPetResource;
 use App\Services\Pet\PetService;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Controller for pet directory.
@@ -41,5 +42,15 @@ class PetDirectoryController extends Controller
         $pets = $this->petService->directoryList($helper);
 
         return DirectoryPetResource::collection($pets);
+    }
+
+    /**
+     * Get a single public pet with gift summaries.
+     */
+    public function show(string $petId): JsonResource
+    {
+        $pet = $this->petService->directoryShow($petId);
+
+        return new DirectoryPetResource($pet);
     }
 }

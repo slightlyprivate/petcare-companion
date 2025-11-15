@@ -35,6 +35,7 @@ Route::prefix('auth')->group(function () {
 // Public endpoints (no rate limiting)
 Route::prefix('public')->group(function () {
     Route::get('pets', [PetDirectoryController::class, 'index'])->name('public.pets.index');
+    Route::get('pets/{petId}', [PetDirectoryController::class, 'show'])->name('public.pets.show');
     Route::get('pet-reports/{petId}', [PetReportController::class, 'show'])->name('public.pet-reports.show');
     Route::get('gift-types', [GiftTypeController::class, 'index'])->name('public.gift-types.index');
     Route::get('gift-types/{giftType}', [GiftTypeController::class, 'show'])->name('public.gift-types.show');
@@ -88,6 +89,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Write operations - Gift endpoints (throttle:gift.write)
     Route::middleware('throttle:gift.write')->group(function () {
+        Route::post('/gifts', [GiftController::class, 'store'])->name('gifts.store');
         Route::post('/pets/{pet}/gifts', [PetGiftController::class, 'store'])->name('pets.gifts.store');
     });
 

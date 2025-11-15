@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Gift;
 use App\Exceptions\Receipt\ReceiptMetadataException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Gift\ExportGiftReceiptRequest;
+use App\Http\Requests\Gift\StoreWalletGiftRequest;
 use App\Models\Gift;
+use App\Models\Pet;
 use App\Services\Gift\GiftService;
+use App\Services\Pet\PetGiftService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -22,7 +26,22 @@ class GiftController extends Controller
     /**
      * Create a new controller instance.
      */
-    public function __construct(private GiftService $giftService) {}
+    public function __construct(private GiftService $giftService, private PetGiftService $petGiftService) {}
+
+    /**
+     * Create a gift using wallet credits.
+     */
+    public function store(StoreWalletGiftRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+        $user = $request->user();
+        /** @var Pet $pet */
+        $pet = Pet::findOrFail($data['pet_id']);
+
+        $result = $this->petGiftService->createGift($data, $user, $pet);
+
+        return response()->json($result, 201);
+    }
 
     /**
      * Export a gift receipt.

@@ -195,4 +195,25 @@ class PetService
 
         return $query->paginate($perPage);
     }
+
+    /**
+     * Get a single public pet with gift totals and type data.
+     */
+    public function directoryShow(string $petId): Pet
+    {
+        $query = Pet::where('is_public', true)
+            ->whereId($petId);
+
+        // Load gift totals
+        $query->withSum(['gifts' => function ($q) {
+            $q->where('status', 'paid');
+        }], 'cost_in_credits');
+
+        // Eager load paid gifts and their types
+        $query->with(['gifts' => function ($q) {
+            $q->where('status', 'paid');
+        }, 'gifts.giftType']);
+
+        return $query->firstOrFail();
+    }
 }
