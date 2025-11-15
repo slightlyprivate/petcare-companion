@@ -333,6 +333,14 @@ src/
 - **web**: Nginx reverse proxy
 - **db**: MySQL 8.0 database with persistent storage
 
+### UI + BFF
+
+An additional container can serve the React UI and run the Node BFF proxy.
+
+- Build image: `docker build -f docker/ui.Dockerfile -t petcare/ui .`
+- Run: `docker run --rm -p 5174:3000 -e BACKEND_URL=http://localhost:8080 -e SESSION_SECRET=change_me petcare/ui`
+- Access UI: `http://localhost:5174` (proxies `/api/*` to `BACKEND_URL`)
+
 **Ports**:
 
 - API: `http://localhost:8080`

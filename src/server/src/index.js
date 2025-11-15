@@ -1,10 +1,13 @@
 import express from 'express';
 import cookieSession from 'cookie-session';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Configuration
 const PORT = Number(process.env.SERVER_PORT || 5174);
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
 const SESSION_SECRET = process.env.SESSION_SECRET;
+const FRONTEND_DIR = process.env.FRONTEND_DIR || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../ui');
 
 if (!SESSION_SECRET) {
   // Fail fast to avoid accidental dev secrets in code.
@@ -32,6 +35,9 @@ app.use(
 // Body parsing for JSON and urlencoded forms
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Static assets for the SPA (if present)
+app.use(express.static(FRONTEND_DIR));
 
 // Simple health check
 app.get('/health', (req, res) => {
@@ -105,8 +111,17 @@ app.all('/api/*', async (req, res) => {
   }
 });
 
+// SPA fallback for non-API GET requests
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  const indexPath = path.join(FRONTEND_DIR, 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) next(err);
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`PetCare server listening on http://localhost:${PORT}`);
   console.log(`Proxying /api/* to ${BACKEND_URL}`);
+  console.log(`Serving static from ${FRONTEND_DIR}`);
 });
-

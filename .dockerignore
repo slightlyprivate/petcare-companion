@@ -1,0 +1,12 @@
+.git
+.history
+.vscode
+node_modules
+**/node_modules
+**/dist
+**/.DS_Store
+src/storage
+src/vendor
+src/public/storage
+cookies.txt
+
