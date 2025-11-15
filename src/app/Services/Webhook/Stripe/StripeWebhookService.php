@@ -2,6 +2,7 @@
 
 namespace App\Services\Webhook\Stripe;
 
+use App\Constants\CreditConstants;
 use App\Helpers\NotificationHelper;
 use App\Models\CreditPurchase;
 use App\Models\Gift;
@@ -446,9 +447,9 @@ class StripeWebhookService
         // Decrement wallet balance
         $wallet->decrement('balance_credits', $credits);
 
-        // Log the transaction (amount in cents: 1 credit = 20 cents per CreditConstants)
+        // Log the transaction using centralized credit-to-cents conversion
         $wallet->transactions()->create([
-            'amount' => $credits * 20, // Convert credits to cents
+            'amount' => CreditConstants::toCents($credits),
             'type' => 'debit',
             'amount_credits' => $credits,
             'reason' => 'gift_sent',

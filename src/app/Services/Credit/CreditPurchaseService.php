@@ -107,10 +107,13 @@ class CreditPurchaseService
             'completed_at' => now(),
         ]);
 
-        // Log credit transaction (store amount in cents for consistency)
+        // Log credit transaction (store amount in cents and credits for consistency)
         $wallet->transactions()->create([
             'amount' => CreditConstants::toCents($purchase->credits),
+            'amount_credits' => $purchase->credits,
             'type' => 'purchase',
+            'related_type' => 'credit_purchase',
+            'related_id' => $purchase->id,
         ]);
 
         return $purchase;
