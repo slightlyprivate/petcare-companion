@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Constants\CreditConstants;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Model representing a credit bundle offered for purchase.

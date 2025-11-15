@@ -45,7 +45,8 @@ class CreditPurchaseExpiredWebhookTest extends TestCase
         ]);
 
         // Create a testable webhook service exposing the expired handler
-        $service = new class extends StripeWebhookService {
+        $service = new class extends StripeWebhookService
+        {
             public function triggerExpired(array $session): void
             {
                 $this->handleCheckoutSessionExpired($session);
@@ -65,4 +66,3 @@ class CreditPurchaseExpiredWebhookTest extends TestCase
         $this->assertEquals('failed', $purchase->fresh()->status);
     }
 }
-

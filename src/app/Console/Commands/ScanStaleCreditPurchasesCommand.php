@@ -50,4 +50,3 @@ class ScanStaleCreditPurchasesCommand extends Command
         return self::SUCCESS;
     }
 }
-
