@@ -46,4 +46,3 @@ class CreditBundleSeeder extends Seeder
         }
     }
 }
-

@@ -63,6 +63,7 @@ class UserExportDownloadController extends Controller
 
         // Return as standard response with headers so test helpers can inspect headers
         $content = $disk->get($export->file_path);
+
         return response(
             $content,
             200,

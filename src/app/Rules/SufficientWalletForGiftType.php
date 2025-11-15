@@ -38,4 +38,3 @@ class SufficientWalletForGiftType implements ValidationRule
         }
     }
 }
-
