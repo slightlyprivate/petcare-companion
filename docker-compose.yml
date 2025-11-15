@@ -55,6 +55,7 @@ services:
       SERVER_PORT: ${FRONTEND_SERVER_PORT:-3000}
       BACKEND_URL: ${FRONTEND_BACKEND_URL:-http://web}
       SESSION_SECRET: ${FRONTEND_SESSION_SECRET:-change_me}
+      LARAVEL_API_KEY: ${LARAVEL_API_KEY:-}
     ports:
       - "5174:3000"
     depends_on:

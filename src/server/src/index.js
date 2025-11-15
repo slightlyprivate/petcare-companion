@@ -2,12 +2,18 @@ import express from 'express';
 import cookieSession from 'cookie-session';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import cookieParser from 'cookie-parser';
+import { config, requireConfig } from './lib/config.js';
+import { makeApiClient } from './lib/axios.js';
+import { ensureCsrfToken, requireCsrfOnMutations } from './middleware/csrf.js';
+import { auth as authRouter } from './routes/auth.js';
 
 // Configuration
-const PORT = Number(process.env.SERVER_PORT || 5174);
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
-const SESSION_SECRET = process.env.SESSION_SECRET;
-const FRONTEND_DIR = process.env.FRONTEND_DIR || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../ui');
+requireConfig();
+const PORT = config.port;
+const BACKEND_URL = config.backendUrl;
+const SESSION_SECRET = config.sessionSecret;
+const FRONTEND_DIR = config.frontendDir;
 
 if (!SESSION_SECRET) {
   // Fail fast to avoid accidental dev secrets in code.
@@ -26,11 +32,14 @@ app.use(
     name: 'pcsid',
     secret: SESSION_SECRET,
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: config.secureCookies,
+    sameSite: config.sameSite,
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   })
 );
+
+// Parse cookies (for token cookie handling if needed)
+app.use(cookieParser());
 
 // Body parsing for JSON and urlencoded forms
 app.use(express.json({ limit: '1mb' }));
@@ -39,10 +48,19 @@ app.use(express.urlencoded({ extended: true }));
 // Static assets for the SPA (if present)
 app.use(express.static(FRONTEND_DIR));
 
+// CSRF token issuance for session
+app.use(ensureCsrfToken);
+
 // Simple health check
 app.get('/health', (req, res) => {
   res.json({ ok: true });
 });
+
+// Auth routes (OTP request/verify, logout, csrf)
+app.use('/auth', authRouter);
+
+// CSRF required on mutating API requests
+app.use('/api', requireCsrfOnMutations);
 
 // Session demo endpoint (useful to verify cookie-session works)
 app.get('/session/ping', (req, res) => {
@@ -53,61 +71,35 @@ app.get('/session/ping', (req, res) => {
 // Generic API proxy: forwards /api/* to Laravel backend
 app.all('/api/*', async (req, res) => {
   try {
-    const targetUrl = new URL(req.originalUrl, BACKEND_URL).toString();
-
-    // Build headers for the proxied request
-    const headers = new Headers();
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (!value) continue;
-      const lower = key.toLowerCase();
-      // Skip hop-by-hop or implicit headers
-      if (['host', 'connection', 'content-length', 'accept-encoding'].includes(lower)) continue;
-      if (Array.isArray(value)) {
-        headers.set(lower, value.join(', '));
-      } else {
-        headers.set(lower, String(value));
-      }
-    }
-    headers.set('x-forwarded-proto', req.protocol);
-    headers.set('x-forwarded-host', req.get('host') || '');
-
-    // Prepare body (support JSON and urlencoded). For other content-types, omit body.
-    let body;
-    const method = req.method.toUpperCase();
-    const contentType = (req.headers['content-type'] || '').toString();
-    if (!['GET', 'HEAD'].includes(method)) {
-      if (contentType.startsWith('application/json')) {
-        body = JSON.stringify(req.body ?? {});
-      } else if (contentType.startsWith('application/x-www-form-urlencoded')) {
-        const params = new URLSearchParams();
-        for (const [k, v] of Object.entries(req.body ?? {})) {
-          if (Array.isArray(v)) v.forEach((vv) => params.append(k, String(vv)));
-          else if (v !== undefined && v !== null) params.append(k, String(v));
-        }
-        body = params.toString();
-      }
-      // For multipart/form-data or others, you may need additional handling.
-    }
-
-    const response = await fetch(targetUrl, {
+    const api = makeApiClient(req);
+    const url = req.originalUrl.replace(/^\/api/, '/api');
+    const method = req.method.toLowerCase();
+    const isBinary = (req.headers['accept'] || '').includes('application/pdf');
+    const response = await api.request({
+      url,
       method,
-      headers,
-      body,
+      data: ['get', 'head'].includes(method) ? undefined : req.body,
+      responseType: isBinary ? 'arraybuffer' : 'json',
     });
 
-    // Copy status and headers back to client
+    // status and headers
     res.status(response.status);
-    response.headers.forEach((val, key) => {
-      // Avoid setting forbidden/implicit headers
-      if (['transfer-encoding'].includes(key.toLowerCase())) return;
-      res.setHeader(key, val);
-    });
+    for (const [k, v] of Object.entries(response.headers || {})) {
+      if (['transfer-encoding'].includes(String(k).toLowerCase())) continue;
+      if (v !== undefined) res.setHeader(k, v);
+    }
 
-    const buffer = Buffer.from(await response.arrayBuffer());
-    res.send(buffer);
+    if (response.data === undefined) return res.end();
+    // If arraybuffer, send as buffer; else JSON
+    if (response.request?.responseType === 'arraybuffer' || Buffer.isBuffer(response.data)) {
+      return res.send(Buffer.from(response.data));
+    }
+    return res.send(response.data);
   } catch (err) {
     console.error('Proxy error:', err);
-    res.status(502).json({ error: 'Bad gateway', detail: (err && err.message) || String(err) });
+    const status = err.response?.status || 502;
+    const data = err.response?.data || { error: 'Bad gateway' };
+    res.status(status).send(data);
   }
 });
 
