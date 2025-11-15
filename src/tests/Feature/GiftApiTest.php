@@ -46,11 +46,11 @@ class GiftApiTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => -5,  // Invalid negative amount
-                'return_url' => 'invalid-url',  // Invalid URL
+                'gift_type_id' => 'not-a-uuid', // Invalid gift type id
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['cost_in_credits', 'return_url']);
+            ->assertJsonValidationErrors(['cost_in_credits', 'gift_type_id']);
     }
 
     /**
@@ -62,7 +62,7 @@ class GiftApiTest extends TestCase
 
         $response = $this->postJson("/api/pets/{$pet->id}/gifts", [
             'cost_in_credits' => 100,
-            'return_url' => 'https://example.com/success',
+            'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
         ]);
 
         $response->assertStatus(401);
@@ -81,7 +81,7 @@ class GiftApiTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 5,  // Below minimum of 10
-                'return_url' => 'https://example.com/success',
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
         $response->assertStatus(422)
@@ -91,7 +91,7 @@ class GiftApiTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 1000001,  // Above maximum of 1,000,000
-                'return_url' => 'https://example.com/success',
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
         $response->assertStatus(422)
@@ -151,7 +151,7 @@ class GiftApiTest extends TestCase
     /**
      * Test that return_url is required for gift creation.
      */
-    public function test_it_requires_return_url_for_gift(): void
+    public function test_it_requires_gift_type_for_gift(): void
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
@@ -160,57 +160,31 @@ class GiftApiTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 100,
-                // Missing return_url
+                // Missing gift_type_id
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['return_url']);
+            ->assertJsonValidationErrors(['gift_type_id']);
     }
 
     /**
-     * Test that return_url must be a valid URL format.
+     * Test wallet-based gifting returns success and creates gift.
      */
-    public function test_it_validates_return_url_format(): void
+    public function test_wallet_gifting_creates_gift(): void
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
+        // Ensure wallet has sufficient credits
+        $user->wallet()->create(['balance_credits' => 1000]);
 
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 100,
-                'return_url' => 'not-a-valid-url',
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['return_url']);
-    }
-
-    /**
-     * Test that Stripe session uses provided return_url for success.
-     */
-    public function test_stripe_session_respects_return_url(): void
-    {
-        /** @var Authenticatable $user */
-        $user = User::factory()->create();
-        $pet = Pet::factory()->create();
-
-        // Configure Stripe mock
-        config([
-            'services.stripe.key' => 'pk_test_fake_key',
-            'services.stripe.secret' => 'sk_test_fake_secret',
-        ]);
-
-        $customReturnUrl = 'https://app.example.com/checkout/complete';
-
-        $response = $this->actingAs($user, 'sanctum')
-            ->postJson("/api/pets/{$pet->id}/gifts", [
-                'cost_in_credits' => 100,
-                'return_url' => $customReturnUrl,
-            ]);
-
-        // Will fail with Stripe API error, but we can verify gift was created
-        $response->assertStatus(500);
+        $response->assertStatus(201);
 
         // Verify gift was created
         $this->assertDatabaseHas('gifts', [
@@ -221,37 +195,31 @@ class GiftApiTest extends TestCase
     }
 
     /**
-     * Test multiple return_urls work correctly.
+     * Test multiple gifts can be created independently.
      */
-    public function test_multiple_return_urls_work_independently(): void
+    public function test_multiple_gifts_work_independently(): void
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
-
-        config([
-            'services.stripe.key' => 'pk_test_fake_key',
-            'services.stripe.secret' => 'sk_test_fake_secret',
-        ]);
-
-        $returnUrl1 = 'https://app1.example.com/callback';
-        $returnUrl2 = 'https://app2.example.com/callback';
+        // Ensure wallet has sufficient credits
+        $user->wallet()->create(['balance_credits' => 1000]);
 
         // First gift with different return_url
         $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 100,
-                'return_url' => $returnUrl1,
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
         // Second gift with different return_url
         $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 150,
-                'return_url' => $returnUrl2,
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
-        // Both should be created despite Stripe errors
+        // Both should be created
         $this->assertDatabaseCount('gifts', 2);
         $this->assertDatabaseHas('gifts', [
             'user_id' => $user->id,

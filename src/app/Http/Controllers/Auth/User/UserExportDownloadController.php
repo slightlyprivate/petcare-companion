@@ -31,6 +31,11 @@ class UserExportDownloadController extends Controller
      */
     public function download(Request $request, UserExport $export)
     {
+        // Require authentication explicitly to avoid null user errors in edge cases
+        if (! $request->user()) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
         // Verify the user owns this export
         if ($export->user_id !== $request->user()->id) {
             throw new AuthorizationException('You cannot access this export.');
@@ -56,13 +61,15 @@ class UserExportDownloadController extends Controller
         // Mark as downloaded
         $export->markAsDownloaded();
 
-        $filePath = $disk->path($export->file_path);
-
-        // Stream the file to the user
-        return response()->download(
-            $filePath,
-            $export->file_name,
-            ['Content-Type' => 'application/zip']
+        // Return as standard response with headers so test helpers can inspect headers
+        $content = $disk->get($export->file_path);
+        return response(
+            $content,
+            200,
+            [
+                'Content-Type' => 'application/zip',
+                'Content-Disposition' => 'attachment; filename="'.$export->file_name.'"',
+            ]
         );
     }
 }

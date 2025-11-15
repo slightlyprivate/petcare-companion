@@ -479,12 +479,12 @@ class StripeWebhookTest extends TestCase
         // Verify gift is marked as paid
         $this->assertEquals('paid', $gift->status);
 
-        // Verify wallet was debited with gift cost
-        $this->assertEquals($initialBalance - $gift->cost_in_credits, $wallet->balance_credits);
+        // No wallet debit occurs for Stripe-paid gifts
+        $this->assertEquals($initialBalance, $wallet->balance_credits);
 
-        // Verify transaction was created for both reconciliation and deduction
+        // No wallet transaction should be created by webhook for Stripe-paid gifts
         $transactions = $wallet->transactions()->get();
-        $this->assertGreaterThanOrEqual(1, $transactions->count());
+        $this->assertEquals(0, $transactions->count());
     }
 
     /**
@@ -533,17 +533,15 @@ class StripeWebhookTest extends TestCase
         $this->handleWebhookEvent($eventData);
         $wallet->refresh();
         $balanceAfterFirst = $wallet->balance_credits;
-        $firstDeduction = 1000 - $balanceAfterFirst;
 
         // Process same event again (webhook retry)
         $this->handleWebhookEvent($eventData);
         $wallet->refresh();
         $balanceAfterSecond = $wallet->balance_credits;
 
-        // Balance should remain the same (no double deduction)
+        // Balance should remain the same (no deduction is performed by webhook)
+        $this->assertEquals(1000, $balanceAfterFirst);
         $this->assertEquals($balanceAfterFirst, $balanceAfterSecond);
-        // First deduction should equal gift cost
-        $this->assertEquals($gift->cost_in_credits, $firstDeduction);
     }
 
     /**

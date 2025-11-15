@@ -62,4 +62,3 @@ class StoreWalletGiftRequest extends FormRequest
         ];
     }
 }
-

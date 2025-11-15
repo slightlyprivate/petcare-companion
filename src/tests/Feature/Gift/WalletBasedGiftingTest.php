@@ -57,7 +57,7 @@ class WalletBasedGiftingTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 100,
-                'return_url' => 'https://example.com/success',
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
         $response->assertStatus(422);
@@ -90,7 +90,7 @@ class WalletBasedGiftingTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 100,
-                'return_url' => 'https://example.com/success',
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
         // Should fail at Stripe but gift should be created
@@ -296,7 +296,7 @@ class WalletBasedGiftingTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 100,
-                'return_url' => 'https://example.com/success',
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
         $response->assertStatus(422);
@@ -329,7 +329,7 @@ class WalletBasedGiftingTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 10,
-                'return_url' => 'https://example.com/success',
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
         $response->assertStatus(422);
@@ -362,7 +362,7 @@ class WalletBasedGiftingTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 100,
-                'return_url' => 'https://example.com/success',
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
         $response->assertStatus(422);

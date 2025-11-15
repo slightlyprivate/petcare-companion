@@ -46,6 +46,10 @@ Route::post('/webhooks/stripe', [StripeWebhookController::class, 'handle'])
     ->middleware('throttle:webhook.stripe')
     ->name('webhooks.stripe');
 
+// Download endpoint for user exports (no auth middleware; controller enforces ownership, expiry, and returns appropriate statuses)
+Route::get('/user/data/exports/{export}/download', [UserExportDownloadController::class, 'download'])
+    ->name('user.data.exports.download');
+
 // Authenticated endpoints
 Route::middleware('auth:sanctum')->group(function () {
     // Read operations (no rate limiting)
@@ -121,7 +125,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/user/data', [UserDataController::class, 'deleteData'])->name('user.data.delete');
     });
 
-    // User export download endpoint (signed URL route - allows both authenticated and unauthenticated access with valid signature)
-    Route::get('/user/data/exports/{export}/download', [UserExportDownloadController::class, 'download'])
-        ->name('user.data.exports.download');
+    // Note: Moved the signed download route outside auth group to avoid redirect issues for unauthenticated requests.
 });

@@ -65,12 +65,12 @@ class RateLimitingTest extends TestCase
             'services.stripe.secret' => 'sk_test_fake_secret',
         ]);
 
-        // Make 5 requests within an hour (should succeed or fail due to validation/Stripe)
+        // Make 5 requests within an hour (should succeed or fail due to validation)
         for ($i = 0; $i < 5; $i++) {
             $response = $this->actingAs($user, 'sanctum')
                 ->postJson("/api/pets/{$pet->id}/gifts", [
                     'cost_in_credits' => 100,
-                    'return_url' => 'https://example.com/success',
+                    'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
                 ]);
 
             // All should not be 429 (rate limit)
@@ -81,7 +81,7 @@ class RateLimitingTest extends TestCase
         $response = $this->actingAs($user, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/gifts", [
                 'cost_in_credits' => 100,
-                'return_url' => 'https://example.com/success',
+                'gift_type_id' => (string) \App\Models\GiftType::factory()->create()->id,
             ]);
 
         $this->assertEquals(429, $response->status());

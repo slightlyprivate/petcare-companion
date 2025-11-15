@@ -60,9 +60,9 @@ class CreditPurchaseWebhookTest extends TestCase
         // Update wallet balance
         $wallet->increment('balance_credits', $this->purchase->credits);
 
-        // Log credit transaction
+        // Log credit transaction (amount in cents)
         $wallet->transactions()->create([
-            'amount' => $this->purchase->credits,
+            'amount' => $this->purchase->credits * 20,
             'type' => 'purchase',
         ]);
 
@@ -75,7 +75,7 @@ class CreditPurchaseWebhookTest extends TestCase
 
         $this->assertDatabaseHas('credit_transactions', [
             'wallet_id' => $wallet->id,
-            'amount' => 100,
+            'amount' => 2000,
             'type' => 'purchase',
         ]);
     }
@@ -91,7 +91,7 @@ class CreditPurchaseWebhookTest extends TestCase
         ]);
         $wallet->increment('balance_credits', $this->purchase->credits);
         $wallet->transactions()->create([
-            'amount' => $this->purchase->credits,
+            'amount' => $this->purchase->credits * 20,
             'type' => 'purchase',
         ]);
 

@@ -69,7 +69,7 @@ class ExportUserDataJob implements ShouldQueue
 
             // Send download link via email
             try {
-                Mail::send(new UserDataExportNotification($this->user, $downloadUrl));
+                Mail::to($this->user->email)->send(new UserDataExportNotification($this->user, $downloadUrl));
             } catch (\Throwable $e) {
                 Log::warning('Error sending data export email', [
                     'user_id' => $this->user->id,

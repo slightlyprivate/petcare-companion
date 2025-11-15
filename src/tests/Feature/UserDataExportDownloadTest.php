@@ -46,8 +46,9 @@ class UserDataExportDownloadTest extends TestCase
         // Verify export expires 7 days from now
         $export = UserExport::where('user_id', $user->id)->first();
         $this->assertNotNull($export);
-        $this->assertTrue($export->expires_at->diffInDays(now()) >= 6);
-        $this->assertTrue($export->expires_at->diffInDays(now()) <= 8);
+        // Allow time drift but ensure roughly 7 days from now
+        $this->assertTrue($export->expires_at->greaterThan(now()->addDays(6)));
+        $this->assertTrue($export->expires_at->lessThan(now()->addDays(8)));
     }
 
     /**
@@ -123,7 +124,7 @@ class UserDataExportDownloadTest extends TestCase
             ->assertHeader('Content-Type', 'application/zip');
 
         // Verify file is served as attachment
-        $this->assertStringContainsString('attachment', $response->header('Content-Disposition'));
+        $this->assertStringContainsString('attachment', $response->headers->get('Content-Disposition'));
     }
 
     /**

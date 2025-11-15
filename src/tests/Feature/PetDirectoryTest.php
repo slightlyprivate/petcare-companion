@@ -44,8 +44,9 @@ class PetDirectoryTest extends TestCase
         $response->assertStatus(200);
         $petData = $response->json()['data'][0];
 
-        $this->assertEquals(15000, $petData['total_gifts_cents']);
-        $this->assertEquals(150.0, $petData['total_gifts']);
+        // 3 gifts * 100 credits = 300 credits; 1 credit = $0.20 => $60 = 6000 cents
+        $this->assertEquals(6000, $petData['total_gifts_cents']);
+        $this->assertEquals(60.0, $petData['total_gifts']);
         $this->assertEquals(3, $petData['gift_count']);
     }
 
@@ -146,7 +147,8 @@ class PetDirectoryTest extends TestCase
 
         // Only paid gifts should be counted
         $this->assertEquals(5, $petData['gift_count']);
-        $this->assertEquals(25000, $petData['total_gifts_cents']);
-        $this->assertEquals(250.0, $petData['total_gifts']);
+        // 5 * 100 credits = 500 credits -> $100 = 10000 cents
+        $this->assertEquals(10000, $petData['total_gifts_cents']);
+        $this->assertEquals(100.0, $petData['total_gifts']);
     }
 }
