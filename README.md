@@ -16,6 +16,33 @@ A lightweight, educational monorepo demonstrating a Laravel API, a React UI, and
 - db: MySQL 8.0 with persistent volume.
 - redis: Redis 7 for cache/queue experimentation.
 
+## Repository Map
+
+```mermaid
+graph LR
+  subgraph Client
+    A[Browser]
+  end
+
+  subgraph Frontend
+    F[frontend<br/>Node BFF + React UI]
+  end
+
+  subgraph API
+    W[web<br/>Nginx]
+    P[app<br/>Laravel PHP-FPM]
+  end
+
+  D[(db<br/>MySQL 8.0)]
+  R[(redis<br/>Redis 7)]
+
+  A -->|HTTP :5174| F
+  F -->|/api/* proxy| W
+  W --> P
+  P --> D
+  P --> R
+```
+
 ## Quick Start
 
 - Copy env: `cp .env.example .env`
