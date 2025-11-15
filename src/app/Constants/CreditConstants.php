@@ -26,15 +26,6 @@ class CreditConstants
     public const int CREDITS_PER_DOLLAR = 5;
 
     /**
-     * The value of 1 credit in cents (USD).
-     *
-     * Calculated as: $1.00 / 5 credits = $0.20 per credit = 20 cents
-     *
-     * @deprecated Use CREDITS_PER_DOLLAR instead
-     */
-    public const int CREDIT_VALUE_IN_CENTS = 20;
-
-    /**
      * Get the dollar amount for a given number of credits.
      *
      * @param  int  $credits  The number of credits to convert
@@ -53,7 +44,8 @@ class CreditConstants
      */
     public static function toCents(int $credits): int
     {
-        return (int) round($credits * self::CREDIT_VALUE_IN_CENTS);
+        // 1 dollar = 100 cents; cents per credit = 100 / CREDITS_PER_DOLLAR
+        return (int) round($credits * (100 / self::CREDITS_PER_DOLLAR));
     }
 
     /**
@@ -75,6 +67,7 @@ class CreditConstants
      */
     public static function fromCents(int $cents): int
     {
-        return (int) round($cents / self::CREDIT_VALUE_IN_CENTS);
+        // credits per cent = CREDITS_PER_DOLLAR / 100
+        return (int) round($cents * (self::CREDITS_PER_DOLLAR / 100));
     }
 }

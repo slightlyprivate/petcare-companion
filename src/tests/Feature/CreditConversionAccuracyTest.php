@@ -27,7 +27,6 @@ class CreditConversionAccuracyTest extends TestCase
     #[Test]
     public function credit_constant_converts_five_credits_to_one_dollar(): void
     {
-        $this->assertEquals(20, CreditConstants::CREDIT_VALUE_IN_CENTS);
         $this->assertEquals(20, CreditConstants::toCents(1));
         $this->assertEquals(0.20, CreditConstants::toDollars(1));
         $this->assertEquals(5, CreditConstants::CREDITS_PER_DOLLAR);
