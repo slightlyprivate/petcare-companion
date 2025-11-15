@@ -22,7 +22,7 @@ class StoreWalletGiftRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pet_id' => ['required', 'uuid', 'exists:pets,id'],
+            'pet_id' => ['required', 'integer', 'exists:pets,id'],
             'gift_type_id' => ['required', 'uuid', 'exists:gift_types,id'],
             'cost_in_credits' => ['required', 'integer', 'min:10', 'max:1000000', new \App\Rules\SufficientWalletBalance($this->user())],
         ];
@@ -32,7 +32,7 @@ class StoreWalletGiftRequest extends FormRequest
     {
         return [
             'pet_id.required' => 'Pet ID is required.',
-            'pet_id.uuid' => 'Pet ID must be a valid UUID.',
+            'pet_id.integer' => 'Pet ID must be a valid integer.',
             'pet_id.exists' => 'Selected pet does not exist.',
             'gift_type_id.required' => 'Gift type is required.',
             'gift_type_id.uuid' => 'Gift type must be a valid ID.',
@@ -43,4 +43,23 @@ class StoreWalletGiftRequest extends FormRequest
             'cost_in_credits.max' => 'Maximum gift cost is 1,000,000 credits.',
         ];
     }
+
+    public function bodyParameters(): array
+    {
+        return [
+            'pet_id' => [
+                'description' => 'The ID of the pet to receive the gift.',
+                'example' => 1,
+            ],
+            'gift_type_id' => [
+                'description' => 'Catalog gift type to associate with this gift.',
+                'example' => 'a3f0e2b4-7f2a-4c1d-8a17-3a1d9c123456',
+            ],
+            'cost_in_credits' => [
+                'description' => 'Gift cost in credits to deduct from the wallet.',
+                'example' => 100,
+            ],
+        ];
+    }
 }
+

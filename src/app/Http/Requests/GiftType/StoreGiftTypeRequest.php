@@ -54,4 +54,43 @@ class StoreGiftTypeRequest extends FormRequest
             'cost_in_credits.max' => 'Maximum cost is 1,000,000 credits.',
         ];
     }
+
+    /**
+     * Body parameters for API docs.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'name' => [
+                'description' => 'Display name of the gift type.',
+                'example' => 'Toy',
+            ],
+            'description' => [
+                'description' => 'Optional description.',
+                'example' => 'Fun pet toys and accessories.',
+            ],
+            'icon_emoji' => [
+                'description' => 'Emoji used as icon in UI.',
+                'example' => '🧸',
+            ],
+            'color_code' => [
+                'description' => 'Hex color for UI accents.',
+                'example' => '#FF6B6B',
+            ],
+            'cost_in_credits' => [
+                'description' => 'Default cost in credits for this gift type.',
+                'example' => 100,
+            ],
+            'sort_order' => [
+                'description' => 'Ordering index (lower shows first).',
+                'example' => 10,
+            ],
+            'is_active' => [
+                'description' => 'Whether type is visible to the public.',
+                'example' => true,
+            ],
+        ];
+    }
 }

@@ -56,7 +56,7 @@ class GiftTypeTest extends TestCase
         $response = $this->getJson('/api/public/gift-types');
 
         $response->assertStatus(200);
-        $names = array_map(fn($item) => $item['name'], $response->json('data'));
+        $names = array_map(fn ($item) => $item['name'], $response->json('data'));
         $this->assertEquals(['Type A', 'Type B', 'Type C'], $names);
     }
 
@@ -312,7 +312,7 @@ class GiftTypeTest extends TestCase
         $response = $this->getJson('/api/public/gift-types');
 
         $response->assertStatus(200);
-        $names = array_map(fn($item) => $item['name'], $response->json('data'));
+        $names = array_map(fn ($item) => $item['name'], $response->json('data'));
         $this->assertContains('Active', $names);
         $this->assertNotContains('Inactive', $names);
     }

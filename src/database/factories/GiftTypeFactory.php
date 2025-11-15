@@ -22,10 +22,10 @@ class GiftTypeFactory extends Factory
         static $counter = 0;
 
         return [
-            'name' => $this->faker->unique()->word() . ' ' . ++$counter,
+            'name' => $this->faker->unique()->word().' '.++$counter,
             'description' => $this->faker->sentence(),
             'icon_emoji' => $this->faker->randomElement(['🎁', '🧸', '🍖', '🎀', '🛁']),
-            'color_code' => '#' . substr(md5(rand()), 0, 6),
+            'color_code' => '#'.substr(md5(rand()), 0, 6),
             'cost_in_credits' => $this->faker->numberBetween(10, 500),
             'sort_order' => $this->faker->numberBetween(0, 100),
             'is_active' => $this->faker->boolean(80),
@@ -37,7 +37,7 @@ class GiftTypeFactory extends Factory
      */
     public function active(): self
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'is_active' => true,
         ]);
     }
@@ -47,7 +47,7 @@ class GiftTypeFactory extends Factory
      */
     public function inactive(): self
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'is_active' => false,
         ]);
     }

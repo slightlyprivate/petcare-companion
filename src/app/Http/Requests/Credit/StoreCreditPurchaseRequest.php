@@ -46,4 +46,23 @@ class StoreCreditPurchaseRequest extends FormRequest
             'return_url.url' => __('credits.errors.invalid_return_url'),
         ];
     }
+
+    /**
+     * Document body parameters for Scribe.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'credit_bundle_id' => [
+                'description' => 'The ID of the credit bundle to purchase.',
+                'example' => '3c0a0e3c-1234-4b9a-8123-9a7a2f1a9abc',
+            ],
+            'return_url' => [
+                'description' => 'URL to redirect after checkout completes or cancels.',
+                'example' => 'https://app.example.com/credits/return',
+            ],
+        ];
+    }
 }

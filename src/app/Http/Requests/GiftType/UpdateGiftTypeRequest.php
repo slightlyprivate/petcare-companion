@@ -38,4 +38,43 @@ class UpdateGiftTypeRequest extends FormRequest
             'is_active' => ['nullable', 'boolean'],
         ];
     }
+
+    /**
+     * Body parameters for API docs.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [
+            'name' => [
+                'description' => 'New display name (optional).',
+                'example' => 'Premium Toy',
+            ],
+            'description' => [
+                'description' => 'Updated description.',
+                'example' => 'Higher quality toys for special occasions.',
+            ],
+            'icon_emoji' => [
+                'description' => 'Emoji used as icon in UI.',
+                'example' => '🎁',
+            ],
+            'color_code' => [
+                'description' => 'Hex color for UI accents.',
+                'example' => '#3366FF',
+            ],
+            'cost_in_credits' => [
+                'description' => 'Default cost in credits for this gift type.',
+                'example' => 150,
+            ],
+            'sort_order' => [
+                'description' => 'Ordering index (lower shows first).',
+                'example' => 5,
+            ],
+            'is_active' => [
+                'description' => 'Whether type is visible to the public.',
+                'example' => false,
+            ],
+        ];
+    }
 }

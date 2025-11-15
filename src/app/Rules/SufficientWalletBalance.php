@@ -16,13 +16,19 @@ class SufficientWalletBalance implements ValidationRule
     /**
      * Create a new rule instance.
      */
-    public function __construct(protected User $user) {}
+    public function __construct(protected ?User $user = null) {}
 
     /**
      * Run the validation rule.
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
+        // During documentation generation, there may be no authenticated user.
+        // Skip validation in that context to avoid breaking Scribe.
+        if (! $this->user) {
+            return;
+        }
+
         $wallet = $this->user->wallet;
 
         if (! $wallet || $wallet->balance_credits < $value) {
