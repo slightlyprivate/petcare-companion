@@ -48,6 +48,7 @@ class GiftTypeController extends Controller
      */
     public function store(StoreGiftTypeRequest $request): JsonResponse
     {
+        $this->authorize('create', \App\Models\GiftType::class);
         $giftType = GiftType::create($request->validated());
 
         return response()->json([
@@ -60,6 +61,7 @@ class GiftTypeController extends Controller
      */
     public function update(UpdateGiftTypeRequest $request, GiftType $giftType): GiftTypeResource
     {
+        $this->authorize('update', $giftType);
         $giftType->update($request->validated());
 
         return new GiftTypeResource($giftType);
