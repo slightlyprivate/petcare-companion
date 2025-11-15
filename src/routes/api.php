@@ -62,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('credits')->group(function () {
+        Route::get('/purchases', [CreditPurchaseController::class, 'index'])->name('credits.purchases.index');
         Route::get('/{creditPurchase}', [CreditPurchaseController::class, 'show'])->name('credits.show');
     });
 

@@ -22,6 +22,30 @@ class CreditPurchaseController extends Controller
     public function __construct(private CreditPurchaseService $creditPurchaseService) {}
 
     /**
+     * List the authenticated user's credit purchases (most recent first).
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index()
+    {
+        $user = request()->user();
+
+        $purchases = CreditPurchase::where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->paginate(10);
+
+        return response()->json([
+            'data' => CreditPurchaseResource::collection($purchases->items()),
+            'meta' => [
+                'current_page' => $purchases->currentPage(),
+                'last_page' => $purchases->lastPage(),
+                'per_page' => $purchases->perPage(),
+                'total' => $purchases->total(),
+            ],
+        ]);
+    }
+
+    /**
      * Initiate a credit purchase and create a Stripe checkout session.
      *
      * Returns a checkout URL that the client should redirect to for payment processing.
