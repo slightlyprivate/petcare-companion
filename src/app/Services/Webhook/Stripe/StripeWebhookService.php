@@ -95,20 +95,18 @@ class StripeWebhookService
         // Otherwise handle as gift
         $giftId = $session['metadata']['gift_id'] ?? null;
 
-        if (! $giftId) {
-            Log::warning('Checkout session completed without gift_id or purchase_id in metadata', [
-                'session_id' => $session['id'],
-            ]);
+        $gift = $giftId ? Gift::find($giftId) : null;
 
-            return;
+        // If gift not found by ID metadata, attempt fallback identification
+        if (! $gift) {
+            $gift = $this->findGiftByFallback($session);
         }
 
-        $gift = Gift::where('stripe_session_id', $session['id'])->first();
-
         if (! $gift) {
-            Log::warning('Gift not found for completed checkout session', [
+            Log::warning('Gift not found via primary or fallback lookup', [
                 'session_id' => $session['id'],
-                'gift_id' => $giftId,
+                'gift_id_metadata' => $giftId,
+                'client_reference_id' => $session['client_reference_id'] ?? null,
             ]);
 
             return;
@@ -164,7 +162,7 @@ class StripeWebhookService
         $gift->markAsPaid();
 
         // Deduct credits from user's wallet when gift is confirmed as paid
-        $this->deductCreditsFromWallet($gift->user, $gift->cost_in_credits);
+        $this->deductCreditsFromWallet($gift->user, $gift->cost_in_credits, $gift->id);
 
         // Send gift success notification to user if enabled
         if (NotificationHelper::isNotificationEnabled($gift->user, 'gift')) {
@@ -186,21 +184,18 @@ class StripeWebhookService
     protected function handleCreditPurchaseCompletion(array $session): void
     {
         $purchaseId = $session['metadata']['purchase_id'] ?? null;
+        $purchase = $purchaseId ? CreditPurchase::find($purchaseId) : null;
 
-        if (! $purchaseId) {
-            Log::warning('Credit purchase session completed without purchase_id in metadata', [
-                'session_id' => $session['id'],
-            ]);
-
-            return;
+        // If purchase not found by ID metadata, attempt fallback identification
+        if (! $purchase) {
+            $purchase = $this->findCreditPurchaseByFallback($session);
         }
 
-        $purchase = CreditPurchase::where('stripe_session_id', $session['id'])->first();
-
         if (! $purchase) {
-            Log::warning('Credit purchase not found for completed checkout session', [
+            Log::warning('Credit purchase not found via primary or fallback lookup', [
                 'session_id' => $session['id'],
-                'purchase_id' => $purchaseId,
+                'purchase_id_metadata' => $purchaseId,
+                'client_reference_id' => $session['client_reference_id'] ?? null,
             ]);
 
             return;
@@ -418,7 +413,7 @@ class StripeWebhookService
      * Uses atomic operations to prevent race conditions. Checks if credits have
      * already been deducted to prevent double-deduction on webhook retry.
      */
-    protected function deductCreditsFromWallet(User $user, int $credits): void
+    protected function deductCreditsFromWallet(User $user, int $credits, ?string $giftId = null): void
     {
         // Get wallet with lock to prevent concurrent modification
         $wallet = $user->wallet()->lockForUpdate()->first();
@@ -450,12 +445,94 @@ class StripeWebhookService
         // Decrement wallet balance
         $wallet->decrement('balance_credits', $credits);
 
-        // Log the transaction
+        // Log the transaction (amount in cents: 1 credit = 20 cents per CreditConstants)
         $wallet->transactions()->create([
+            'amount' => $credits * 20, // Convert credits to cents
             'type' => 'debit',
             'amount_credits' => $credits,
             'reason' => 'gift_sent',
             'related_type' => 'gift',
+            'related_id' => $giftId,
         ]);
+    }
+
+    /**
+     * Find Gift using fallback identification when metadata is missing.
+     *
+     * Attempts to identify gift using (in order):
+     * 1. Session ID lookup (primary fallback)
+     * 2. Client reference ID lookup (user-created gift ID)
+     */
+    protected function findGiftByFallback(array $session): ?Gift
+    {
+        $sessionId = $session['id'];
+        $clientRefId = $session['client_reference_id'] ?? null;
+
+        // Attempt 1: Look up by session ID (most reliable)
+        $gift = Gift::where('stripe_session_id', $sessionId)->first();
+        if ($gift) {
+            Log::info('Gift found via session ID fallback', [
+                'gift_id' => $gift->id,
+                'session_id' => $sessionId,
+            ]);
+
+            return $gift;
+        }
+
+        // Attempt 2: Look up by client reference ID if available
+        if ($clientRefId) {
+            $gift = Gift::find($clientRefId);
+            if ($gift) {
+                Log::info('Gift found via client_reference_id fallback', [
+                    'gift_id' => $gift->id,
+                    'client_reference_id' => $clientRefId,
+                    'session_id' => $sessionId,
+                ]);
+
+                return $gift;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Find CreditPurchase using fallback identification when metadata is missing.
+     *
+     * Attempts to identify purchase using (in order):
+     * 1. Session ID lookup (primary fallback)
+     * 2. Client reference ID lookup (purchase ID stored by client)
+     */
+    protected function findCreditPurchaseByFallback(array $session): ?CreditPurchase
+    {
+        $sessionId = $session['id'];
+        $clientRefId = $session['client_reference_id'] ?? null;
+
+        // Attempt 1: Look up by session ID (most reliable)
+        $purchase = CreditPurchase::where('stripe_session_id', $sessionId)->first();
+        if ($purchase) {
+            Log::info('Credit purchase found via session ID fallback', [
+                'purchase_id' => $purchase->id,
+                'session_id' => $sessionId,
+            ]);
+
+            return $purchase;
+        }
+
+        // Attempt 2: Look up by client reference ID if available
+        if ($clientRefId) {
+            $purchase = CreditPurchase::find($clientRefId);
+            if ($purchase) {
+                Log::info('Credit purchase found via client_reference_id fallback', [
+                    'purchase_id' => $purchase->id,
+                    'client_reference_id' => $clientRefId,
+                    'session_id' => $sessionId,
+                ]);
+
+                return $purchase;
+            }
+        }
+
+        return null;
     }
 }

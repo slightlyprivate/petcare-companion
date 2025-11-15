@@ -328,4 +328,254 @@ class StripeWebhookTest extends TestCase
         $gift->refresh();
         $this->assertEquals('paid', $gift->status);
     }
+
+    /**
+     * Test webhook uses fallback identification when gift_id metadata is missing.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_webhook_fallback_identification_by_session_id(): void
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create();
+
+        $gift = Gift::factory()->create([
+            'user_id' => $user->id,
+            'pet_id' => $pet->id,
+            'status' => 'pending',
+            'stripe_session_id' => 'cs_test_fallback_1',
+            'cost_in_credits' => 100,
+        ]);
+
+        // Event with NO gift_id in metadata - forces fallback lookup
+        $eventData = [
+            'id' => 'evt_test_fallback_1',
+            'object' => 'event',
+            'type' => 'checkout.session.completed',
+            'created' => time(),
+            'data' => [
+                'object' => [
+                    'object' => 'checkout.session',
+                    'id' => 'cs_test_fallback_1',
+                    'payment_intent' => 'pi_test_fallback_1',
+                    'metadata' => [], // No gift_id - forces fallback
+                    'client_reference_id' => null,
+                ],
+            ],
+            'livemode' => false,
+            'pending_webhooks' => 0,
+            'request' => ['id' => null, 'idempotency_key' => null],
+        ];
+
+        $this->handleWebhookEvent($eventData);
+
+        $gift->refresh();
+        $this->assertEquals('paid', $gift->status);
+        $this->assertNotNull($gift->completed_at);
+
+        Notification::assertSentTo([$user], GiftSuccessNotification::class);
+    }
+
+    /**
+     * Test webhook uses client_reference_id fallback for gift identification.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_webhook_fallback_identification_by_client_reference_id(): void
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create();
+
+        $gift = Gift::factory()->create([
+            'user_id' => $user->id,
+            'pet_id' => $pet->id,
+            'status' => 'pending',
+            'stripe_session_id' => 'cs_test_fallback_2',
+            'cost_in_credits' => 100,
+        ]);
+
+        // Event with client_reference_id but NO gift_id in metadata
+        $eventData = [
+            'id' => 'evt_test_fallback_2',
+            'object' => 'event',
+            'type' => 'checkout.session.completed',
+            'created' => time(),
+            'data' => [
+                'object' => [
+                    'object' => 'checkout.session',
+                    'id' => 'cs_test_fallback_2',
+                    'payment_intent' => 'pi_test_fallback_2',
+                    'metadata' => [], // No gift_id
+                    'client_reference_id' => (string) $gift->id, // Use gift ID as client ref
+                ],
+            ],
+            'livemode' => false,
+            'pending_webhooks' => 0,
+            'request' => ['id' => null, 'idempotency_key' => null],
+        ];
+
+        $this->handleWebhookEvent($eventData);
+
+        $gift->refresh();
+        $this->assertEquals('paid', $gift->status);
+
+        Notification::assertSentTo([$user], GiftSuccessNotification::class);
+    }
+
+    /**
+     * Test credit reconciliation: missing wallet credits are restored.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_webhook_reconciles_missing_wallet_credits(): void
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create();
+
+        // Create user wallet with initial balance
+        $wallet = $user->wallet()->create(['balance_credits' => 0]);
+        $initialBalance = $wallet->balance_credits;
+
+        $gift = Gift::factory()->create([
+            'user_id' => $user->id,
+            'pet_id' => $pet->id,
+            'status' => 'pending',
+            'stripe_session_id' => 'cs_test_recon_1',
+            'cost_in_credits' => 100,
+        ]);
+
+        $eventData = [
+            'id' => 'evt_test_recon_1',
+            'object' => 'event',
+            'type' => 'checkout.session.completed',
+            'created' => time(),
+            'data' => [
+                'object' => [
+                    'object' => 'checkout.session',
+                    'id' => 'cs_test_recon_1',
+                    'payment_intent' => 'pi_test_recon_1',
+                    'metadata' => ['gift_id' => (string) $gift->id],
+                ],
+            ],
+            'livemode' => false,
+            'pending_webhooks' => 0,
+            'request' => ['id' => null, 'idempotency_key' => null],
+        ];
+
+        $this->handleWebhookEvent($eventData);
+
+        $gift->refresh();
+        $wallet->refresh();
+
+        // Verify gift is marked as paid
+        $this->assertEquals('paid', $gift->status);
+
+        // Verify wallet was debited with gift cost
+        $this->assertEquals($initialBalance - $gift->cost_in_credits, $wallet->balance_credits);
+
+        // Verify transaction was created for both reconciliation and deduction
+        $transactions = $wallet->transactions()->get();
+        $this->assertGreaterThanOrEqual(1, $transactions->count());
+    }
+
+    /**
+     * Test webhook prevents duplicate credit deduction on retry.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_webhook_prevents_duplicate_credit_deduction(): void
+    {
+        Notification::fake();
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create();
+
+        // Create wallet with initial balance
+        $wallet = $user->wallet()->create(['balance_credits' => 1000]);
+
+        $gift = Gift::factory()->create([
+            'user_id' => $user->id,
+            'pet_id' => $pet->id,
+            'status' => 'pending',
+            'stripe_session_id' => 'cs_test_dup_1',
+            'cost_in_credits' => 100,
+        ]);
+
+        $eventData = [
+            'id' => 'evt_test_dup_1',
+            'object' => 'event',
+            'type' => 'checkout.session.completed',
+            'created' => time(),
+            'data' => [
+                'object' => [
+                    'object' => 'checkout.session',
+                    'id' => 'cs_test_dup_1',
+                    'payment_intent' => 'pi_test_dup_1',
+                    'metadata' => ['gift_id' => (string) $gift->id],
+                ],
+            ],
+            'livemode' => false,
+            'pending_webhooks' => 0,
+            'request' => ['id' => null, 'idempotency_key' => null],
+        ];
+
+        // Process event first time
+        $this->handleWebhookEvent($eventData);
+        $wallet->refresh();
+        $balanceAfterFirst = $wallet->balance_credits;
+        $firstDeduction = 1000 - $balanceAfterFirst;
+
+        // Process same event again (webhook retry)
+        $this->handleWebhookEvent($eventData);
+        $wallet->refresh();
+        $balanceAfterSecond = $wallet->balance_credits;
+
+        // Balance should remain the same (no double deduction)
+        $this->assertEquals($balanceAfterFirst, $balanceAfterSecond);
+        // First deduction should equal gift cost
+        $this->assertEquals($gift->cost_in_credits, $firstDeduction);
+    }
+
+    /**
+     * Test webhook handles missing gift gracefully after fallback attempts.
+     */
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_webhook_handles_nonexistent_gift_after_fallback(): void
+    {
+        // Should not throw exception
+        $eventData = [
+            'id' => 'evt_test_missing_fallback',
+            'object' => 'event',
+            'type' => 'checkout.session.completed',
+            'created' => time(),
+            'data' => [
+                'object' => [
+                    'object' => 'checkout.session',
+                    'id' => 'cs_test_missing_fallback',
+                    'payment_intent' => 'pi_test_missing_fallback',
+                    'metadata' => [], // No gift_id
+                    'client_reference_id' => 'nonexistent-id',
+                ],
+            ],
+            'livemode' => false,
+            'pending_webhooks' => 0,
+            'request' => ['id' => null, 'idempotency_key' => null],
+        ];
+
+        $this->handleWebhookEvent($eventData);
+
+        // Verify no gifts were created
+        $this->assertEquals(0, Gift::count());
+    }
 }
