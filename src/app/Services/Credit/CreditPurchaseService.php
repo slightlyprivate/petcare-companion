@@ -2,6 +2,7 @@
 
 namespace App\Services\Credit;
 
+use App\Constants\CreditConstants;
 use App\Models\CreditBundle;
 use App\Models\CreditPurchase;
 use App\Models\User;
@@ -106,9 +107,9 @@ class CreditPurchaseService
             'completed_at' => now(),
         ]);
 
-        // Log credit transaction
+        // Log credit transaction (store amount in cents for consistency)
         $wallet->transactions()->create([
-            'amount' => $purchase->credits,
+            'amount' => CreditConstants::toCents($purchase->credits),
             'type' => 'purchase',
         ]);
 
