@@ -12,7 +12,7 @@ This project showcases:
 
 - ✅ **REST API Design** - Resource controllers, API resources, pagination
 - ✅ **Laravel Best Practices** - Form requests, Eloquent models, factories
-- ✅ **Payment Integration** - Stripe payment processing with Laravel Cashier
+- ✅ **Payment Integration** - Stripe Checkout for credit bundle purchases
 - ✅ **Audit Logging** - Comprehensive activity tracking with Spatie Activity Log
 - ✅ **Notification System** - Multi-channel notifications (Email + SMS) with user preferences
 - ✅ **Gift Economy** - Virtual credits and symbolic gifting system
@@ -74,7 +74,7 @@ docker-compose exec app tail -f storage/logs/laravel.log
 
 ## 💳 Payment & Gift Economy Configuration
 
-The application includes **Stripe payment integration** for virtual credit purchases in the gift economy system. For development:
+The application includes **Stripe Checkout integration** for virtual credit purchases in the gift economy system. For development:
 
 ```bash
 # Use Stripe test keys in .env
@@ -86,11 +86,16 @@ STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 **Gift Economy Features:**
 
 - **Virtual Credits**: Users purchase credits via Stripe (not real currency)
-- **Gift System**: Users send symbolic gifts to pets using credits
+- **Gift System**: Users send symbolic gifts to pets using wallet credits (server enforces catalog price)
 - **Wallet Management**: Each user has a wallet tracking credit balance
 - **Transaction History**: Full logging of all credit purchases and gifts
-- **Webhook Processing**: Handles payment completion and credit allocation
+- **Webhook Processing**: Handles payment completion, expired sessions, and credit allocation
 - **Status Tracking**: Real-time payment and gift status updates
+
+Credit conversion is centralized in `App\Constants\CreditConstants`:
+
+- Standard: 5 credits = $1.00 (1 credit = $0.20 = 20 cents)
+- Helpers: `toCents(int $credits)`, `toDollars(int $credits)`, `fromCents(int $cents)`, `fromDollars(float $dollars)`
 
 ## 🔒 Audit Logging (Activity Tracking)
 
@@ -212,9 +217,17 @@ if ($preferences->isNotificationEnabled('otp')) {
 
 | Method | Endpoint | Description | Features |
 |--------|----------|-------------|----------|
-| `POST` | `/api/pets/{id}/gifts` | Send gift to pet | Stripe integration, validation |
+| `POST` | `/api/pets/{id}/gifts` | Send gift to pet | Wallet debit, server-side pricing, validation |
 | `GET` | `/api/gifts/{id}/receipt` | Get gift/credit receipt | PDF export support |
 | `POST` | `/api/webhooks/stripe` | Stripe webhook handler | Payment status updates |
+
+### Credits Endpoints
+
+| Method | Endpoint | Description | Features |
+|--------|----------|-------------|----------|
+| `POST` | `/api/credits/purchase` | Create credit purchase checkout session | Stripe Checkout, metadata |
+| `GET` | `/api/credits/purchases` | List user credit purchases | Pagination |
+| `GET` | `/api/credits/{id}` | Show specific credit purchase | Policy-protected |
 
 ### 📋 Postman Collection
 
@@ -287,6 +300,9 @@ docker-compose exec app ./vendor/bin/pint
 
 # Static analysis  
 docker-compose exec app ./vendor/bin/phpstan analyse
+
+# Optional local Stripe webhook simulation
+./scripts/stripe-webhook-sim.sh --forward-to http://localhost/api/webhooks/stripe
 ```
 
 **Current Coverage**: 86 tests • 555 assertions • 100% pass rate
@@ -339,6 +355,15 @@ This is an **educational project** demonstrating modern Laravel development. It'
 - Docker containerization best practices
 - Test-driven development approaches
 - Laravel 12 feature utilization
+
+Additional notes:
+
+- Gift price is enforced on the server from `GiftType.cost_in_credits`; client-supplied amounts are ignored.
+- Wallet debits and credit purchases run in DB transactions to ensure atomic updates.
+- Credit purchase sessions expiring are marked as failed by webhook handler.
+- Admin gift type create/update requires numeric `cost_in_credits`; create defaults to 100 if omitted.
+- Pet restore now uses policy-based authorization; admins can restore.
+- GDPR deletion job purges wallets, credit purchases, and credit transactions.
 
 ## 🤝 Contributing
 

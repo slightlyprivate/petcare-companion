@@ -11,7 +11,7 @@ This document explains the system architecture and design decisions for **PetCar
 - **Architecture Style:** MVC + REST, with clear validation, resources, service layer, and comprehensive test coverage.
 - **Environment:** Containerized PHP-FPM + Nginx + MySQL stack using Docker Compose.
 - **Authorization:** Dual-role system (standard user vs. system admin) enforced through Laravel policies.
-- **Payment Processing:** Stripe integration for virtual credit purchases and wallet management.
+- **Payment Processing:** Stripe Checkout for credit purchases; gifts use wallet credits.
 
 ## Application Layers
 
@@ -31,13 +31,13 @@ This document explains the system architecture and design decisions for **PetCar
 - Business logic separated into service classes (e.g., `PetGiftService`, `StripeWebhookService`).
 - Services handle complex operations like Stripe payment processing, credit allocation, and gift creation.
 - Controllers remain thin by delegating business logic to services.
-- Gift-specific services: `GiftService` for receipt generation, `PetGiftService` for gift creation and checkout.
+- Gift-specific services: `GiftService` for receipt generation. `PetGiftService` creates wallet-funded gifts (no Stripe checkout for gifts).
 
 ### 4. Validation Layer
 
 - Separate Form Request classes handle validation rules (`StorePetRequest`, `StoreAppointmentRequest`, `StoreGiftRequest`, `ExportGiftReceiptRequest`).
 - Ensures input sanitation and standardized 422 responses on validation failure.
-- Gift validation includes credit cost range (10-1,000,000 credits) and return URL verification.
+- Gift validation requires `gift_type_id` (active), and wallet sufficiency is checked against the catalog price via a custom rule. Server enforces price; client-provided amounts are ignored.
 
 ### 5. Authorization Layer
 
@@ -63,28 +63,31 @@ This document explains the system architecture and design decisions for **PetCar
 
 ### 8. Payment Layer
 
-- **Stripe Integration**: Laravel Cashier provides seamless Stripe payment processing.
+- **Stripe Integration**: Stripe Checkout is used to sell credit bundles. Webhooks complete purchases, increment wallet balances, and log transactions. Expired sessions are marked failed.
 - **Virtual Credits**: Users purchase credits via Stripe (not real currency outside the platform).
 - **Wallet System**: Each user has a wallet tracking credit balance.
-- **Credit Transactions**: Full logging of all credit purchases and gift expenditures.
-- **Gift Processing**: Real-time processing of gift transactions with status management.
+- **Credit Transactions**: Full logging of all credit purchases and gift expenditures (transactions include `amount_credits`).
+- **Gift Processing**: Gifts are funded from the wallet immediately in a DB transaction; no Stripe for gifts.
 - **Status Management**: Credits and gifts track states (pending, paid, failed) with timestamps.
 
 #### Credit Conversion Standard
 
 The application uses a **standardized credit conversion rate** defined in `App\Constants\CreditConstants`:
 
-- **1 Credit = $1.00 USD = 100 cents**
-- **Constant:** `CreditConstants::CREDIT_VALUE_IN_CENTS = 100`
+- **5 credits = $1.00 (100 cents)** → 1 credit = 20 cents
+- **Constant:** `CREDITS_PER_DOLLAR = 5` (all conversions derive from this)
 - **Helper Methods:**
-  - `CreditConstants::toCents(int $credits): int` — converts credits to Stripe cents
-  - `CreditConstants::toDollars(int $credits): float` — converts credits to dollar amount
+  - `toCents(int $credits): int` — credits → cents
+  - `toDollars(int $credits): float` — credits → dollars
+  - `fromCents(int $cents): int` — cents → credits
+  - `fromDollars(float $dollars): int` — dollars → credits
 
 **Used in:**
 
-- `PetGiftService::createStripeCheckoutSession()` — converts gift cost to Stripe payment amount
-- `DirectoryPetResource::toArray()` — displays total gift donation values in public directory
-- All places requiring cents-to-credits conversion for consistency
+- `CreditPurchaseService` — logs purchase transactions and amounts
+- `StripeWebhookService` — computes wallet and transaction amounts
+- `PetGiftService` — logs wallet debits for gifts
+- Directory/reporting resources — display totals
 
 This centralized constant ensures uniform credit valuation across all payment flows and prevents miscalculations.
 
@@ -106,8 +109,8 @@ This centralized constant ensures uniform credit valuation across all payment fl
 ### 10. Testing Layer
 
 - Feature tests validate CRUD flows, gift transactions, and response formats.
-- Comprehensive gift API testing including validation, authentication, and status management.
-- Credit transaction logging and wallet balance verification.
+- Comprehensive gift API testing including server-side catalog pricing and wallet debits.
+- Credit transaction logging and wallet balance verification; purchase completion tested end-to-end via webhook.
 - Tests run in isolated SQLite memory or test database through Docker.
 - Target coverage: successful CRUD paths + gift flows + validation failure cases.
 
@@ -177,7 +180,7 @@ sequenceDiagram
     Controller-->>Client: JSON Response (200/201/404/etc.)
 ```
 
-### Payment Processing Flow
+### Credit Purchase Processing Flow
 
 The following diagram illustrates the payment processing flow for gift purchases:
 
@@ -189,18 +192,18 @@ sequenceDiagram
     participant Stripe
     participant Webhook
 
-    Client->>API: POST /api/pets/{id}/gifts
-    API->>Service: PetGiftService.createGift()
+    Client->>API: POST /api/credits/purchase
+    API->>Service: CreditPurchaseService.createCheckoutSession()
     Service->>Stripe: Create Checkout Session
     Stripe-->>Service: Checkout URL
-    Service->>API: Gift created (pending)
+    Service->>API: CreditPurchase created (pending)
     API-->>Client: Checkout URL response
 
     Note over Client,Stripe: User completes credit purchase on Stripe
 
     Stripe->>Webhook: checkout.session.completed
     Webhook->>Service: StripeWebhookService.handle()
-    Service->>API: Update gift status (paid), Add credits to wallet
+    Service->>API: Complete purchase, add credits to wallet, create transaction
 ```
 
 This flow ensures proper separation of concerns:
@@ -481,13 +484,12 @@ sequenceDiagram
     StripeAPI->>StripeAPI: 5. Webhook acknowledged
 ```
 
-### Credit Allocation and Validation
+### Gift Creation & Wallet Deduction
 
-**Validation Rules** (StoreGiftRequest):
+**Validation Rules** (StoreGiftRequest/StoreWalletGiftRequest):
 
-- `cost_in_credits` must be integer between 10 and 1,000,000
-- `return_url` must be valid HTTPS URL for redirect after payment
-- Pet must exist and not be owned by requester
+- `gift_type_id` is required and must reference an active gift type
+- Wallet balance must cover catalog price (custom rule)
 - User must be authenticated
 
 **Credit Cost Semantics**:
@@ -498,21 +500,26 @@ sequenceDiagram
 
 **Wallet Operations**:
 
-1. Purchase: Credits added to wallet via webhook
-2. Gift Sent: Credits remain in wallet until recipient claims (future enhancement)
-3. Refunds: Wallet decremented if payment is refunded
+1. Purchase: Credits added to wallet via webhook (DB transaction)
+2. Gift Sent: Wallet debited immediately (DB transaction)
+3. Refunds: Future enhancement
 
 ### Transaction Atomicity and Consistency
 
 **State Consistency Guarantees**:
 
-1. Gift record created with `status = 'pending'` before Stripe session creation
+1. Credit purchase created with `status = 'pending'` before Stripe session creation
 2. Webhook verification ensures only authentic Stripe events processed
-3. Database transactions wrap Gift status updates and CreditTransaction creation
-4. Idempotency: Duplicate webhook events checked via `reference_id` lookup
+3. Database transactions wrap wallet increments/decrements and transaction creation
+4. Idempotency: Duplicate webhook events checked; existing statuses short-circuit
 5. Soft deletes preserve historical data while allowing logical removal
 
-**Error Handling**:
+**Operational Notes**:
+
+- `checkout.session.expired` marks pending credit purchases as failed.
+- A scheduled command scans and logs stale pending credit purchases: `php artisan credits:scan-stale --minutes=30`.
+- Admin gift type creation/update requires numeric `cost_in_credits`; create defaults to 100 if omitted.
+- Pet restore is authorized via policy (`restore`) and allows admins to restore on behalf of users.
 
 - Stripe checkout session creation failures → Gift remains pending, user retries
 - Webhook processing failures → Logged and retried via Stripe webhook mechanism
