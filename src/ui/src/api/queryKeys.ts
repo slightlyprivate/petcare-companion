@@ -1,0 +1,21 @@
+/**
+ * Query keys for React Query
+ */
+export const qk = {
+  auth: {
+    me: ['auth', 'me'] as const,
+  },
+  pets: {
+    all: ['pets', 'public'] as const,
+    detail: (id: number | string) => ['pets', 'public', id] as const,
+  },
+  appts: {
+    byPet: (petId: number | string) => ['appts', 'byPet', petId] as const,
+  },
+  gifts: {
+    types: ['gifts', 'types'] as const,
+  },
+  credits: {
+    purchases: ['credits', 'purchases'] as const,
+  },
+};

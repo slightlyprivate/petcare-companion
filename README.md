@@ -61,6 +61,27 @@ graph LR
 - Laravel commands: `docker-compose exec app php artisan <cmd>`
 - BFF env: `SERVER_PORT`, `BACKEND_URL`, `SESSION_SECRET`, `COOKIE_SECURE`, `COOKIE_SAMESITE`
 
+### Code Formatting (Prettier)
+
+- Config lives at the repo root: `prettier.config.cjs` and `.prettierignore`.
+- UI:
+  - Install deps (first run): `cd src/ui && npm install`
+  - Format: `npm run format`
+  - Check: `npm run format:check`
+- BFF Server:
+  - Install deps (first run): `cd src/server && npm install`
+  - Format: `npm run format`
+  - Check: `npm run format:check`
+- In containers:
+  - UI (frontend-ui): `docker compose -f docker-compose.dev.yml exec frontend-ui sh -lc "npm run format"`
+  - BFF (frontend): `docker compose -f docker-compose.dev.yml exec frontend sh -lc "cd src/server && npm run format"`
+
+### Pre-commit Hook (Husky)
+
+- Install root dev deps once: `npm install` (at repo root). This runs `husky install` via `prepare`.
+- Husky hook: `.husky/pre-commit` uses `lint-staged` to run Prettier only on staged files.
+- Manual formatting across both projects: `npm run format` (root) or check `npm run format:check`.
+
 ### Dev Compose (Single Stack)
 
 - Use `docker-compose.dev.yml` for development. It includes: Laravel (app), Nginx (web), MySQL (db), Redis (redis), Queue worker, Scheduler, BFF (frontend), and Vite UI (frontend-ui) with live reload.
