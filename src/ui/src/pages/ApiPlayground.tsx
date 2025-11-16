@@ -3,8 +3,18 @@ import QueryBoundary from '../components/QueryBoundary';
 import ErrorMessage from '../components/ErrorMessage';
 import Button from '../components/Button';
 import { useMe, useLogout, useRequestOtp, useVerifyOtp } from '../api/auth/hooks';
-import { usePublicPets, usePublicPet } from '../api/pets/hooks';
-import { useGiftTypes, useGiftsByPet, useCreateGift } from '../api/gifts/hooks';
+import {
+  usePublicPets,
+  usePublicPet,
+  usePets,
+  useCreatePet,
+  useUpdatePet,
+  useDeletePet,
+  useRestorePet,
+} from '../api/pets/hooks';
+import * as petsClient from '../api/pets/client';
+import { useGiftTypes, useCreateGift } from '../api/gifts/hooks';
+import * as giftClient from '../api/gifts/client';
 import { useCreditPurchases, usePurchaseCredits } from '../api/credits/hooks';
 import {
   useAppointmentsByPet,
@@ -12,6 +22,13 @@ import {
   useUpdateAppointment,
   useCancelAppointment,
 } from '../api/appointments/hooks';
+import {
+  useNotificationPreferences,
+  useDisableAllNotifications,
+  useEnableAllNotifications,
+  useExportUserData,
+  useDeleteUserData,
+} from '../api/user/hooks';
 
 export default function ApiPlayground() {
   // Auth
@@ -26,13 +43,26 @@ export default function ApiPlayground() {
   const pets = usePublicPets();
   const [petId, setPetId] = useState('');
   const pet = usePublicPet(petId);
+  const myPets = usePets();
+  const createPet = useCreatePet();
+  const updatePet = useUpdatePet();
+  const deletePet = useDeletePet();
+  const restorePet = useRestorePet();
+  const [newPetName, setNewPetName] = useState('');
+  const [newPetSpecies, setNewPetSpecies] = useState('');
+  const [updPetId, setUpdPetId] = useState('');
+  const [updName, setUpdName] = useState('');
+  const [updSpecies, setUpdSpecies] = useState('');
+  const [delPetId, setDelPetId] = useState('');
+  const [restoreId, setRestoreId] = useState('');
 
   // Gifts
   const giftTypes = useGiftTypes();
   const [giftPetId, setGiftPetId] = useState('');
-  const giftsByPet = useGiftsByPet(giftPetId);
   const createGift = useCreateGift();
   const [giftTypeId, setGiftTypeId] = useState<number | ''>('');
+  const [giftIdForReceipt, setGiftIdForReceipt] = useState('');
+  const [giftReceipt, setGiftReceipt] = useState<any>(null);
 
   // Credits
   const purchases = useCreditPurchases();
@@ -54,6 +84,15 @@ export default function ApiPlayground() {
     () => typeof creditsAmount === 'number' && creditsAmount > 0,
     [creditsAmount],
   );
+  const [reportPetId, setReportPetId] = useState('');
+  const [petReport, setPetReport] = useState<any>(null);
+
+  // User prefs/data
+  const prefs = useNotificationPreferences();
+  const disableAll = useDisableAllNotifications();
+  const enableAll = useEnableAllNotifications();
+  const exportData = useExportUserData();
+  const deleteData = useDeleteUserData();
 
   function onRequestOtp(e: FormEvent) {
     e.preventDefault();
@@ -162,6 +201,170 @@ export default function ApiPlayground() {
                 </pre>
               </QueryBoundary>
             </div>
+            <div>
+              <div className="text-sm font-medium mb-1">My Pets (auth)</div>
+              <QueryBoundary loading={myPets.isLoading} error={myPets.error}>
+                <ul className="text-sm list-disc pl-5">
+                  {(myPets.data?.data ?? []).map((p: any) => (
+                    <li key={p.id}>
+                      {p.name} — {p.species}
+                    </li>
+                  ))}
+                </ul>
+              </QueryBoundary>
+            </div>
+            <div>
+              <div className="text-sm font-medium mb-1">Public Pet Report</div>
+              <form
+                className="space-y-2"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setPetReport(null);
+                  if (reportPetId) {
+                    try {
+                      const data = await petsClient.getPublicPetReport(reportPetId);
+                      setPetReport(data);
+                    } catch (err: any) {
+                      setPetReport({ error: err?.message || String(err) });
+                    }
+                  }
+                }}
+              >
+                <input
+                  className="border rounded px-3 py-1.5 w-full"
+                  placeholder="pet id"
+                  value={reportPetId}
+                  onChange={(e) => setReportPetId(e.target.value)}
+                />
+                <Button size="sm">Fetch Report</Button>
+              </form>
+              {petReport ? (
+                <pre className="mt-2 text-xs bg-gray-50 p-2 rounded max-w-full overflow-auto">
+                  {JSON.stringify(petReport, null, 2)}
+                </pre>
+              ) : null}
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <form
+              className="space-y-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (newPetName && newPetSpecies)
+                  createPet.mutate({ name: newPetName, species: newPetSpecies });
+              }}
+            >
+              <div className="text-sm font-medium">Create Pet</div>
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="name"
+                value={newPetName}
+                onChange={(e) => setNewPetName(e.target.value)}
+              />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="species"
+                value={newPetSpecies}
+                onChange={(e) => setNewPetSpecies(e.target.value)}
+              />
+              {createPet.isError && (
+                <ErrorMessage message={(createPet.error as any)?.message || 'Error'} />
+              )}
+              <Button
+                size="sm"
+                isLoading={createPet.isPending}
+                disabled={!newPetName || !newPetSpecies}
+              >
+                Create
+              </Button>
+            </form>
+            <form
+              className="space-y-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (updPetId)
+                  updatePet.mutate({
+                    id: updPetId,
+                    name: updName || undefined,
+                    species: updSpecies || undefined,
+                  });
+              }}
+            >
+              <div className="text-sm font-medium">Update Pet</div>
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="pet id"
+                value={updPetId}
+                onChange={(e) => setUpdPetId(e.target.value)}
+              />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="name (optional)"
+                value={updName}
+                onChange={(e) => setUpdName(e.target.value)}
+              />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="species (optional)"
+                value={updSpecies}
+                onChange={(e) => setUpdSpecies(e.target.value)}
+              />
+              {updatePet.isError && (
+                <ErrorMessage message={(updatePet.error as any)?.message || 'Error'} />
+              )}
+              <Button size="sm" isLoading={updatePet.isPending} disabled={!updPetId}>
+                Update
+              </Button>
+            </form>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <form
+              className="space-y-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (delPetId) deletePet.mutate(delPetId);
+              }}
+            >
+              <div className="text-sm font-medium">Delete Pet</div>
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="pet id"
+                value={delPetId}
+                onChange={(e) => setDelPetId(e.target.value)}
+              />
+              {deletePet.isError && (
+                <ErrorMessage message={(deletePet.error as any)?.message || 'Error'} />
+              )}
+              <Button
+                size="sm"
+                variant="danger"
+                isLoading={deletePet.isPending}
+                disabled={!delPetId}
+              >
+                Delete
+              </Button>
+            </form>
+            <form
+              className="space-y-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (restoreId) restorePet.mutate(restoreId);
+              }}
+            >
+              <div className="text-sm font-medium">Restore Pet</div>
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="pet id"
+                value={restoreId}
+                onChange={(e) => setRestoreId(e.target.value)}
+              />
+              {restorePet.isError && (
+                <ErrorMessage message={(restorePet.error as any)?.message || 'Error'} />
+              )}
+              <Button size="sm" isLoading={restorePet.isPending} disabled={!restoreId}>
+                Restore
+              </Button>
+            </form>
           </div>
         </div>
       </section>
@@ -183,24 +386,6 @@ export default function ApiPlayground() {
             </QueryBoundary>
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
-            <div>
-              <div className="text-sm font-medium mb-1">Gifts by Pet</div>
-              <input
-                className="border rounded px-3 py-1.5 w-full mb-2"
-                placeholder="pet id"
-                value={giftPetId}
-                onChange={(e) => setGiftPetId(e.target.value)}
-              />
-              <QueryBoundary loading={giftsByPet.isLoading} error={giftsByPet.error}>
-                <ul className="text-sm list-disc pl-5">
-                  {(giftsByPet.data?.data ?? []).map((g: any) => (
-                    <li key={g.id}>
-                      Gift #{g.id} (type {g.gift_type_id})
-                    </li>
-                  ))}
-                </ul>
-              </QueryBoundary>
-            </div>
             <form
               className="space-y-2"
               onSubmit={(e) => {
@@ -229,6 +414,35 @@ export default function ApiPlayground() {
               <Button size="sm" isLoading={createGift.isPending} disabled={!canCreateGift}>
                 Create Gift
               </Button>
+            </form>
+            <form
+              className="space-y-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setGiftReceipt(null);
+                if (giftIdForReceipt) {
+                  try {
+                    const data = await giftClient.exportReceipt(giftIdForReceipt);
+                    setGiftReceipt(data);
+                  } catch (err: any) {
+                    setGiftReceipt({ error: err?.message || String(err) });
+                  }
+                }
+              }}
+            >
+              <div className="text-sm font-medium">Export Receipt</div>
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="gift id"
+                value={giftIdForReceipt}
+                onChange={(e) => setGiftIdForReceipt(e.target.value)}
+              />
+              <Button size="sm">Fetch Receipt</Button>
+              {giftReceipt ? (
+                <pre className="text-xs bg-gray-50 p-2 rounded max-w-full overflow-auto">
+                  {JSON.stringify(giftReceipt, null, 2)}
+                </pre>
+              ) : null}
             </form>
           </div>
         </div>
@@ -411,6 +625,47 @@ export default function ApiPlayground() {
                 Cancel
               </Button>
             </form>
+          </div>
+        </div>
+      </section>
+
+      {/* User Preferences & Data */}
+      <section>
+        <h2 className="text-lg font-medium mb-2">User Preferences & Data</h2>
+        <div className="border rounded p-4 space-y-3">
+          <div>
+            <div className="text-sm font-medium mb-1">Notification Preferences</div>
+            <QueryBoundary loading={prefs.isLoading} error={prefs.error}>
+              <pre className="text-xs bg-gray-50 p-2 rounded max-w-full overflow-auto">
+                {JSON.stringify(prefs.data, null, 2)}
+              </pre>
+            </QueryBoundary>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => enableAll.mutate()} isLoading={enableAll.isPending}>
+              Enable All
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => disableAll.mutate()}
+              isLoading={disableAll.isPending}
+            >
+              Disable All
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" onClick={() => exportData.mutate()} isLoading={exportData.isPending}>
+              Export My Data
+            </Button>
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => deleteData.mutate()}
+              isLoading={deleteData.isPending}
+            >
+              Delete My Data
+            </Button>
           </div>
         </div>
       </section>

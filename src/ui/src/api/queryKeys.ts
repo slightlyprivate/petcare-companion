@@ -5,6 +5,9 @@ export const qk = {
   auth: {
     me: ['auth', 'me'] as const,
   },
+  user: {
+    prefs: ['user', 'prefs'] as const,
+  },
   pets: {
     all: ['pets', 'public'] as const,
     detail: (id: number | string) => ['pets', 'public', id] as const,

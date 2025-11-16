@@ -11,13 +11,7 @@ export const useGiftTypes = () =>
 /**
  * Hook to fetch gifts for a specific pet.
  */
-export function useGiftsByPet(petId: number | string) {
-  return useQuery({
-    queryKey: qk.gifts.byPet(petId),
-    queryFn: () => client.listByPet(petId),
-    enabled: !!petId,
-  });
-}
+// No useGiftsByPet hook as API lacks a read endpoint for gifts by pet
 
 /**
  * Hook to create a gift for a specific pet.

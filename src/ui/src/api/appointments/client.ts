@@ -12,7 +12,7 @@ export type CreateAppointmentPayload = {
 };
 
 export type UpdateAppointmentPayload = {
-  petId: number | string;
+  petId: number | string; // for cache invalidation
   apptId: number | string;
   at?: string; // ISO datetime
   notes?: string;
@@ -23,12 +23,12 @@ export type CancelAppointmentPayload = {
   apptId: number | string;
 };
 
-// Skeleton write operations; endpoints subject to backend alignment
+// Skeleton write operations aligned with Laravel routes
 export const create = (payload: CreateAppointmentPayload) =>
   api(`/pets/${payload.petId}/appointments`, { method: 'POST', body: payload });
 
 export const update = (payload: UpdateAppointmentPayload) =>
-  api(`/pets/${payload.petId}/appointments/${payload.apptId}`, { method: 'PATCH', body: payload });
+  api(`/appointments/${payload.apptId}`, { method: 'PUT', body: payload });
 
 export const cancel = (payload: CancelAppointmentPayload) =>
-  api(`/pets/${payload.petId}/appointments/${payload.apptId}`, { method: 'DELETE' });
+  api(`/appointments/${payload.apptId}`, { method: 'DELETE' });

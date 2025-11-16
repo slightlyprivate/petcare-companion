@@ -66,7 +66,7 @@ export async function request<T = any>(path: string, opts: RequestOptions = {}):
 
   const needsCsrf = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
   if (needsCsrf) {
-    if (baseOpt === 'proxy' && !getCsrfToken()) {
+    if (!getCsrfToken()) {
       try {
         await ensureCsrf();
       } catch {
