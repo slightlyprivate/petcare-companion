@@ -47,6 +47,7 @@ graph LR
 
 - Copy env: `cp .env.example .env`
 - Start dev stack: `docker compose -f docker-compose.dev.yml up`
+- Generate app key: `docker compose -f docker-compose.dev.yml exec app php artisan key:generate`
 - Migrate + seed: `docker compose -f docker-compose.dev.yml exec app php artisan migrate && docker compose -f docker-compose.dev.yml exec app php artisan db:seed`
 
 ## Ports
@@ -60,6 +61,25 @@ graph LR
 
 - Laravel commands: `docker-compose exec app php artisan <cmd>`
 - BFF env: `SERVER_PORT`, `BACKEND_URL`, `SESSION_SECRET`, `COOKIE_SECURE`, `COOKIE_SAMESITE`
+
+### Queue/Cache with Redis (Dev)
+
+- `.env` now defaults to Redis: `CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis` with `REDIS_HOST=redis`.
+- PHP image includes `phpredis` extension (installed via PECL in `docker/app.Dockerfile`).
+- Workers still run as a separate service, but you can use Horizon for dashboarding.
+
+### Horizon (Optional)
+
+- Compose includes a `horizon` service which can run `php artisan horizon`.
+- Rebuild PHP images to enable required extensions (`pcntl`, `posix`, `redis`):
+  - `docker compose -f docker-compose.dev.yml build app worker scheduler horizon`
+- Enable Horizon runtime:
+  - Edit `docker-compose.dev.yml` and set `ENABLE_HORIZON: "true"` under the `horizon` service.
+- Install Horizon before enabling it:
+  - `docker compose -f docker-compose.dev.yml exec app bash -lc "composer require laravel/horizon:^5.23 && php artisan horizon:install && php artisan migrate"`
+- Access dashboard at `/horizon` (served via the `web` service).
+- If you see "Command \"horizon\" is not defined", ensure you've run the composer and artisan steps above, or keep `ENABLE_HORIZON` set to `false` until installation is complete.
+- In production, run Horizon as its own process and secure the dashboard behind auth or IP allowlists.
 
 ### Code Formatting (Prettier)
 

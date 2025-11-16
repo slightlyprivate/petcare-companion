@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # Production-oriented stack (images expected to be built/published)
   # Note: DB/Redis are external in production; inject hosts via env.

@@ -37,7 +37,9 @@ auth.post('/verify', async (req, res) => {
   }
 
   rl.info('auth_verify_result', { status: upstream.status });
-  res.status(upstream.status).json(upstream.data);
+  // Do not leak tokens to the client; return a sanitized payload
+  const safeUser = upstream.data?.user ?? null;
+  res.status(upstream.status).json({ ok: upstream.status >= 200 && upstream.status < 300, user: safeUser });
 });
 
 // Logout: clear session + cookies

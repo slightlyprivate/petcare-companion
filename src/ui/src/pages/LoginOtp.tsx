@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import ErrorMessage from '../components/ErrorMessage';
 import { useRequestOtp, useVerifyOtp } from '../api/auth/hooks';
@@ -13,6 +14,8 @@ export default function LoginOtp() {
   const [step, setStep] = useState<'request' | 'verify'>('request');
   const requestOtp = useRequestOtp();
   const verifyOtp = useVerifyOtp();
+  const navigate = useNavigate();
+  const loc = useLocation() as any;
 
   async function onRequest(e: FormEvent) {
     e.preventDefault();
@@ -23,7 +26,12 @@ export default function LoginOtp() {
   async function onVerify(e: FormEvent) {
     e.preventDefault();
     await ensureCsrf();
-    verifyOtp.mutate({ email, code });
+    verifyOtp.mutate({ email, code }, {
+      onSuccess: () => {
+        const to = loc?.state?.from?.pathname || '/dashboard';
+        navigate(to, { replace: true });
+      }
+    });
   }
 
   return (

@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # PHP-FPM (Laravel)
   app:
@@ -58,6 +56,29 @@ services:
     volumes:
       - redisdata:/data
 
+  # Horizon dashboard (requires laravel/horizon installed)
+  horizon:
+    container_name: petcare_horizon
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /var/www/html
+    entrypoint: ["sh", "/usr/local/bin/horizon-entrypoint.sh"]
+    environment:
+      ENABLE_HORIZON: "true"
+    depends_on:
+      redis:
+        condition: service_started
+      app:
+        condition: service_started
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/entrypoints/horizon-entrypoint.sh:/usr/local/bin/horizon-entrypoint.sh:ro
+    restart: unless-stopped
+
   # Queue worker (dev)
   worker:
     container_name: petcare_worker
@@ -68,13 +89,19 @@ services:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    command: sh -lc 'php -r "for($i=0;$i<60;$i++){ $c=@fsockopen(\"db\", 3306); if($c){fclose($c); exit(0);} sleep(1);} exit(1);" && php artisan queue:work --sleep=3 --tries=3 --memory=256'
+    entrypoint: ["sh", "/usr/local/bin/worker-entrypoint.sh"]
+    environment:
+      WAIT_FOR_DB: "true"
     depends_on:
-      - app
-      - redis
-      - db
+      app:
+        condition: service_started
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
     volumes:
       - ./src:/var/www/html
+      - ./docker/entrypoints/worker-entrypoint.sh:/usr/local/bin/worker-entrypoint.sh:ro
     restart: unless-stopped
 
   # Scheduler (dev)
@@ -87,13 +114,19 @@ services:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    command: sh -lc 'php -r "for($i=0;$i<60;$i++){ $c=@fsockopen(\"db\", 3306); if($c){fclose($c); exit(0);} sleep(1);} exit(1);" && php artisan schedule:work'
+    entrypoint: ["sh", "/usr/local/bin/scheduler-entrypoint.sh"]
+    environment:
+      WAIT_FOR_DB: "true"
     depends_on:
-      - app
-      - redis
-      - db
+      app:
+        condition: service_started
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
     volumes:
       - ./src:/var/www/html
+      - ./docker/entrypoints/scheduler-entrypoint.sh:/usr/local/bin/scheduler-entrypoint.sh:ro
     restart: unless-stopped
 
   # Dev BFF server with live-reload and bind mounts
