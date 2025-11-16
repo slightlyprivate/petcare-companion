@@ -42,6 +42,11 @@ services:
       - "3307:3306"
     volumes:
       - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -prootpass || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
 
   # Redis (dev)
   redis:
@@ -63,13 +68,14 @@ services:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    command: php artisan queue:work --sleep=3 --tries=3 --memory=256
+    command: sh -lc 'php -r "for($i=0;$i<60;$i++){ $c=@fsockopen(\"db\", 3306); if($c){fclose($c); exit(0);} sleep(1);} exit(1);" && php artisan queue:work --sleep=3 --tries=3 --memory=256'
     depends_on:
       - app
       - redis
       - db
     volumes:
       - ./src:/var/www/html
+    restart: unless-stopped
 
   # Scheduler (dev)
   scheduler:
@@ -81,13 +87,14 @@ services:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    command: php artisan schedule:work
+    command: sh -lc 'php -r "for($i=0;$i<60;$i++){ $c=@fsockopen(\"db\", 3306); if($c){fclose($c); exit(0);} sleep(1);} exit(1);" && php artisan schedule:work'
     depends_on:
       - app
       - redis
       - db
     volumes:
       - ./src:/var/www/html
+    restart: unless-stopped
 
   # Dev BFF server with live-reload and bind mounts
   frontend:
