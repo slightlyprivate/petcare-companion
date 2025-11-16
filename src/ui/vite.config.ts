@@ -8,9 +8,9 @@ export default defineConfig({
     host: true,
     port: 5173,
     proxy: {
-      // Proxy API calls to the Laravel backend (nginx on :8080)
+      // Proxy API calls to the Node BFF (which proxies to Laravel)
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:5174',
         changeOrigin: true,
       },
     },
@@ -20,4 +20,3 @@ export default defineConfig({
     port: 5173,
   },
 });
-

@@ -5,9 +5,9 @@
 
 Dev
 
-- Prereq: Laravel backend accessible at `http://localhost:8080` (via `docker-compose up`)
+- Prereq: Dev stack running via `docker compose -f docker-compose.dev.yml up`
 - Start UI dev server: `npm install && npm run dev` inside `src/ui`
-- API proxy: All `/api/*` calls are proxied to `http://localhost:8080`
+- API proxy: All `/api/*` calls are proxied to the BFF at `http://localhost:5174`
 
 Scripts
 
