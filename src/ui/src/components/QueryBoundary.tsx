@@ -1,4 +1,6 @@
 import { ReactNode } from 'react';
+import Spinner from './Spinner';
+import ErrorMessage from './ErrorMessage';
 
 /**
  * Component to handle loading and error states for queries.
@@ -12,7 +14,13 @@ export default function QueryBoundary({
   error: any;
   children: ReactNode;
 }) {
-  if (loading) return <div>Loading…</div>;
-  if (error) return <div className="text-red-600">Error: {String(error?.message || error)}</div>;
+  if (loading)
+    return (
+      <div className="inline-flex items-center text-sm text-gray-600">
+        <Spinner />
+        <span className="ml-2">Loading…</span>
+      </div>
+    );
+  if (error) return <ErrorMessage message={(error as any)?.message || String(error) || 'Error'} />;
   return <>{children}</>;
 }

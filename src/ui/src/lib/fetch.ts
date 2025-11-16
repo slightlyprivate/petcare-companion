@@ -57,7 +57,7 @@ export async function request<T = any>(path: string, opts: RequestOptions = {}):
     ...(opts.headers || {}),
   };
 
-  const init: RequestInit & { __retryCount?: number } = {
+  const init: RequestInit & { __retryCount?: number; __csrfRetried?: boolean } = {
     method,
     headers,
     credentials: 'include',
@@ -109,6 +109,46 @@ export async function request<T = any>(path: string, opts: RequestOptions = {}):
         try {
           data = await res.text();
         } catch {}
+      }
+      // Handle CSRF expiry automatically once for unsafe methods
+      if (
+        res.status === 419 &&
+        ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) &&
+        !init.__csrfRetried
+      ) {
+        try {
+          await ensureCsrf();
+          const refreshed = getCsrfToken();
+          if (refreshed) headers['X-CSRF-Token'] = refreshed;
+          init.__csrfRetried = true;
+          const retryRes = await doFetch(url, init, opts.retries ?? 0);
+          if (!retryRes.ok) {
+            // fall through to error mapping
+            const retryCt = retryRes.headers.get('content-type') || '';
+            let retryData: any = undefined;
+            if (retryCt.includes('application/json')) {
+              try {
+                retryData = await retryRes.json();
+              } catch {}
+            } else {
+              try {
+                retryData = await retryRes.text();
+              } catch {}
+            }
+            const msg =
+              (retryData && (retryData.error?.message || retryData.message)) ||
+              `Request failed: ${retryRes.status}`;
+            const err2: any = new Error(msg);
+            err2.status = retryRes.status;
+            err2.data = retryData;
+            throw err2;
+          }
+          const retryCt = retryRes.headers.get('content-type') || '';
+          if (retryCt.includes('application/json')) return retryRes.json() as unknown as T;
+          return retryRes as unknown as T;
+        } catch (csrfErr) {
+          // will map original response below if retry also fails
+        }
       }
       const msg =
         (data && (data.error?.message || data.message)) || `Request failed: ${res.status}`;

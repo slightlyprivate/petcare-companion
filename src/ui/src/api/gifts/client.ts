@@ -1,4 +1,5 @@
 import { api } from '../../lib/http';
+import { normalizePaginated } from '../../lib/fetch';
 import type { GiftType } from '../types';
 
 /**
