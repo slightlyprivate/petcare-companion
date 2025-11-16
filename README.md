@@ -43,11 +43,11 @@ graph LR
   P --> R
 ```
 
-## Quick Start
+## Quick Start (Development)
 
 - Copy env: `cp .env.example .env`
-- Up stack: `docker-compose up -d`
-- Migrate + seed: `docker-compose exec app php artisan migrate && docker-compose exec app php artisan db:seed`
+- Start dev stack: `docker compose -f docker-compose.dev.yml up`
+- Migrate + seed: `docker compose -f docker-compose.dev.yml exec app php artisan migrate && docker compose -f docker-compose.dev.yml exec app php artisan db:seed`
 
 ## Ports
 
@@ -59,8 +59,14 @@ graph LR
 ## Dev Notes
 
 - Laravel commands: `docker-compose exec app php artisan <cmd>`
-- UI (local dev): `cd src/ui && npm install && npm run dev` (proxies `/api`)
 - BFF env: `SERVER_PORT`, `BACKEND_URL`, `SESSION_SECRET`, `COOKIE_SECURE`, `COOKIE_SAMESITE`
+
+### Dev Compose (Single Stack)
+
+- Use `docker-compose.dev.yml` for development. It includes: Laravel (app), Nginx (web), MySQL (db), Redis (redis), Queue worker, Scheduler, BFF (frontend), and Vite UI (frontend-ui) with live reload.
+- BFF (Express): http://localhost:5174
+- UI (Vite HMR): http://localhost:5173
+- API (Nginx → PHP-FPM): http://localhost:8080
 
 ## Auth & Cookies
 
@@ -69,7 +75,10 @@ graph LR
 - Logout: `POST /auth/logout` clears the session/cookies and revokes the current Sanctum token in Laravel.
 - Cookies: In production set `COOKIE_SECURE=true` and choose `COOKIE_SAMESITE=lax` (or `strict`) in `src/server/.env`.
 
-## Single Entry Point (Prod)
+## Production Compose (Reference)
+
+- `docker-compose.yml` is production-oriented and references prebuilt images (no bind mounts). DB/Redis are expected to be external; set connection variables in `.env`.
+- Not used during development; build/publish images before using it.
 
 - Expose only the `frontend` service (Node BFF + static UI). Laravel (`web` + `app`) remains internal. The BFF proxies `/api/*` to Laravel via the Docker network.
 
