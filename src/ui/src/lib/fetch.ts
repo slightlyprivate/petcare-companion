@@ -132,3 +132,40 @@ export function api<T = any>(path: string, opts: Omit<RequestOptions, 'base'> = 
 export function proxy<T = any>(path: string, opts: Omit<RequestOptions, 'base'> = {}) {
   return request<T>(path, { ...opts, base: 'proxy' });
 }
+
+// Cross-cutting helpers
+export type ApiError = Error & { status?: number; data?: any };
+
+export function isAuthError(err: unknown): err is ApiError {
+  const e = err as any;
+  return (
+    !!e &&
+    typeof e === 'object' &&
+    typeof e.status === 'number' &&
+    [401, 403, 419].includes(e.status)
+  );
+}
+
+export interface Paginated<T> {
+  data: T[];
+  meta?: { total?: number; page?: number; per_page?: number };
+}
+
+export function normalizePaginated<T>(res: any): Paginated<T> {
+  if (Array.isArray(res)) return { data: res };
+  if (res && Array.isArray(res.data)) return { data: res.data, meta: res.meta };
+  return { data: [] };
+}
+
+export function unwrapResource<T>(res: any): T | null {
+  if (
+    res &&
+    typeof res === 'object' &&
+    !Array.isArray(res) &&
+    'data' in res &&
+    !Array.isArray(res.data)
+  ) {
+    return res.data as T;
+  }
+  return (res as T) ?? null;
+}

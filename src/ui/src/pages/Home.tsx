@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
  */
 export default function Home() {
   const { data, isLoading, error } = usePublicPets();
-  const pets = Array.isArray(data) ? data : (data?.data ?? []);
+  const pets = data?.data ?? [];
   return (
     <div>
       <h1 className="text-xl font-semibold mb-3">Public Pets</h1>

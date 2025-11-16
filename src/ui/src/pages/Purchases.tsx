@@ -6,7 +6,7 @@ import { useCreditPurchases } from '../api/credits/hooks';
  */
 export default function Purchases() {
   const { data, isLoading, error } = useCreditPurchases();
-  const rows = Array.isArray(data) ? data : (data?.data ?? []);
+  const rows = data?.data ?? [];
   return (
     <div>
       <h1 className="text-xl font-semibold mb-3">Credit Purchases</h1>

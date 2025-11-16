@@ -7,10 +7,7 @@ import { usePublicPet } from '../api/pets/hooks';
  */
 export default function PetDetail() {
   const { id } = useParams();
-  const { data, isLoading, error } = usePublicPet(id!);
-
-  // unify shape
-  const pet = Array.isArray(data) ? data[0] : data?.data || data;
+  const { data: pet, isLoading, error } = usePublicPet(id!);
 
   return (
     <div>
