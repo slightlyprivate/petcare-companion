@@ -4,9 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import cookieParser from 'cookie-parser';
 import { config, requireConfig } from './lib/config.js';
-import { makeApiClient } from './lib/axios.js';
 import { ensureCsrfToken, requireCsrfOnMutations } from './middleware/csrf.js';
 import { auth as authRouter } from './routes/auth.js';
+import { API_PREFIX } from './constants.js';
+import { handleProxy } from './services/proxy.js';
+// moved imports above
 
 // Configuration
 requireConfig();
@@ -69,43 +71,11 @@ app.get('/session/ping', (req, res) => {
 });
 
 // Generic API proxy: forwards /api/* to Laravel backend
-app.all('/api/*', async (req, res) => {
-  try {
-    const api = makeApiClient(req);
-    const url = req.originalUrl.replace(/^\/api/, '/api');
-    const method = req.method.toLowerCase();
-    const isBinary = (req.headers['accept'] || '').includes('application/pdf');
-    const response = await api.request({
-      url,
-      method,
-      data: ['get', 'head'].includes(method) ? undefined : req.body,
-      responseType: isBinary ? 'arraybuffer' : 'json',
-    });
-
-    // status and headers
-    res.status(response.status);
-    for (const [k, v] of Object.entries(response.headers || {})) {
-      if (['transfer-encoding'].includes(String(k).toLowerCase())) continue;
-      if (v !== undefined) res.setHeader(k, v);
-    }
-
-    if (response.data === undefined) return res.end();
-    // If arraybuffer, send as buffer; else JSON
-    if (response.request?.responseType === 'arraybuffer' || Buffer.isBuffer(response.data)) {
-      return res.send(Buffer.from(response.data));
-    }
-    return res.send(response.data);
-  } catch (err) {
-    console.error('Proxy error:', err);
-    const status = err.response?.status || 502;
-    const data = err.response?.data || { error: 'Bad gateway' };
-    res.status(status).send(data);
-  }
-});
+app.all(`${API_PREFIX}/*`, handleProxy);
 
 // SPA fallback for non-API GET requests
 app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
+  if (req.path.startsWith(API_PREFIX)) return next();
   const indexPath = path.join(FRONTEND_DIR, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) next(err);

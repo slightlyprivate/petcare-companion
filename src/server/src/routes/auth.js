@@ -1,8 +1,7 @@
 import { Router } from 'express';
 import { makeApiClient } from '../lib/axios.js';
 import { config } from '../lib/config.js';
-
-const TOKEN_COOKIE = 'pc_token';
+import { CookieNames, loggedInCookieOptions, tokenCookieOptions } from '../lib/cookies.js';
 
 export const auth = Router();
 
@@ -29,21 +28,9 @@ auth.post('/verify', async (req, res) => {
       // Store in session (httpOnly cookie via cookie-session)
       req.session.token = token;
       // Set dedicated token cookie (httpOnly)
-      res.cookie(TOKEN_COOKIE, token, {
-        httpOnly: true,
-        secure: config.secureCookies,
-        sameSite: (config.sameSite || 'lax'),
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie(CookieNames.TOKEN, token, tokenCookieOptions());
       // Non-HTTP-only hint cookie for UI state (optional)
-      res.cookie('pc_logged_in', '1', {
-        httpOnly: false,
-        secure: config.secureCookies,
-        sameSite: (config.sameSite || 'lax'),
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie(CookieNames.LOGGED_IN, '1', loggedInCookieOptions());
     }
   }
 
@@ -63,7 +50,7 @@ auth.post('/logout', async (req, res) => {
   if (req.session) {
     req.session = null;
   }
-  res.clearCookie(TOKEN_COOKIE, { path: '/' });
-  res.clearCookie('pc_logged_in', { path: '/' });
+  res.clearCookie(CookieNames.TOKEN, { path: '/' });
+  res.clearCookie(CookieNames.LOGGED_IN, { path: '/' });
   res.status(204).send();
 });

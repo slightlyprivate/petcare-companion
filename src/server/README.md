@@ -17,6 +17,17 @@ Run
 2) Start backend: `docker-compose up` (Laravel on `http://localhost:8080`)
 3) Start server: `cd src/server && npm install && npm run dev`
 
+Structure
+
+- `src/server/src/constants.js`: shared constants (headers, cookie names, API prefix)
+- `src/server/src/lib/config.js`: environment-driven config
+- `src/server/src/lib/axios.js`: upstream API client (header forwarding, token injection)
+- `src/server/src/lib/cookies.js`: cookie names and option builders
+- `src/server/src/middleware/csrf.js`: CSRF token + mutation guard
+- `src/server/src/routes/auth.js`: OTP request/verify/logout
+- `src/server/src/services/proxy.js`: unified `/api/*` proxy handler
+- `src/server/src/index.js`: app wiring, static, health, routers
+
 Environment
 
 - `SERVER_PORT` (default `5174`)
