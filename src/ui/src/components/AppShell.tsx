@@ -1,10 +1,10 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useMe, useLogout } from '../api/auth/hooks';
 
 /**
  * App shell component that includes navigation and layout.
  */
-export default function AppShell() {
+export default function AppShell({ children }: { children?: React.ReactNode }) {
   const { data: me } = useMe();
   const logout = useLogout();
 
@@ -35,7 +35,7 @@ export default function AppShell() {
         </div>
       </nav>
       <main className="p-4">
-        <Outlet />
+        {children}
       </main>
     </div>
   );
