@@ -30,6 +30,9 @@ Route::prefix('auth')->group(function () {
     Route::get('/me', [AuthController::class, 'show'])
         ->middleware('auth:sanctum')
         ->name('auth.me');
+    Route::post('/logout', [AuthController::class, 'logout'])
+        ->middleware('auth:sanctum')
+        ->name('auth.logout');
 });
 
 // Public endpoints (no rate limiting)

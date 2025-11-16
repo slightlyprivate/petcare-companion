@@ -62,6 +62,17 @@ graph LR
 - UI (local dev): `cd src/ui && npm install && npm run dev` (proxies `/api`)
 - BFF env: `SERVER_PORT`, `BACKEND_URL`, `SESSION_SECRET`, `COOKIE_SECURE`, `COOKIE_SAMESITE`
 
+## Auth & Cookies
+
+- Flow: The BFF completes OTP login with Laravel, stores the returned Sanctum token in a server-side session, and injects `Authorization: Bearer <token>` on proxied API requests. The browser never sees the token.
+- CSRF: The BFF issues a CSRF token and requires it for mutating `/api/*` requests. Laravel API routes use stateless token auth; no double-CSRF required.
+- Logout: `POST /auth/logout` clears the session/cookies and revokes the current Sanctum token in Laravel.
+- Cookies: In production set `COOKIE_SECURE=true` and choose `COOKIE_SAMESITE=lax` (or `strict`) in `src/server/.env`.
+
+## Single Entry Point (Prod)
+
+- Expose only the `frontend` service (Node BFF + static UI). Laravel (`web` + `app`) remains internal. The BFF proxies `/api/*` to Laravel via the Docker network.
+
 ## Documentation
 
 - API (Laravel): `src/README.md`

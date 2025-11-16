@@ -51,7 +51,15 @@ auth.post('/verify', async (req, res) => {
 });
 
 // Logout: clear session + cookies
-auth.post('/logout', (req, res) => {
+auth.post('/logout', async (req, res) => {
+  try {
+    // Best-effort revoke on backend; ignore failures but log for visibility
+    const api = makeApiClient(req);
+    await api.post('/api/auth/logout');
+  } catch (e) {
+    console.error('Backend logout failed (continuing):', e?.response?.status || e?.message);
+  }
+
   if (req.session) {
     req.session = null;
   }
@@ -59,4 +67,3 @@ auth.post('/logout', (req, res) => {
   res.clearCookie('pc_logged_in', { path: '/' });
   res.status(204).send();
 });
-
