@@ -23,6 +23,14 @@ export async function handleProxy(req, res) {
       if (v !== undefined) res.setHeader(k, v);
     }
 
+    // In development, prevent browser/Vite caching for API JSON to avoid 304s confusing the UI
+    if (process.env.NODE_ENV !== 'production') {
+      res.removeHeader('ETag');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+
     if (response.data === undefined) return res.end();
     if (response.request?.responseType === 'arraybuffer' || Buffer.isBuffer(response.data)) {
       return res.send(Buffer.from(response.data));
