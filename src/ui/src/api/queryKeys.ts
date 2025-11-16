@@ -14,6 +14,7 @@ export const qk = {
   },
   gifts: {
     types: ['gifts', 'types'] as const,
+    byPet: (petId: number | string) => ['gifts', 'byPet', petId] as const,
   },
   credits: {
     purchases: ['credits', 'purchases'] as const,
