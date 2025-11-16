@@ -91,6 +91,7 @@ services:
 
   # Dev BFF server with live-reload and bind mounts
   frontend:
+    container_name: petcare_frontend
     image: node:20-alpine
     working_dir: /app
     environment:
@@ -116,6 +117,7 @@ services:
 
   # Dev Vite server for the UI with HMR
   frontend-ui:
+    container_name: petcare_frontend_ui
     image: node:20-alpine
     working_dir: /app/src/ui
     environment:
