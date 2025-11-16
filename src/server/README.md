@@ -36,9 +36,11 @@ Environment
 - `LARAVEL_API_KEY` (optional; sent as `X-Api-Key` to backend)
 - `COOKIE_SECURE` (`true` in production)
 - `COOKIE_SAMESITE` (`lax` default)
+- `LOG_LEVEL` (`debug` | `info` | `warn` | `error`; default `info`)
 
 Notes
 
 - Proxy supports JSON and `application/x-www-form-urlencoded` bodies. For multipart uploads, add explicit handling.
 - If using the UI at `src/ui`, you can point its API calls to this server by changing the Vite dev proxy target to `http://localhost:5174` instead of `http://localhost:8080`.
 - Login flow: call `POST /auth/request` with `{ email }`, then `POST /auth/verify` with `{ email, code }`. A secure httpOnly cookie is set and used for API calls.
+- Logging: Structured JSON logs with `LOG_LEVEL` control. Errors are returned as `{ error: { message, code? } }` via a centralized error handler.

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { makeApiClient } from '../lib/axios.js';
 import { config } from '../lib/config.js';
 import { CookieNames, loggedInCookieOptions, tokenCookieOptions } from '../lib/cookies.js';
+import { withRequestContext } from '../lib/logger.js';
 
 export const auth = Router();
 
@@ -19,6 +20,7 @@ auth.post('/request', async (req, res) => {
 
 // Verify OTP → returns token from Laravel; store in session and set httpOnly cookie
 auth.post('/verify', async (req, res) => {
+  const rl = withRequestContext(req);
   const api = makeApiClient(req);
   const upstream = await api.post('/api/auth/verify', req.body);
 
@@ -34,17 +36,19 @@ auth.post('/verify', async (req, res) => {
     }
   }
 
+  rl.info('auth_verify_result', { status: upstream.status });
   res.status(upstream.status).json(upstream.data);
 });
 
 // Logout: clear session + cookies
 auth.post('/logout', async (req, res) => {
+  const rl = withRequestContext(req);
   try {
     // Best-effort revoke on backend; ignore failures but log for visibility
     const api = makeApiClient(req);
     await api.post('/api/auth/logout');
   } catch (e) {
-    console.error('Backend logout failed (continuing):', e?.response?.status || e?.message);
+    rl.warn('auth_backend_logout_failed', { status: e?.response?.status, message: e?.message });
   }
 
   if (req.session) {
@@ -52,5 +56,6 @@ auth.post('/logout', async (req, res) => {
   }
   res.clearCookie(CookieNames.TOKEN, { path: '/' });
   res.clearCookie(CookieNames.LOGGED_IN, { path: '/' });
+  rl.info('auth_logout_success');
   res.status(204).send();
 });

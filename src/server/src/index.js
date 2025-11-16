@@ -8,6 +8,8 @@ import { ensureCsrfToken, requireCsrfOnMutations } from './middleware/csrf.js';
 import { auth as authRouter } from './routes/auth.js';
 import { API_PREFIX } from './constants.js';
 import { handleProxy } from './services/proxy.js';
+import { logger } from './lib/logger.js';
+import { errorHandler, notFound } from './middleware/error.js';
 // moved imports above
 
 // Configuration
@@ -83,7 +85,11 @@ app.get('*', (req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`PetCare server listening on http://localhost:${PORT}`);
-  console.log(`Proxying /api/* to ${BACKEND_URL}`);
-  console.log(`Serving static from ${FRONTEND_DIR}`);
+  logger.info(`PetCare server listening on http://localhost:${PORT}`);
+  logger.info(`Proxying ${API_PREFIX}/* to ${BACKEND_URL}`);
+  logger.info(`Serving static from ${FRONTEND_DIR}`);
 });
+
+// Fallbacks and error handling
+app.use(notFound);
+app.use(errorHandler);

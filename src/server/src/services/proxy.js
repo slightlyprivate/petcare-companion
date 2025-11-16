@@ -1,8 +1,10 @@
 import { API_PREFIX } from '../constants.js';
 import { makeApiClient } from '../lib/axios.js';
+import { withRequestContext } from '../lib/logger.js';
 
 // Unified proxy handler used by index.js
 export async function handleProxy(req, res) {
+  const rl = withRequestContext(req);
   try {
     const api = makeApiClient(req);
     const url = req.originalUrl.replace(new RegExp(`^${API_PREFIX}`), API_PREFIX);
@@ -25,12 +27,12 @@ export async function handleProxy(req, res) {
     if (response.request?.responseType === 'arraybuffer' || Buffer.isBuffer(response.data)) {
       return res.send(Buffer.from(response.data));
     }
+    rl.debug('proxy_success', { status: response.status });
     return res.send(response.data);
   } catch (err) {
-    console.error('Proxy error:', err);
+    rl.error('proxy_error', { status: err?.response?.status, error: String(err) });
     const status = err.response?.status || 502;
     const data = err.response?.data || { error: 'Bad gateway' };
     res.status(status).send(data);
   }
 }
-
