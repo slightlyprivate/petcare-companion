@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Button from '../components/Button';
 import ErrorMessage from '../components/ErrorMessage';
@@ -16,6 +16,14 @@ export default function LoginOtp() {
   const verifyOtp = useVerifyOtp();
   const navigate = useNavigate();
   const loc = useLocation() as any;
+  const redirectTo = useMemo(() => {
+    const fromState = loc?.state?.redirectTo as string | undefined;
+    const fromSearch = new URLSearchParams(loc.search).get('redirectTo') || undefined;
+    const fromLegacy = loc?.state?.from
+      ? `${loc.state.from.pathname || ''}${loc.state.from.search || ''}${loc.state.from.hash || ''}`
+      : undefined;
+    return fromState || fromSearch || fromLegacy || '/dashboard';
+  }, [loc]);
 
   async function onRequest(e: FormEvent) {
     e.preventDefault();
@@ -26,12 +34,14 @@ export default function LoginOtp() {
   async function onVerify(e: FormEvent) {
     e.preventDefault();
     await ensureCsrf();
-    verifyOtp.mutate({ email, code }, {
-      onSuccess: () => {
-        const to = loc?.state?.from?.pathname || '/dashboard';
-        navigate(to, { replace: true });
-      }
-    });
+    verifyOtp.mutate(
+      { email, code },
+      {
+        onSuccess: () => {
+          navigate(redirectTo, { replace: true });
+        },
+      },
+    );
   }
 
   return (
