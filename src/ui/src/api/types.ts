@@ -36,6 +36,16 @@ export interface GiftType {
 }
 
 /**
+ * Gift given to a pet.
+ */
+export interface Gift {
+  id: number;
+  pet_id: number;
+  gift_type_id: number;
+  created_at?: string;
+}
+
+/**
  * Credit purchase made by a user.
  */
 export interface CreditPurchase {
