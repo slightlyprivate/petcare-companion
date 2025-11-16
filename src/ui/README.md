@@ -9,6 +9,11 @@ Dev
 - Start UI dev server: `npm install && npm run dev` inside `src/ui`
 - API proxy: All `/api/*` calls are proxied to the BFF at `http://localhost:5174`
 
+Proxy target
+
+- In containerized dev (docker compose), Vite reads `VITE_API_PROXY_TARGET` from env and proxies to `http://frontend:3000` (the BFF service name).
+- If running Vite locally on your host, set `VITE_API_PROXY_TARGET=http://localhost:5174` before `npm run dev`, or create `.env.local` with that variable.
+
 Scripts
 
 - `npm run dev`: Start Vite dev server on `http://localhost:5173`

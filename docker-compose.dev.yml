@@ -120,6 +120,7 @@ services:
     working_dir: /app/src/ui
     environment:
       NODE_ENV: development
+      VITE_API_PROXY_TARGET: http://frontend:3000
     command: sh -lc "npm install && npm run dev -- --host"
     ports:
       - "5173:5173"
