@@ -11,6 +11,7 @@ export const qk = {
   pets: {
     all: ['pets', 'public'] as const,
     detail: (id: number | string) => ['pets', 'public', id] as const,
+    mine: ['pets', 'mine'] as const,
   },
   appts: {
     byPet: (petId: number | string) => ['appts', 'byPet', petId] as const,

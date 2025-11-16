@@ -22,7 +22,7 @@ export function usePublicPet(id: number | string) {
 
 // Authenticated pets
 export function usePets() {
-  return useQuery({ queryKey: ['pets', 'mine'], queryFn: client.listPets });
+  return useQuery({ queryKey: qk.pets.mine, queryFn: client.listPets });
 }
 
 /**
@@ -32,7 +32,7 @@ export function useCreatePet() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: client.createPet,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['pets', 'mine'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.pets.mine }),
   });
 }
 
@@ -44,7 +44,7 @@ export function useUpdatePet() {
   return useMutation({
     mutationFn: client.updatePet,
     onSuccess: (_d, v) => {
-      qc.invalidateQueries({ queryKey: ['pets', 'mine'] });
+      qc.invalidateQueries({ queryKey: qk.pets.mine });
       if (v?.id) qc.invalidateQueries({ queryKey: qk.pets.detail(v.id) });
     },
   });
@@ -58,7 +58,7 @@ export function useDeletePet() {
   return useMutation({
     mutationFn: client.deletePet,
     onSuccess: (_d, id) => {
-      qc.invalidateQueries({ queryKey: ['pets', 'mine'] });
+      qc.invalidateQueries({ queryKey: qk.pets.mine });
       if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id as any) });
     },
   });
@@ -72,7 +72,7 @@ export function useRestorePet() {
   return useMutation({
     mutationFn: client.restorePet,
     onSuccess: (_d, id) => {
-      qc.invalidateQueries({ queryKey: ['pets', 'mine'] });
+      qc.invalidateQueries({ queryKey: qk.pets.mine });
       if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id as any) });
     },
   });
