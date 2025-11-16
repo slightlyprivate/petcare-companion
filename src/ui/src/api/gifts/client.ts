@@ -5,7 +5,10 @@ import type { Gift, GiftType } from '../types';
 /**
  * Fetch the list of available gift types.
  */
-export const listGiftTypes = (): Promise<GiftType[]> => api('/public/gift-types');
+export const listGiftTypes = async (): Promise<GiftType[]> => {
+  const res = await api('/public/gift-types');
+  return normalizePaginated<GiftType>(res).data;
+};
 
 /**
  * Create a gift for a specific pet.
