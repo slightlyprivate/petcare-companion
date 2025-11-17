@@ -1,6 +1,7 @@
 # PetCare Companion — Monorepo
 
-A lightweight, educational monorepo demonstrating a Laravel API, a React UI, and a Node-based BFF (Backend for Frontend), containerized with Docker Compose.
+A lightweight, educational monorepo demonstrating a Laravel API, a React UI, and a Node-based BFF
+(Backend for Frontend), containerized with Docker Compose.
 
 ## Overview
 
@@ -48,7 +49,8 @@ graph LR
 - Copy env: `cp .env.example .env`
 - Start dev stack: `docker compose -f docker-compose.dev.yml up`
 - Generate app key: `docker compose -f docker-compose.dev.yml exec app php artisan key:generate`
-- Migrate + seed: `docker compose -f docker-compose.dev.yml exec app php artisan migrate && docker compose -f docker-compose.dev.yml exec app php artisan db:seed`
+- Migrate + seed:
+  `docker compose -f docker-compose.dev.yml exec app php artisan migrate && docker compose -f docker-compose.dev.yml exec app php artisan db:seed`
 
 ## Ports
 
@@ -64,7 +66,8 @@ graph LR
 
 ### Queue/Cache with Redis (Dev)
 
-- `.env` now defaults to Redis: `CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis` with `REDIS_HOST=redis`.
+- `.env` now defaults to Redis: `CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis` with
+  `REDIS_HOST=redis`.
 - PHP image includes `phpredis` extension (installed via PECL in `docker/app.Dockerfile`).
 - Workers still run as a separate service, but you can use Horizon for dashboarding.
 
@@ -78,8 +81,10 @@ graph LR
 - Install Horizon before enabling it:
   - `docker compose -f docker-compose.dev.yml exec app bash -lc "composer require laravel/horizon:^5.23 && php artisan horizon:install && php artisan migrate"`
 - Access dashboard at `/horizon` (served via the `web` service).
-- If you see "Command \"horizon\" is not defined", ensure you've run the composer and artisan steps above, or keep `ENABLE_HORIZON` set to `false` until installation is complete.
-- In production, run Horizon as its own process and secure the dashboard behind auth or IP allowlists.
+- If you see "Command \"horizon\" is not defined", ensure you've run the composer and artisan steps
+  above, or keep `ENABLE_HORIZON` set to `false` until installation is complete.
+- In production, run Horizon as its own process and secure the dashboard behind auth or IP
+  allowlists.
 
 ### Code Formatting (Prettier)
 
@@ -93,8 +98,10 @@ graph LR
   - Format: `npm run format`
   - Check: `npm run format:check`
 - In containers:
-  - UI (frontend-ui): `docker compose -f docker-compose.dev.yml exec frontend-ui sh -lc "npm run format"`
-  - BFF (frontend): `docker compose -f docker-compose.dev.yml exec frontend sh -lc "cd src/server && npm run format"`
+  - UI (frontend-ui):
+    `docker compose -f docker-compose.dev.yml exec frontend-ui sh -lc "npm run format"`
+  - BFF (frontend):
+    `docker compose -f docker-compose.dev.yml exec frontend sh -lc "cd src/server && npm run format"`
 
 ### Pre-commit Hook (Husky)
 
@@ -104,24 +111,33 @@ graph LR
 
 ### Dev Compose (Single Stack)
 
-- Use `docker-compose.dev.yml` for development. It includes: Laravel (app), Nginx (web), MySQL (db), Redis (redis), Queue worker, Scheduler, BFF (frontend), and Vite UI (frontend-ui) with live reload.
-- BFF (Express): http://localhost:5174
-- UI (Vite HMR): http://localhost:5173
-- API (Nginx → PHP-FPM): http://localhost:8080
+- Use `docker-compose.dev.yml` for development. It includes: Laravel (app), Nginx (web), MySQL (db),
+  Redis (redis), Queue worker, Scheduler, BFF (frontend), and Vite UI (frontend-ui) with live
+  reload.
+- BFF (Express): <http://localhost:5174>
+- UI (Vite HMR): <http://localhost:5173>
+- API (Nginx → PHP-FPM): <http://localhost:8080>
 
 ## Auth & Cookies
 
-- Flow: The BFF completes OTP login with Laravel, stores the returned Sanctum token in a server-side session, and injects `Authorization: Bearer <token>` on proxied API requests. The browser never sees the token.
-- CSRF: The BFF issues a CSRF token and requires it for mutating `/api/*` requests. Laravel API routes use stateless token auth; no double-CSRF required.
-- Logout: `POST /auth/logout` clears the session/cookies and revokes the current Sanctum token in Laravel.
-- Cookies: In production set `COOKIE_SECURE=true` and choose `COOKIE_SAMESITE=lax` (or `strict`) in `src/server/.env`.
+- Flow: The BFF completes OTP login with Laravel, stores the returned Sanctum token in a server-side
+  session, and injects `Authorization: Bearer <token>` on proxied API requests. The browser never
+  sees the token.
+- CSRF: The BFF issues a CSRF token and requires it for mutating `/api/*` requests. Laravel API
+  routes use stateless token auth; no double-CSRF required.
+- Logout: `POST /auth/logout` clears the session/cookies and revokes the current Sanctum token in
+  Laravel.
+- Cookies: In production set `COOKIE_SECURE=true` and choose `COOKIE_SAMESITE=lax` (or `strict`) in
+  `src/server/.env`.
 
 ## Production Compose (Reference)
 
-- `docker-compose.yml` is production-oriented and references prebuilt images (no bind mounts). DB/Redis are expected to be external; set connection variables in `.env`.
+- `docker-compose.yml` is production-oriented and references prebuilt images (no bind mounts).
+  DB/Redis are expected to be external; set connection variables in `.env`.
 - Not used during development; build/publish images before using it.
 
-- Expose only the `frontend` service (Node BFF + static UI). Laravel (`web` + `app`) remains internal. The BFF proxies `/api/*` to Laravel via the Docker network.
+- Expose only the `frontend` service (Node BFF + static UI). Laravel (`web` + `app`) remains
+  internal. The BFF proxies `/api/*` to Laravel via the Docker network.
 
 ## Documentation
 

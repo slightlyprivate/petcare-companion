@@ -2,6 +2,7 @@ import { lazy } from 'react';
 import RequireAuth from '../components/RequireAuth';
 import RouteError from '../components/RouteError';
 import AppLayout from '../layouts/AppLayout';
+import NotFound from '../pages/NotFound';
 
 const Home = lazy(() => import('../pages/Home'));
 const LoginOtp = lazy(() => import('../pages/LoginOtp'));
@@ -38,6 +39,7 @@ export const routes = [
           { path: '/sandbox', element: <ApiPlayground />, errorElement: <RouteError /> },
         ],
       },
+      { path: '*', element: <NotFound />, errorElement: <RouteError /> },
     ],
   },
 ];

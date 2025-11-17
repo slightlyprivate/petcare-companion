@@ -3,6 +3,7 @@
 export { request, api, proxy, type RequestOptions } from './fetch';
 
 import { isDev } from './config';
+import { handleAuthError } from './authErrors';
 import { request as coreRequest, type RequestOptions as CoreOptions } from './fetch';
 
 export type HttpBase = 'api' | 'proxy' | string;
@@ -91,6 +92,10 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
       if (logging) {
         options.onError?.({ url: path, error: hErr });
         if (!options.onError) log('error', path, hErr.status, hErr.message);
+      }
+      if (hErr.status === 401 || hErr.status === 419) {
+        // Global auth handling to complement RequireAuth for background queries
+        handleAuthError(hErr as any);
       }
       throw hErr;
     }

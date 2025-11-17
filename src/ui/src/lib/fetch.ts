@@ -1,9 +1,12 @@
+import type { AxiosError } from 'axios';
+import axiosClient, { type AxiosExtendedConfig } from './axiosClient';
 import { API_BASE, PROXY_BASE } from './config';
-import { getCsrfToken } from './csrfStore';
-import { ensureCsrf } from './csrf';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+/**
+ * Request options interface
+ */
 export interface RequestOptions<TBody = any> {
   method?: Method;
   body?: TBody;
@@ -23,29 +26,14 @@ const joinUrl = (base: string, path: string) => {
   return `${b}${p}`;
 };
 
-async function doFetch(url: string, init: RequestInit, retries: number): Promise<Response> {
-  try {
-    const res = await fetch(url, init);
-    if (retries > 0 && (res.status >= 500 || res.status === 429)) {
-      await new Promise((r) =>
-        setTimeout(r, 200 * Math.pow(2, Math.min(5, (init as any).__retryCount || 0))),
-      );
-      (init as any).__retryCount = ((init as any).__retryCount || 0) + 1;
-      return doFetch(url, init, retries - 1);
-    }
-    return res;
-  } catch (err) {
-    if (retries > 0) {
-      await new Promise((r) =>
-        setTimeout(r, 200 * Math.pow(2, Math.min(5, (init as any).__retryCount || 0))),
-      );
-      (init as any).__retryCount = ((init as any).__retryCount || 0) + 1;
-      return doFetch(url, init, retries - 1);
-    }
-    throw err;
-  }
-}
+// Using centralized axios client with interceptors
 
+/**
+ * Generic request helper
+ * @param path The API endpoint path.
+ * @param opts The request options.
+ * @returns The API response.
+ */
 export async function request<T = any>(path: string, opts: RequestOptions = {}): Promise<T> {
   const baseOpt = opts.base ?? 'api';
   const baseUrl = baseOpt === 'api' ? API_BASE : baseOpt === 'proxy' ? PROXY_BASE : baseOpt;
@@ -57,118 +45,58 @@ export async function request<T = any>(path: string, opts: RequestOptions = {}):
     ...(opts.headers || {}),
   };
 
-  const init: RequestInit & { __retryCount?: number; __csrfRetried?: boolean } = {
+  const axConfig: AxiosExtendedConfig = {
     method,
     headers,
-    credentials: 'include',
     signal: opts.signal,
+    timeout: opts.timeoutMs,
+    __maxRetries: opts.retries ?? 0,
   };
-
-  const needsCsrf = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
-  if (needsCsrf) {
-    if (!getCsrfToken()) {
-      try {
-        await ensureCsrf();
-      } catch {
-        // Allow request to proceed; server will enforce as needed
-      }
-    }
-    const token = getCsrfToken();
-    if (token) headers['X-CSRF-Token'] = token;
-  }
 
   if (opts.body !== undefined) {
     if (opts.json !== false) {
       headers['Content-Type'] = 'application/json';
-      init.body = JSON.stringify(opts.body);
+      axConfig.data = opts.body;
     } else {
-      init.body = opts.body as any;
+      axConfig.data = opts.body as any;
     }
-  }
-
-  // Optional timeout handling
-  let timeoutId: any;
-  let controller: AbortController | undefined;
-  if (opts.timeoutMs && !init.signal) {
-    controller = new AbortController();
-    init.signal = controller.signal;
-    timeoutId = setTimeout(() => controller?.abort(), opts.timeoutMs);
   }
 
   try {
-    const res = await doFetch(url, init, opts.retries ?? 0);
-    const ct = res.headers.get('content-type') || '';
+    const res = await axiosClient.request<T>({ url, ...axConfig });
+    return res.data as T;
+  } catch (error) {
+    const axErr = error as AxiosError;
+    const status = axErr.response?.status;
+    const data = axErr.response?.data;
 
-    if (!res.ok) {
-      let data: any = undefined;
-      if (ct.includes('application/json')) {
-        try {
-          data = await res.json();
-        } catch {}
-      } else {
-        try {
-          data = await res.text();
-        } catch {}
-      }
-      // Handle CSRF expiry automatically once for unsafe methods
-      if (
-        res.status === 419 &&
-        ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) &&
-        !init.__csrfRetried
-      ) {
-        try {
-          await ensureCsrf();
-          const refreshed = getCsrfToken();
-          if (refreshed) headers['X-CSRF-Token'] = refreshed;
-          init.__csrfRetried = true;
-          const retryRes = await doFetch(url, init, opts.retries ?? 0);
-          if (!retryRes.ok) {
-            // fall through to error mapping
-            const retryCt = retryRes.headers.get('content-type') || '';
-            let retryData: any = undefined;
-            if (retryCt.includes('application/json')) {
-              try {
-                retryData = await retryRes.json();
-              } catch {}
-            } else {
-              try {
-                retryData = await retryRes.text();
-              } catch {}
-            }
-            const msg =
-              (retryData && (retryData.error?.message || retryData.message)) ||
-              `Request failed: ${retryRes.status}`;
-            const err2: any = new Error(msg);
-            err2.status = retryRes.status;
-            err2.data = retryData;
-            throw err2;
-          }
-          const retryCt = retryRes.headers.get('content-type') || '';
-          if (retryCt.includes('application/json')) return retryRes.json() as unknown as T;
-          return retryRes as unknown as T;
-        } catch (csrfErr) {
-          // will map original response below if retry also fails
-        }
-      }
-      const msg =
-        (data && (data.error?.message || data.message)) || `Request failed: ${res.status}`;
-      const err: any = new Error(msg);
-      err.status = res.status;
-      err.data = data;
-      throw err;
-    }
-
-    if (ct.includes('application/json')) return res.json() as unknown as T;
-    return res as unknown as T;
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
+    const msg =
+      (data as any)?.error?.message ||
+      (data as any)?.message ||
+      `Request failed: ${status ?? 'network'}`;
+    const e: any = new Error(msg);
+    e.status = status;
+    e.data = data;
+    throw e;
   }
 }
 
+/**
+ * API request helper
+ * @param path The API endpoint path.
+ * @param opts The request options.
+ * @returns The API response.
+ */
 export function api<T = any>(path: string, opts: Omit<RequestOptions, 'base'> = {}) {
   return request<T>(path, { ...opts, base: 'api' });
 }
 
+/**
+ * Proxy request helper
+ * @param path The API endpoint path.
+ * @param opts The request options.
+ * @returns The API response.
+ */
 export function proxy<T = any>(path: string, opts: Omit<RequestOptions, 'base'> = {}) {
   return request<T>(path, { ...opts, base: 'proxy' });
 }
@@ -176,6 +104,11 @@ export function proxy<T = any>(path: string, opts: Omit<RequestOptions, 'base'> 
 // Cross-cutting helpers
 export type ApiError = Error & { status?: number; data?: any };
 
+/**
+ * Determines if an error is an authentication error (401, 403, 419).
+ * @param err The error object to check.
+ * @returns True if the error is an authentication error, false otherwise.
+ */
 export function isAuthError(err: unknown): err is ApiError {
   const e = err as any;
   return (
@@ -186,17 +119,30 @@ export function isAuthError(err: unknown): err is ApiError {
   );
 }
 
+/**
+ * Paginated API response structure.
+ */
 export interface Paginated<T> {
   data: T[];
   meta?: { total?: number; page?: number; per_page?: number };
 }
 
+/**
+ * Normalizes a paginated API response.
+ * @param res The API response object.
+ * @returns The normalized paginated response.
+ */
 export function normalizePaginated<T>(res: any): Paginated<T> {
   if (Array.isArray(res)) return { data: res };
   if (res && Array.isArray(res.data)) return { data: res.data, meta: res.meta };
   return { data: [] };
 }
 
+/**
+ * Unwraps a resource from the API response.
+ * @param res The API response object.
+ * @returns The unwrapped resource or null if not found.
+ */
 export function unwrapResource<T>(res: any): T | null {
   if (
     res &&

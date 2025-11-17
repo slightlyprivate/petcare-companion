@@ -24,3 +24,11 @@ export const isDev = import.meta.env.DEV;
 if (!API_BASE && import.meta.env.PROD) {
   throw new Error('VITE_API_BASE is required in production.');
 }
+
+// Warn when PROXY_BASE is empty in production; relative proxy calls may be fragile cross-origin
+if (!PROXY_BASE && import.meta.env.PROD) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    "[config] VITE_PROXY_BASE is empty in production; BFF 'proxy()' requests will use relative URLs, which may break in multi-origin deployments.",
+  );
+}
