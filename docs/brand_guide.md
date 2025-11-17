@@ -27,6 +27,22 @@ emojis or cartoonish color variants will be used.
 
 ---
 
+### 🎯 Color Semantic Mapping
+
+This table shows how brand colors map to functional UI purposes:
+
+| Semantic Role   | Brand Color Used | Hex       | Purpose                                                        |
+| --------------- | ---------------- | --------- | -------------------------------------------------------------- |
+| **Primary**     | Midnight Blue    | `#1F2D3D` | Headings, primary buttons, main navigation, UI chrome          |
+| **Accent**      | Teal Blue        | `#147E7E` | CTA buttons, interactive elements, focus states, highlights    |
+| **Secondary**   | Warm Sand        | `#F6E8D5` | Secondary backgrounds, soft accents, secondary actions         |
+| **Muted**       | Soft Aqua        | `#C8F4F9` | Disabled states, placeholders, low-priority UI                 |
+| **Foreground**  | Slate Gray       | `#6B7C93` | Body text, borders, neutral UI elements                        |
+| **Background**  | White Smoke      | `#F9FAFB` | Main surface, card backgrounds, default page background        |
+| **Destructive** | Red              | `#D32F2F` | Errors, delete actions, warnings (non-brand color for urgency) |
+
+---
+
 ### 🔤 Typography System
 
 | Type      | Font              | Usage                       |
