@@ -4,9 +4,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import cookieParser from 'cookie-parser';
 import { config, requireConfig } from './lib/config.js';
-import { makeApiClient } from './lib/axios.js';
 import { ensureCsrfToken, requireCsrfOnMutations } from './middleware/csrf.js';
 import { auth as authRouter } from './routes/auth.js';
+import { API_PREFIX } from './constants.js';
+import { handleProxy } from './services/proxy.js';
+import { BFF_REWRITE_PREFIXES } from '../../shared/bffPaths.js';
+import { logger } from './lib/logger.js';
+import { errorHandler, notFound } from './middleware/error.js';
+// moved imports above
 
 // Configuration
 requireConfig();
@@ -34,8 +39,8 @@ app.use(
     httpOnly: true,
     secure: config.secureCookies,
     sameSite: config.sameSite,
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  })
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  }),
 );
 
 // Parse cookies (for token cookie handling if needed)
@@ -57,10 +62,13 @@ app.get('/health', (req, res) => {
 });
 
 // Auth routes (OTP request/verify, logout, csrf)
-app.use('/auth', authRouter);
+// Enforce CSRF on mutating auth endpoints to prevent cross-site POSTs
+app.use('/auth', requireCsrfOnMutations, authRouter);
 
 // CSRF required on mutating API requests
 app.use('/api', requireCsrfOnMutations);
+// Also enforce CSRF on BFF-mapped JSON endpoints
+app.use(BFF_REWRITE_PREFIXES, requireCsrfOnMutations);
 
 // Session demo endpoint (useful to verify cookie-session works)
 app.get('/session/ping', (req, res) => {
@@ -69,43 +77,18 @@ app.get('/session/ping', (req, res) => {
 });
 
 // Generic API proxy: forwards /api/* to Laravel backend
-app.all('/api/*', async (req, res) => {
-  try {
-    const api = makeApiClient(req);
-    const url = req.originalUrl.replace(/^\/api/, '/api');
-    const method = req.method.toLowerCase();
-    const isBinary = (req.headers['accept'] || '').includes('application/pdf');
-    const response = await api.request({
-      url,
-      method,
-      data: ['get', 'head'].includes(method) ? undefined : req.body,
-      responseType: isBinary ? 'arraybuffer' : 'json',
-    });
-
-    // status and headers
-    res.status(response.status);
-    for (const [k, v] of Object.entries(response.headers || {})) {
-      if (['transfer-encoding'].includes(String(k).toLowerCase())) continue;
-      if (v !== undefined) res.setHeader(k, v);
-    }
-
-    if (response.data === undefined) return res.end();
-    // If arraybuffer, send as buffer; else JSON
-    if (response.request?.responseType === 'arraybuffer' || Buffer.isBuffer(response.data)) {
-      return res.send(Buffer.from(response.data));
-    }
-    return res.send(response.data);
-  } catch (err) {
-    console.error('Proxy error:', err);
-    const status = err.response?.status || 502;
-    const data = err.response?.data || { error: 'Bad gateway' };
-    res.status(status).send(data);
-  }
-});
+app.all(`${API_PREFIX}/*`, handleProxy);
+// Forward BFF JSON endpoints by rewriting to /api/* internally via handleProxy
+// Cover both the prefix root (e.g., /pets) and nested paths (e.g., /pets/123)
+app.all(BFF_REWRITE_PREFIXES, handleProxy);
+app.all(
+  BFF_REWRITE_PREFIXES.map((p) => `${p}/*`),
+  handleProxy,
+);
 
 // SPA fallback for non-API GET requests
 app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) return next();
+  if (req.path.startsWith(API_PREFIX)) return next();
   const indexPath = path.join(FRONTEND_DIR, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) next(err);
@@ -113,7 +96,11 @@ app.get('*', (req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`PetCare server listening on http://localhost:${PORT}`);
-  console.log(`Proxying /api/* to ${BACKEND_URL}`);
-  console.log(`Serving static from ${FRONTEND_DIR}`);
+  logger.info(`PetCare server listening on http://localhost:${PORT}`);
+  logger.info(`Proxying ${API_PREFIX}/* to ${BACKEND_URL}`);
+  logger.info(`Serving static from ${FRONTEND_DIR}`);
 });
+
+// Fallbacks and error handling
+app.use(notFound);
+app.use(errorHandler);

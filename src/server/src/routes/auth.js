@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { makeApiClient } from '../lib/axios.js';
 import { config } from '../lib/config.js';
-
-const TOKEN_COOKIE = 'pc_token';
+import { CookieNames, loggedInCookieOptions, tokenCookieOptions } from '../lib/cookies.js';
+import { withRequestContext } from '../lib/logger.js';
 
 export const auth = Router();
 
@@ -20,6 +20,7 @@ auth.post('/request', async (req, res) => {
 
 // Verify OTP → returns token from Laravel; store in session and set httpOnly cookie
 auth.post('/verify', async (req, res) => {
+  const rl = withRequestContext(req);
   const api = makeApiClient(req);
   const upstream = await api.post('/api/auth/verify', req.body);
 
@@ -29,34 +30,34 @@ auth.post('/verify', async (req, res) => {
       // Store in session (httpOnly cookie via cookie-session)
       req.session.token = token;
       // Set dedicated token cookie (httpOnly)
-      res.cookie(TOKEN_COOKIE, token, {
-        httpOnly: true,
-        secure: config.secureCookies,
-        sameSite: (config.sameSite || 'lax'),
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie(CookieNames.TOKEN, token, tokenCookieOptions());
       // Non-HTTP-only hint cookie for UI state (optional)
-      res.cookie('pc_logged_in', '1', {
-        httpOnly: false,
-        secure: config.secureCookies,
-        sameSite: (config.sameSite || 'lax'),
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
+      res.cookie(CookieNames.LOGGED_IN, '1', loggedInCookieOptions());
     }
   }
 
-  res.status(upstream.status).json(upstream.data);
+  rl.info('auth_verify_result', { status: upstream.status });
+  // Do not leak tokens to the client; return a sanitized payload
+  const safeUser = upstream.data?.user ?? null;
+  res.status(upstream.status).json({ ok: upstream.status >= 200 && upstream.status < 300, user: safeUser });
 });
 
 // Logout: clear session + cookies
-auth.post('/logout', (req, res) => {
+auth.post('/logout', async (req, res) => {
+  const rl = withRequestContext(req);
+  try {
+    // Best-effort revoke on backend; ignore failures but log for visibility
+    const api = makeApiClient(req);
+    await api.post('/api/auth/logout');
+  } catch (e) {
+    rl.warn('auth_backend_logout_failed', { status: e?.response?.status, message: e?.message });
+  }
+
   if (req.session) {
     req.session = null;
   }
-  res.clearCookie(TOKEN_COOKIE, { path: '/' });
-  res.clearCookie('pc_logged_in', { path: '/' });
+  res.clearCookie(CookieNames.TOKEN, { path: '/' });
+  res.clearCookie(CookieNames.LOGGED_IN, { path: '/' });
+  rl.info('auth_logout_success');
   res.status(204).send();
 });
-
