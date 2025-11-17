@@ -11,7 +11,8 @@ Features
 - Generic `/api/*` proxy to `BACKEND_URL` (defaults to `http://localhost:8080`)
 - Auth routes under `/auth`: `POST /auth/request`, `POST /auth/verify`, `POST /auth/logout`,
   `GET /auth/csrf`
-- CSRF: `GET /auth/csrf` issues a token; all mutating `/api/*` require `X-CSRF-Token` header
+- CSRF: `GET /auth/csrf` issues a token; all mutating `/api/*` and `/auth/*` require `X-CSRF-Token`
+  header
   - The UI calls this via `proxy('/auth/csrf')`. Ensure the UI's `VITE_PROXY_BASE` (prod) or Vite
     proxy target (dev) reaches this server.
 

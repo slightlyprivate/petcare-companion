@@ -62,7 +62,8 @@ app.get('/health', (req, res) => {
 });
 
 // Auth routes (OTP request/verify, logout, csrf)
-app.use('/auth', authRouter);
+// Enforce CSRF on mutating auth endpoints to prevent cross-site POSTs
+app.use('/auth', requireCsrfOnMutations, authRouter);
 
 // CSRF required on mutating API requests
 app.use('/api', requireCsrfOnMutations);

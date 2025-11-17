@@ -7,7 +7,12 @@ COPY src/ui /app/src/ui
 COPY src/shared /app/src/shared
 WORKDIR /app/src/ui
 RUN npm ci || npm install
-RUN npm run build
+# Provide production build env defaults for Vite
+ARG VITE_API_BASE=/api
+ARG VITE_PROXY_BASE=/
+ENV VITE_API_BASE=$VITE_API_BASE
+ENV VITE_PROXY_BASE=$VITE_PROXY_BASE
+RUN VITE_API_BASE=$VITE_API_BASE VITE_PROXY_BASE=$VITE_PROXY_BASE npm run build
 
 FROM node:20-alpine AS server-deps
 WORKDIR /app
@@ -33,4 +38,3 @@ ENV FRONTEND_DIR=/app/src/ui/dist
 ENV SERVER_PORT=3000
 
 CMD ["node", "/app/src/server/src/index.js"]
-

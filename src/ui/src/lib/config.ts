@@ -8,6 +8,7 @@ const warn = (msg: string) => {
 const normalizeBase = (value: string | undefined, fallback: string) => {
   const v = (value ?? fallback).trim();
   if (!v) return '';
+  if (v === '/') return '/';
   const out = v.endsWith('/') ? v.slice(0, -1) : v;
   if (!/^https?:\/\//.test(out) && !out.startsWith('/')) {
     warn(`Base URL '${out}' should be absolute or start with '/'.`);
