@@ -16,10 +16,12 @@
 
   /* Accent: Teal Blue (CTA buttons, highlights) */
   --color-accent: #147e7e;
+  --color-accent-700: #0f6666;
   --color-accent-foreground: #f9fafb;
 
   /* Secondary: Warm Sand (secondary backgrounds, soft accents) */
   --color-secondary: #f6e8d5;
+  --color-secondary-200: #e9dcc9;
   --color-secondary-foreground: #1f2d3d;
 
   /* Muted: Light Aqua (muted backgrounds, disabled states) */
@@ -73,6 +75,46 @@
 }
 
 @layer utilities {
+  /* Brand utility aliases mapped to @theme tokens */
+  .text-brand-primary {
+    color: var(--color-primary);
+  }
+  .text-brand-fg {
+    color: var(--color-muted-foreground);
+  }
+  .text-brand-accent {
+    color: var(--color-accent);
+  }
+
+  .bg-brand-bg {
+    background-color: var(--color-background);
+  }
+  .bg-brand-accent {
+    background-color: var(--color-accent);
+  }
+  .bg-brand-secondary {
+    background-color: var(--color-secondary);
+  }
+
+  .border-brand-muted {
+    border-color: var(--color-muted);
+  }
+
+  /* Ring color utility to align with Tailwind's ring API */
+  .ring-brand-accent {
+    --tw-ring-color: var(--color-accent);
+  }
+
+  /* Hover variants for brand shades */
+  @variant hover {
+    .hover\:bg-brand-accent-700 {
+      background-color: var(--color-accent-700);
+    }
+    .hover\:bg-brand-secondary-200 {
+      background-color: var(--color-secondary-200);
+    }
+  }
+
   .dark {
     color-scheme: dark;
   }
