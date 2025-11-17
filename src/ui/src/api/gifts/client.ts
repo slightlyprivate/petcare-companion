@@ -13,8 +13,11 @@ export const listGiftTypes = async (): Promise<GiftType[]> => {
 /**
  * Create a gift for a specific pet.
  */
-export const createGift = (payload: { petId: number | string; gift_type_id: number }) =>
-  proxy(`/pets/${payload.petId}/gifts`, { method: 'POST', body: payload });
+export const createGift = (payload: { petId: number | string; gift_type_id: string }) =>
+  proxy(`/pets/${payload.petId}/gifts`, {
+    method: 'POST',
+    body: { gift_type_id: payload.gift_type_id },
+  });
 
 /**
  * Export the receipt for a specific gift.

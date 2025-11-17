@@ -50,9 +50,15 @@ export default function ApiPlayground() {
   const restorePet = useRestorePet();
   const [newPetName, setNewPetName] = useState('');
   const [newPetSpecies, setNewPetSpecies] = useState('');
+  const [newPetOwnerName, setNewPetOwnerName] = useState('');
+  const [newPetBreed, setNewPetBreed] = useState('');
+  const [newPetBirthDate, setNewPetBirthDate] = useState('');
   const [updPetId, setUpdPetId] = useState('');
   const [updName, setUpdName] = useState('');
   const [updSpecies, setUpdSpecies] = useState('');
+  const [updOwnerName, setUpdOwnerName] = useState('');
+  const [updBreed, setUpdBreed] = useState('');
+  const [updBirthDate, setUpdBirthDate] = useState('');
   const [delPetId, setDelPetId] = useState('');
   const [restoreId, setRestoreId] = useState('');
 
@@ -67,7 +73,8 @@ export default function ApiPlayground() {
   // Credits
   const purchases = useCreditPurchases();
   const purchaseCredits = usePurchaseCredits();
-  const [creditsAmount, setCreditsAmount] = useState<number | ''>('');
+  const [creditBundleId, setCreditBundleId] = useState('');
+  const [creditReturnUrl, setCreditReturnUrl] = useState('http://localhost:5173/credits/return');
 
   // Appointments
   const [apptPetId, setApptPetId] = useState('');
@@ -76,13 +83,14 @@ export default function ApiPlayground() {
   const updateAppt = useUpdateAppointment();
   const cancelAppt = useCancelAppointment();
   const [apptId, setApptId] = useState('');
-  const [apptAt, setApptAt] = useState('');
+  const [apptTitle, setApptTitle] = useState('');
+  const [apptScheduledAt, setApptScheduledAt] = useState('');
   const [apptNotes, setApptNotes] = useState('');
 
   const canCreateGift = useMemo(() => giftPetId && giftTypeId, [giftPetId, giftTypeId]);
   const canPurchase = useMemo(
-    () => typeof creditsAmount === 'number' && creditsAmount > 0,
-    [creditsAmount],
+    () => !!creditBundleId && !!creditReturnUrl,
+    [creditBundleId, creditReturnUrl],
   );
   const [reportPetId, setReportPetId] = useState('');
   const [petReport, setPetReport] = useState<any>(null);
@@ -250,8 +258,14 @@ export default function ApiPlayground() {
               className="space-y-2"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (newPetName && newPetSpecies)
-                  createPet.mutate({ name: newPetName, species: newPetSpecies });
+                if (newPetName && newPetSpecies && newPetOwnerName)
+                  createPet.mutate({
+                    name: newPetName,
+                    species: newPetSpecies,
+                    owner_name: newPetOwnerName,
+                    breed: newPetBreed || undefined,
+                    birth_date: newPetBirthDate || undefined,
+                  });
               }}
             >
               <div className="text-sm font-medium">Create Pet</div>
@@ -267,13 +281,31 @@ export default function ApiPlayground() {
                 value={newPetSpecies}
                 onChange={(e) => setNewPetSpecies(e.target.value)}
               />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="owner_name"
+                value={newPetOwnerName}
+                onChange={(e) => setNewPetOwnerName(e.target.value)}
+              />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="breed (optional)"
+                value={newPetBreed}
+                onChange={(e) => setNewPetBreed(e.target.value)}
+              />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="birth_date YYYY-MM-DD (optional)"
+                value={newPetBirthDate}
+                onChange={(e) => setNewPetBirthDate(e.target.value)}
+              />
               {createPet.isError && (
                 <ErrorMessage message={(createPet.error as any)?.message || 'Error'} />
               )}
               <Button
                 size="sm"
                 isLoading={createPet.isPending}
-                disabled={!newPetName || !newPetSpecies}
+                disabled={!newPetName || !newPetSpecies || !newPetOwnerName}
               >
                 Create
               </Button>
@@ -282,11 +314,14 @@ export default function ApiPlayground() {
               className="space-y-2"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (updPetId)
+                if (updPetId && updName && updSpecies && updOwnerName)
                   updatePet.mutate({
                     id: updPetId,
-                    name: updName || undefined,
-                    species: updSpecies || undefined,
+                    name: updName,
+                    species: updSpecies,
+                    owner_name: updOwnerName,
+                    breed: updBreed || undefined,
+                    birth_date: updBirthDate || undefined,
                   });
               }}
             >
@@ -309,10 +344,32 @@ export default function ApiPlayground() {
                 value={updSpecies}
                 onChange={(e) => setUpdSpecies(e.target.value)}
               />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="owner_name (required)"
+                value={updOwnerName}
+                onChange={(e) => setUpdOwnerName(e.target.value)}
+              />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="breed (optional)"
+                value={updBreed}
+                onChange={(e) => setUpdBreed(e.target.value)}
+              />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="birth_date YYYY-MM-DD (optional)"
+                value={updBirthDate}
+                onChange={(e) => setUpdBirthDate(e.target.value)}
+              />
               {updatePet.isError && (
                 <ErrorMessage message={(updatePet.error as any)?.message || 'Error'} />
               )}
-              <Button size="sm" isLoading={updatePet.isPending} disabled={!updPetId}>
+              <Button
+                size="sm"
+                isLoading={updatePet.isPending}
+                disabled={!updPetId || !updName || !updSpecies || !updOwnerName}
+              >
                 Update
               </Button>
             </form>
@@ -391,7 +448,7 @@ export default function ApiPlayground() {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (canCreateGift) {
-                  createGift.mutate({ petId: giftPetId, gift_type_id: Number(giftTypeId) });
+                  createGift.mutate({ petId: giftPetId, gift_type_id: String(giftTypeId) });
                 }
               }}
             >
@@ -406,7 +463,7 @@ export default function ApiPlayground() {
                 className="border rounded px-3 py-1.5 w-full"
                 placeholder="gift type id"
                 value={giftTypeId}
-                onChange={(e) => setGiftTypeId(e.target.value ? Number(e.target.value) : '')}
+                onChange={(e) => setGiftTypeId(e.target.value)}
               />
               {createGift.isError && (
                 <ErrorMessage message={(createGift.error as any)?.message || 'Error'} />
@@ -468,15 +525,25 @@ export default function ApiPlayground() {
             className="space-y-2"
             onSubmit={(e) => {
               e.preventDefault();
-              if (canPurchase) purchaseCredits.mutate({ amount_credits: Number(creditsAmount) });
+              if (canPurchase)
+                purchaseCredits.mutate({
+                  credit_bundle_id: creditBundleId,
+                  return_url: creditReturnUrl,
+                });
             }}
           >
             <div className="text-sm font-medium">Purchase Credits</div>
             <input
               className="border rounded px-3 py-1.5 w-full"
-              placeholder="amount"
-              value={creditsAmount}
-              onChange={(e) => setCreditsAmount(e.target.value ? Number(e.target.value) : '')}
+              placeholder="credit_bundle_id (UUID)"
+              value={creditBundleId}
+              onChange={(e) => setCreditBundleId(e.target.value)}
+            />
+            <input
+              className="border rounded px-3 py-1.5 w-full"
+              placeholder="return_url"
+              value={creditReturnUrl}
+              onChange={(e) => setCreditReturnUrl(e.target.value)}
             />
             {purchaseCredits.isError && (
               <ErrorMessage message={(purchaseCredits.error as any)?.message || 'Error'} />
@@ -528,9 +595,15 @@ export default function ApiPlayground() {
               />
               <input
                 className="border rounded px-3 py-1.5 w-full"
-                placeholder="ISO datetime"
-                value={apptAt}
-                onChange={(e) => setApptAt(e.target.value)}
+                placeholder="title"
+                value={apptTitle}
+                onChange={(e) => setApptTitle(e.target.value)}
+              />
+              <input
+                className="border rounded px-3 py-1.5 w-full"
+                placeholder="scheduled_at (ISO datetime)"
+                value={apptScheduledAt}
+                onChange={(e) => setApptScheduledAt(e.target.value)}
               />
               <input
                 className="border rounded px-3 py-1.5 w-full"
@@ -541,7 +614,11 @@ export default function ApiPlayground() {
               {createAppt.isError && (
                 <ErrorMessage message={(createAppt.error as any)?.message || 'Error'} />
               )}
-              <Button size="sm" isLoading={createAppt.isPending} disabled={!apptPetId || !apptAt}>
+              <Button
+                size="sm"
+                isLoading={createAppt.isPending}
+                disabled={!apptPetId || !apptTitle || !apptScheduledAt}
+              >
                 Create
               </Button>
             </form>
@@ -556,7 +633,8 @@ export default function ApiPlayground() {
                   updateAppt.mutate({
                     petId: apptPetId,
                     apptId,
-                    at: apptAt || undefined,
+                    title: apptTitle || undefined,
+                    scheduled_at: apptScheduledAt || undefined,
                     notes: apptNotes || undefined,
                   });
               }}
@@ -577,8 +655,8 @@ export default function ApiPlayground() {
               <input
                 className="border rounded px-3 py-1.5 w-full"
                 placeholder="ISO datetime (optional)"
-                value={apptAt}
-                onChange={(e) => setApptAt(e.target.value)}
+                value={apptScheduledAt}
+                onChange={(e) => setApptScheduledAt(e.target.value)}
               />
               <input
                 className="border rounded px-3 py-1.5 w-full"

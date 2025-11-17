@@ -14,5 +14,5 @@ export const listPurchases = async (): Promise<PaginatedType<CreditPurchase>> =>
 /**
  * Purchase credits for the authenticated user.
  */
-export const purchase = (payload: { amount_credits: number }) =>
+export const purchase = (payload: { credit_bundle_id: string; return_url: string }) =>
   proxy('/credits/purchase', { method: 'POST', body: payload });

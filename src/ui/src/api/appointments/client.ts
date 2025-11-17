@@ -7,14 +7,16 @@ export const listByPet = (petId: number | string) => api(`/pets/${petId}/appoint
 
 export type CreateAppointmentPayload = {
   petId: number | string;
-  at: string; // ISO datetime
+  title: string;
+  scheduled_at: string; // ISO datetime in future
   notes?: string;
 };
 
 export type UpdateAppointmentPayload = {
   petId: number | string; // for cache invalidation
   apptId: number | string;
-  at?: string; // ISO datetime
+  title?: string;
+  scheduled_at?: string; // ISO datetime
   notes?: string;
 };
 
@@ -25,10 +27,21 @@ export type CancelAppointmentPayload = {
 
 // Skeleton write operations aligned with Laravel routes
 export const create = (payload: CreateAppointmentPayload) =>
-  proxy(`/pets/${payload.petId}/appointments`, { method: 'POST', body: payload });
+  proxy(`/pets/${payload.petId}/appointments`, {
+    method: 'POST',
+    body: { title: payload.title, scheduled_at: payload.scheduled_at, notes: payload.notes },
+  });
 
 export const update = (payload: UpdateAppointmentPayload) =>
-  proxy(`/appointments/${payload.apptId}`, { method: 'PUT', body: payload });
+  proxy(`/appointments/${payload.apptId}`, {
+    method: 'PUT',
+    body: {
+      title: payload.title,
+      scheduled_at: payload.scheduled_at,
+      notes: payload.notes,
+      pet_id: undefined, // not reassigning via playground
+    },
+  });
 
 export const cancel = (payload: CancelAppointmentPayload) =>
   proxy(`/appointments/${payload.apptId}`, { method: 'DELETE' });

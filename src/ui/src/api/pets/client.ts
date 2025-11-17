@@ -38,14 +38,25 @@ export const listPets = async (): Promise<PaginatedType<Pet>> => {
 /**
  * Create, update, delete, and restore pet endpoints
  */
-export const createPet = (payload: { name: string; species: string }) =>
-  proxy('/pets', { method: 'POST', body: payload });
+export const createPet = (payload: {
+  name: string;
+  species: string;
+  owner_name: string;
+  breed?: string | null;
+  birth_date?: string | null; // YYYY-MM-DD
+}) => proxy('/pets', { method: 'POST', body: payload });
 
 /**
  * Update pet details
  */
-export const updatePet = (payload: { id: number | string; name?: string; species?: string }) =>
-  proxy(`/pets/${payload.id}`, { method: 'PUT', body: payload });
+export const updatePet = (payload: {
+  id: number | string;
+  name: string;
+  species: string;
+  owner_name: string;
+  breed?: string | null;
+  birth_date?: string | null;
+}) => proxy(`/pets/${payload.id}`, { method: 'PUT', body: payload });
 
 /**
  * Delete a pet
