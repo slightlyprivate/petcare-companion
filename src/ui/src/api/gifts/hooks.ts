@@ -21,12 +21,8 @@ export function useCreateGift() {
   const qc = useQueryClient();
   return useAppMutation({
     mutationFn: client.createGift,
-    onSuccess: (_data, variables) => {
-      // Invalidate only scoped keys related to this pet's gifts
-      if (variables?.petId !== undefined) {
-        qc.invalidateQueries({ queryKey: qk.gifts.byPet(variables.petId) });
-      }
-      // If gift types were changed server-side (unlikely), callers can refetch types explicitly
+    onSuccess: () => {
+      // No dedicated gifts listing cache yet; caller can refetch types or pet details if needed
     },
   });
 }

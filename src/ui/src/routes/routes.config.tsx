@@ -1,4 +1,5 @@
 import { lazy } from 'react';
+import { Outlet } from 'react-router-dom';
 import RequireAuth from '../components/RequireAuth';
 import RouteError from '../components/RouteError';
 import AppLayout from '../layouts/AppLayout';
@@ -13,25 +14,17 @@ const ApiPlayground = lazy(() => import('../pages/ApiPlayground'));
 
 export const routes = [
   {
+    element: <AppLayout />,
     errorElement: <RouteError />,
     children: [
-      {
-        path: '/',
-        element: <Home />,
-        errorElement: <RouteError />,
-      },
-      {
-        path: '/login',
-        element: <LoginOtp />,
-        errorElement: <RouteError />,
-      },
+      { path: '/', element: <Home />, errorElement: <RouteError /> },
+      { path: '/login', element: <LoginOtp />, errorElement: <RouteError /> },
       {
         element: (
           <RequireAuth>
-            <AppLayout />
+            <Outlet />
           </RequireAuth>
         ),
-        errorElement: <RouteError />,
         children: [
           { path: '/dashboard', element: <Dashboard />, errorElement: <RouteError /> },
           { path: '/pets/:id', element: <PetDetail />, errorElement: <RouteError /> },
