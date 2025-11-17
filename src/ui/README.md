@@ -26,3 +26,21 @@ Notes
 
 - Tailwind v4 is enabled through the Vite plugin; no extra config is required.
 - Example screen queries `/api/public/pets` to demonstrate TanStack Query usage.
+
+HTTP clients
+
+- `http.api`: Use for calls to the upstream Laravel API (prefix `VITE_API_BASE`, default `/api`).
+- `http.proxy`: Use for calls to the local BFF/Proxy (prefix `VITE_PROXY_BASE`). Prefer this for
+  auth flows and CSRF.
+- `request`: Low-level helper when you need a custom base or atypical options. Default includes
+  credentials and Axios-based retries.
+
+Query helpers
+
+- Prefer `useAppQuery` / `useAppMutation` from `src/ui/src/lib/appQuery` for consistent defaults.
+  They layer on top of the global QueryClient defaults and keep per-domain options tidy.
+
+Layout ownership
+
+- `AppLayout` (in `layouts/`) owns the navigation shell and renders routed content via `<Outlet />`.
+  There is no separate `AppShell`—the layout is consolidated to reduce confusion and duplication.
