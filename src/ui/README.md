@@ -38,6 +38,27 @@ HTTP clients
 - `request`: Low-level helper when you need a custom base or atypical options. Default includes
   credentials and Axios-based retries.
 
+Environment variables
+
+- `VITE_API_BASE`: Base URL for Laravel API (default `/api`). Required in production.
+- `VITE_PROXY_BASE`: Base URL for BFF (can be empty in dev to use relative paths via Vite proxy;
+  REQUIRED in production).
+- `VITE_API_PROXY_TARGET`: Dev-only proxy target for Vite (e.g., `http://frontend:3000` from
+  docker-compose.dev.yml, or `http://localhost:5174`).
+- See `.env.example` in `src/ui` for typical values.
+
+CSRF endpoint
+
+- The UI fetches CSRF via `GET /auth/csrf` (BFF). The BFF exposes this route and returns
+  `{ csrfToken, ttlMs?, expiresAt? }`.
+- Ensure the BFF container is reachable (via `VITE_API_PROXY_TARGET` in dev or `VITE_PROXY_BASE` in
+  production) before building user flows.
+
+API barrels
+
+- Import domain clients and hooks via `src/ui/src/api/index.ts` to simplify imports as features
+  grow: `import { pets, petHooks } from '@/api'`.
+
 Query helpers
 
 - Prefer `useAppQuery` / `useAppMutation` from `src/ui/src/lib/appQuery` for consistent defaults.

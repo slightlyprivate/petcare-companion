@@ -139,6 +139,19 @@ graph LR
 - Expose only the `frontend` service (Node BFF + static UI). Laravel (`web` + `app`) remains
   internal. The BFF proxies `/api/*` to Laravel via the Docker network.
 
+Environment wiring (UI + BFF)
+
+- UI build-time vars (Vite):
+  - `VITE_API_BASE` (default `/api`): required in production builds.
+  - `VITE_PROXY_BASE`: required in production builds (absolute origin of the BFF). Can be empty in
+    dev.
+  - `VITE_API_PROXY_TARGET`: dev-only, points Vite’s proxy at the BFF (e.g.,
+    `http://frontend:3000`).
+- BFF routes:
+  - `GET /auth/csrf` issues CSRF tokens (used by the UI’s `ensureCsrf()` via the proxy client).
+  - Mutations under `/api/*` and BFF JSON endpoints (`/user/*`, `/pets/*`, `/appointments/*`,
+    `/credits/*`, `/gifts/*`) require `X-CSRF-Token`.
+
 ## Documentation
 
 - API (Laravel): `src/README.md`
