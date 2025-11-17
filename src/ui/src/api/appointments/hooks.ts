@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAppQuery, useAppMutation } from '../../lib/appQuery';
 import { qk } from '../queryKeys';
 import * as client from './client';
 
@@ -6,7 +7,7 @@ import * as client from './client';
  * Hook to fetch appointments for a specific pet.
  */
 export function useAppointmentsByPet(petId: number | string) {
-  return useQuery({
+  return useAppQuery({
     queryKey: qk.appts.byPet(petId),
     queryFn: () => client.listByPet(petId),
     enabled: !!petId,
@@ -18,7 +19,7 @@ export function useAppointmentsByPet(petId: number | string) {
  */
 export function useCreateAppointment() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.create,
     onSuccess: (_data, variables) => {
       if (variables?.petId !== undefined) {
@@ -33,7 +34,7 @@ export function useCreateAppointment() {
  */
 export function useUpdateAppointment() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.update,
     onSuccess: (_data, variables) => {
       if (variables?.petId !== undefined) {
@@ -48,7 +49,7 @@ export function useUpdateAppointment() {
  */
 export function useCancelAppointment() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.cancel,
     onSuccess: (_data, variables) => {
       if (variables?.petId !== undefined) {

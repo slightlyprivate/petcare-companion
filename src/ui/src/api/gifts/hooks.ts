@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAppQuery, useAppMutation } from '../../lib/appQuery';
 import { qk } from '../queryKeys';
 import * as client from './client';
 
@@ -6,7 +7,7 @@ import * as client from './client';
  * Hook to fetch the list of available gift types.
  */
 export const useGiftTypes = () =>
-  useQuery({ queryKey: qk.gifts.types, queryFn: client.listGiftTypes });
+  useAppQuery({ queryKey: qk.gifts.types, queryFn: client.listGiftTypes });
 
 /**
  * Hook to fetch gifts for a specific pet.
@@ -18,7 +19,7 @@ export const useGiftTypes = () =>
  */
 export function useCreateGift() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.createGift,
     onSuccess: (_data, variables) => {
       // Invalidate only scoped keys related to this pet's gifts

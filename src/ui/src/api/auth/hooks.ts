@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAppQuery, useAppMutation } from '../../lib/appQuery';
 import { qk } from '../queryKeys';
 import * as client from './client';
 
@@ -6,14 +7,14 @@ import * as client from './client';
  * Hook to fetch the currently authenticated user's information.
  */
 export function useMe() {
-  return useQuery({ queryKey: qk.auth.me, queryFn: client.getMe, retry: 0 });
+  return useAppQuery({ queryKey: qk.auth.me, queryFn: client.getMe, retry: 0 });
 }
 
 /**
  * Hook to request a one-time password (OTP) to be sent to the user's email.
  */
 export function useRequestOtp() {
-  return useMutation({ mutationFn: client.requestOtp });
+  return useAppMutation({ mutationFn: client.requestOtp });
 }
 
 /**
@@ -21,7 +22,7 @@ export function useRequestOtp() {
  */
 export function useVerifyOtp() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.verifyOtp,
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.auth.me }),
   });
@@ -32,7 +33,7 @@ export function useVerifyOtp() {
  */
 export function useLogout() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.logout,
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.auth.me }),
   });

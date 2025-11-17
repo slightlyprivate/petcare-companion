@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAppQuery, useAppMutation } from '../../lib/appQuery';
 import { qk } from '../queryKeys';
 import * as client from './client';
 
@@ -6,14 +7,14 @@ import * as client from './client';
  * Hook to fetch the list of public pets.
  */
 export function usePublicPets() {
-  return useQuery({ queryKey: qk.pets.all, queryFn: client.listPublicPets });
+  return useAppQuery({ queryKey: qk.pets.all, queryFn: client.listPublicPets });
 }
 
 /**
  * Hook to fetch the details of a specific public pet.
  */
 export function usePublicPet(id: number | string) {
-  return useQuery({
+  return useAppQuery({
     queryKey: qk.pets.detail(id),
     queryFn: () => client.getPublicPet(id),
     enabled: !!id,
@@ -22,7 +23,7 @@ export function usePublicPet(id: number | string) {
 
 // Authenticated pets
 export function usePets() {
-  return useQuery({ queryKey: qk.pets.mine, queryFn: client.listPets });
+  return useAppQuery({ queryKey: qk.pets.mine, queryFn: client.listPets });
 }
 
 /**
@@ -30,7 +31,7 @@ export function usePets() {
  */
 export function useCreatePet() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.createPet,
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.pets.mine }),
   });
@@ -41,7 +42,7 @@ export function useCreatePet() {
  */
 export function useUpdatePet() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.updatePet,
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: qk.pets.mine });
@@ -55,7 +56,7 @@ export function useUpdatePet() {
  */
 export function useDeletePet() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.deletePet,
     onSuccess: (_d, id) => {
       qc.invalidateQueries({ queryKey: qk.pets.mine });
@@ -69,7 +70,7 @@ export function useDeletePet() {
  */
 export function useRestorePet() {
   const qc = useQueryClient();
-  return useMutation({
+  return useAppMutation({
     mutationFn: client.restorePet,
     onSuccess: (_d, id) => {
       qc.invalidateQueries({ queryKey: qk.pets.mine });
