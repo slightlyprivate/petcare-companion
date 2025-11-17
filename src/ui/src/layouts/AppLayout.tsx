@@ -9,12 +9,12 @@ export default function AppLayout() {
   const logout = useLogout();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-brand-bg text-brand-primary">
       <nav className="flex items-center justify-between px-4 py-3 border-b bg-white">
         <div className="flex items-center space-x-4">
           <Link
             to="/"
-            className="font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded"
+            className="font-semibold focus:outline-none focus:ring-2 focus:ring-brand-accent rounded text-brand-primary"
           >
             PetCare
           </Link>
@@ -23,7 +23,7 @@ export default function AppLayout() {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `text-sm ${isActive ? 'text-indigo-600 font-medium' : 'text-gray-700'} focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded`
+                `text-sm ${isActive ? 'text-brand-primary font-medium' : 'text-brand-fg'} focus:outline-none focus:ring-2 focus:ring-brand-accent rounded`
               }
               end={item.end}
             >
@@ -34,7 +34,7 @@ export default function AppLayout() {
         <div>
           {me ? (
             <button
-              className="inline-flex items-center gap-2 text-sm text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-sm text-brand-accent focus:outline-none focus:ring-2 focus:ring-brand-accent rounded disabled:opacity-50"
               onClick={() => {
                 if (!logout.isPending && window.confirm('Are you sure you want to logout?')) {
                   logout.mutate();
@@ -48,7 +48,7 @@ export default function AppLayout() {
           ) : (
             <Link
               to="/login"
-              className="text-sm text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded"
+              className="text-sm text-brand-accent focus:outline-none focus:ring-2 focus:ring-brand-accent rounded"
             >
               Login
             </Link>

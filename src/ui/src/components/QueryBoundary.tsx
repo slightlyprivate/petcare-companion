@@ -16,7 +16,7 @@ export default function QueryBoundary({
 }) {
   if (loading)
     return (
-      <div className="inline-flex items-center text-sm text-gray-600">
+      <div className="inline-flex items-center text-sm text-brand-fg">
         <Spinner />
         <span className="ml-2">Loading…</span>
       </div>

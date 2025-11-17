@@ -21,15 +21,15 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const base =
-    'inline-flex items-center justify-center rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50';
+    'inline-flex items-center justify-center rounded focus:outline-none focus:ring-2 focus:ring-brand-accent disabled:opacity-50';
   const variantCls =
     variant === 'primary'
-      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+      ? 'bg-brand-accent text-white hover:bg-brand-accent-700'
       : variant === 'secondary'
-        ? 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+        ? 'bg-brand-secondary text-brand-primary hover:bg-brand-secondary-200'
         : variant === 'danger'
-          ? 'bg-red-600 text-white hover:bg-red-700'
-          : 'bg-transparent text-gray-900 hover:bg-gray-100';
+          ? 'bg-brand-danger text-white hover:bg-brand-danger-700'
+          : 'bg-transparent text-brand-fg hover:bg-brand-muted/40';
   const sizeCls =
     size === 'sm'
       ? 'px-2.5 py-1 text-xs'

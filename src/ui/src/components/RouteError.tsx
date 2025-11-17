@@ -8,15 +8,17 @@ export default function RouteError() {
   const { status, statusText, message } = normalizeError(error);
 
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h1 className="text-xl font-semibold mb-2">Unexpected Application Error</h1>
-      <div className="text-sm text-gray-700 mb-4">
+    <div className="max-w-xl mx-auto p-6 bg-brand-bg rounded">
+      <h1 className="text-xl font-semibold mb-2 text-brand-primary">
+        Unexpected Application Error
+      </h1>
+      <div className="text-sm text-brand-fg mb-4">
         {status ? (
           <span>
             {status} {statusText || ''}
           </span>
         ) : null}
-        <div className="mt-1 text-red-700">{message}</div>
+        <div className="mt-1 text-brand-danger">{message}</div>
       </div>
       <div className="flex gap-2">
         <Button onClick={() => navigate(-1)} size="sm" variant="secondary">
@@ -27,7 +29,7 @@ export default function RouteError() {
         </Button>
       </div>
       {import.meta.env.DEV && error?.stack ? (
-        <pre className="mt-4 text-xs bg-gray-50 p-2 rounded overflow-auto">
+        <pre className="mt-4 text-xs bg-brand-bg p-2 rounded overflow-auto border border-brand-muted">
           {String(error.stack)}
         </pre>
       ) : null}

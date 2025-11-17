@@ -3,6 +3,6 @@
  */
 export default function Spinner() {
   return (
-    <div className="animate-spin h-4 w-4 border-2 border-indigo-600 border-t-transparent rounded-full" />
+    <div className="animate-spin h-4 w-4 border-2 border-brand-accent border-t-transparent rounded-full" />
   );
 }
