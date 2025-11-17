@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { config } from './config.js';
+import { PASS_THROUGH_HEADERS } from '../constants.js';
 
 export function makeApiClient(req) {
   const instance = axios.create({
@@ -11,9 +12,8 @@ export function makeApiClient(req) {
 
   instance.interceptors.request.use((cfg) => {
     // Forward selected headers from client
-    const passHeaders = ['accept', 'content-type', 'user-agent'];
     cfg.headers = cfg.headers || {};
-    for (const k of passHeaders) {
+    for (const k of PASS_THROUGH_HEADERS) {
       const v = req.headers[k];
       if (v) cfg.headers[k] = v;
     }
@@ -29,4 +29,3 @@ export function makeApiClient(req) {
 
   return instance;
 }
-

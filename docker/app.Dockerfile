@@ -3,7 +3,10 @@ FROM php:8.3-fpm
 
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev libonig-dev libicu-dev libpq-dev libxml2-dev \
-    && docker-php-ext-install pdo pdo_mysql intl bcmath zip
+    && docker-php-ext-install pdo pdo_mysql intl bcmath zip pcntl posix \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && rm -rf /var/lib/apt/lists/* /tmp/pear
 
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
