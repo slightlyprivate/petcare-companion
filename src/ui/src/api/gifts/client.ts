@@ -1,4 +1,4 @@
-import { api } from '../../lib/http';
+import { api, proxy } from '../../lib/http';
 import { normalizePaginated } from '../../lib/fetch';
 import type { GiftType } from '../types';
 
@@ -14,7 +14,7 @@ export const listGiftTypes = async (): Promise<GiftType[]> => {
  * Create a gift for a specific pet.
  */
 export const createGift = (payload: { petId: number | string; gift_type_id: number }) =>
-  api(`/pets/${payload.petId}/gifts`, { method: 'POST', body: payload });
+  proxy(`/pets/${payload.petId}/gifts`, { method: 'POST', body: payload });
 
 /**
  * Export the receipt for a specific gift.

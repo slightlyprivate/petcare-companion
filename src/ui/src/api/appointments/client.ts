@@ -1,4 +1,4 @@
-import { api } from '../../lib/http';
+import { api, proxy } from '../../lib/http';
 
 /**
  * Fetch a list of appointments for a specific pet.
@@ -25,10 +25,10 @@ export type CancelAppointmentPayload = {
 
 // Skeleton write operations aligned with Laravel routes
 export const create = (payload: CreateAppointmentPayload) =>
-  api(`/pets/${payload.petId}/appointments`, { method: 'POST', body: payload });
+  proxy(`/pets/${payload.petId}/appointments`, { method: 'POST', body: payload });
 
 export const update = (payload: UpdateAppointmentPayload) =>
-  api(`/appointments/${payload.apptId}`, { method: 'PUT', body: payload });
+  proxy(`/appointments/${payload.apptId}`, { method: 'PUT', body: payload });
 
 export const cancel = (payload: CancelAppointmentPayload) =>
-  api(`/appointments/${payload.apptId}`, { method: 'DELETE' });
+  proxy(`/appointments/${payload.apptId}`, { method: 'DELETE' });

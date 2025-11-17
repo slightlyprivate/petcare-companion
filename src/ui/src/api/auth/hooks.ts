@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppQuery, useAppMutation } from '../../lib/appQuery';
+import { resetOnLogout } from '../../lib/queryUtils';
 import { qk } from '../queryKeys';
 import * as client from './client';
 
@@ -35,6 +36,8 @@ export function useLogout() {
   const qc = useQueryClient();
   return useAppMutation({
     mutationFn: client.logout,
-    onSuccess: () => qc.invalidateQueries({ queryKey: qk.auth.me }),
+    onSuccess: () => {
+      resetOnLogout(qc);
+    },
   });
 }
