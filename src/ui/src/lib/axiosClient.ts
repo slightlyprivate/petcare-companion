@@ -5,7 +5,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import { isDev } from './config';
-import { getCsrfToken } from './csrfStore';
+import { getCsrfToken, isStorageAvailable } from './csrfStore';
 import { ensureCsrf } from './csrf';
 import { handleAuthError } from './authErrors';
 
@@ -92,7 +92,12 @@ client.interceptors.response.use(
           (cfg.headers as any)['X-CSRF-Token'] = token;
         }
         return client.request(cfg as any);
-      } catch {}
+      } catch (e) {
+        if (isDev) {
+          // eslint-disable-next-line no-console
+          console.warn('[csrf] Retry after 419 failed; continuing with original error', e);
+        }
+      }
     }
 
     // Global auth redirect support
@@ -115,7 +120,7 @@ client.interceptors.response.use(
     if (isDev) {
       try {
         // eslint-disable-next-line no-console
-        console.debug('[http][err]', status, cfg.url);
+        console.debug('[http][err]', status, cfg.url, isStorageAvailable() ? '' : '(no storage)');
       } catch {}
     }
 

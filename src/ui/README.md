@@ -39,8 +39,23 @@ Query helpers
 
 - Prefer `useAppQuery` / `useAppMutation` from `src/ui/src/lib/appQuery` for consistent defaults.
   They layer on top of the global QueryClient defaults and keep per-domain options tidy.
+- For cursor/page flows, use `usePaginatedQuery` to keep previous data while fetching the next page.
+  Example:
+  `usePaginatedQuery({ queryKey: [qk.pets.all, page], queryFn: () => listPublicPets({ page }), keepPreviousData: true })`.
+
+Optimistic updates
+
+- `src/ui/src/lib/optimistic.ts` provides `optimisticListUpdate` to stage UI updates before the
+  server responds (e.g., prepend a newly created item). Spread the returned handlers into your
+  `useAppMutation` call; it snapshots cache, rolls back on error, and invalidates on settle.
 
 Layout ownership
 
 - `AppLayout` (in `layouts/`) owns the navigation shell and renders routed content via `<Outlet />`.
   There is no separate `AppShell`—the layout is consolidated to reduce confusion and duplication.
+
+CSRF visibility and debugging
+
+- CSRF is fetched via `/auth/csrf` and persisted in localStorage where available. In dev, the app
+  logs warnings when storage is unavailable (SSR/private modes) or when a CSRF refresh fails after
+  a 419.

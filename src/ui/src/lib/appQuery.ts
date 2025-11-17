@@ -49,3 +49,19 @@ export function useAppMutation<
   } as UseMutationOptions<TData, TError, TVariables, TContext>;
   return rqUseMutation(withDefaults);
 }
+
+/**
+ * Paginated query helper with stable UX defaults (keep previous page data)
+ */
+export function usePaginatedQuery<
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+>(options: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>): UseQueryResult<TData, TError> {
+  const withDefaults = {
+    placeholderData: options.placeholderData ?? ((prev) => prev as any),
+    ...options,
+  } as UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
+  return rqUseQuery(withDefaults);
+}

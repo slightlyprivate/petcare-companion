@@ -4,6 +4,8 @@ const DEFAULT_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 let token: string | null = null;
 let expiresAt: number | null = null;
+let storageAvailable = true;
+let warnedStorage = false;
 
 function loadFromStorage() {
   try {
@@ -22,6 +24,12 @@ function loadFromStorage() {
     }
   } catch {
     // storage not available (SSR or privacy mode); fall back to memory only
+    storageAvailable = false;
+    if (import.meta.env.DEV && !warnedStorage) {
+      // eslint-disable-next-line no-console
+      console.warn('[csrf] Local storage unavailable; CSRF token kept in memory only.');
+      warnedStorage = true;
+    }
   }
 }
 
@@ -63,7 +71,12 @@ export function setCsrfToken(t: string, opts?: { ttlMs?: number; expiresAt?: num
     localStorage.setItem(STORE_KEY, t);
     if (expiresAt) localStorage.setItem(STORE_EXP_KEY, String(expiresAt));
   } catch {
-    // ignore storage errors
+    storageAvailable = false;
+    if (import.meta.env.DEV && !warnedStorage) {
+      // eslint-disable-next-line no-console
+      console.warn('[csrf] Failed to persist CSRF token; storage unavailable.');
+      warnedStorage = true;
+    }
   }
 }
 
@@ -74,4 +87,8 @@ export function clearCsrfToken() {
     localStorage.removeItem(STORE_KEY);
     localStorage.removeItem(STORE_EXP_KEY);
   } catch {}
+}
+
+export function isStorageAvailable() {
+  return storageAvailable;
 }
