@@ -1,28 +1,27 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { BFF_REWRITE_PREFIXES } from '../shared/bffPaths.js';
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  server: {
-    host: true,
-    port: 5173,
-    proxy: {
-      // Proxy API calls to the Node BFF (which proxies to Laravel)
-      '/api': {
-        // Prefer env for containerized dev; falls back to BFF service name
-        target: process.env.VITE_API_PROXY_TARGET || 'http://frontend:3000',
-        changeOrigin: true,
-      },
-      // Proxy BFF auth/session endpoints
-      '/auth': {
-        target: process.env.VITE_API_PROXY_TARGET || 'http://frontend:3000',
-        changeOrigin: true,
-      },
+export default defineConfig(() => {
+  const target = process.env.VITE_API_PROXY_TARGET || 'http://frontend:3000';
+  const proxyEntries: Record<string, { target: string; changeOrigin: boolean }> = {
+    '/api': { target, changeOrigin: true },
+    '/auth': { target, changeOrigin: true },
+  };
+  for (const prefix of BFF_REWRITE_PREFIXES) {
+    proxyEntries[prefix] = { target, changeOrigin: true };
+  }
+  return {
+    plugins: [react(), tailwindcss()],
+    server: {
+      host: true,
+      port: 5173,
+      proxy: proxyEntries,
     },
-  },
-  preview: {
-    host: true,
-    port: 5173,
-  },
+    preview: {
+      host: true,
+      port: 5173,
+    },
+  };
 });

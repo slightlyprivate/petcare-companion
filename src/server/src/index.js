@@ -8,6 +8,7 @@ import { ensureCsrfToken, requireCsrfOnMutations } from './middleware/csrf.js';
 import { auth as authRouter } from './routes/auth.js';
 import { API_PREFIX } from './constants.js';
 import { handleProxy } from './services/proxy.js';
+import { BFF_REWRITE_PREFIXES } from '../../shared/bffPaths.js';
 import { logger } from './lib/logger.js';
 import { errorHandler, notFound } from './middleware/error.js';
 // moved imports above
@@ -38,8 +39,8 @@ app.use(
     httpOnly: true,
     secure: config.secureCookies,
     sameSite: config.sameSite,
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  })
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  }),
 );
 
 // Parse cookies (for token cookie handling if needed)
@@ -65,6 +66,8 @@ app.use('/auth', authRouter);
 
 // CSRF required on mutating API requests
 app.use('/api', requireCsrfOnMutations);
+// Also enforce CSRF on BFF-mapped JSON endpoints
+app.use(BFF_REWRITE_PREFIXES, requireCsrfOnMutations);
 
 // Session demo endpoint (useful to verify cookie-session works)
 app.get('/session/ping', (req, res) => {
@@ -74,6 +77,11 @@ app.get('/session/ping', (req, res) => {
 
 // Generic API proxy: forwards /api/* to Laravel backend
 app.all(`${API_PREFIX}/*`, handleProxy);
+// Forward BFF JSON endpoints by rewriting to /api/* internally via handleProxy
+app.all(
+  BFF_REWRITE_PREFIXES.map((p) => `${p}/*`),
+  handleProxy,
+);
 
 // SPA fallback for non-API GET requests
 app.get('*', (req, res, next) => {

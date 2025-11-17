@@ -7,7 +7,8 @@ export async function handleProxy(req, res) {
   const rl = withRequestContext(req);
   try {
     const api = makeApiClient(req);
-    const url = req.originalUrl.replace(new RegExp(`^${API_PREFIX}`), API_PREFIX);
+    const orig = req.originalUrl || req.url || '';
+    const url = orig.startsWith(API_PREFIX) ? orig : `${API_PREFIX}${orig}`;
     const method = req.method.toLowerCase();
     const isBinary = (req.headers['accept'] || '').includes('application/pdf');
     const response = await api.request({

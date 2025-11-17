@@ -23,7 +23,7 @@ services:
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./src:/var/www/html
     ports:
-      - "8080:80"
+      - '8080:80'
     depends_on:
       - app
 
@@ -37,11 +37,11 @@ services:
       MYSQL_PASSWORD: petpass
       MYSQL_ROOT_PASSWORD: rootpass
     ports:
-      - "3307:3306"
+      - '3307:3306'
     volumes:
       - dbdata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -prootpass || exit 1"]
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -prootpass || exit 1']
       interval: 10s
       timeout: 5s
       retries: 12
@@ -50,9 +50,9 @@ services:
   redis:
     container_name: petcare_redis
     image: redis:7-alpine
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ['redis-server', '--appendonly', 'yes']
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redisdata:/data
 
@@ -66,9 +66,9 @@ services:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    entrypoint: ["sh", "/usr/local/bin/horizon-entrypoint.sh"]
+    entrypoint: ['sh', '/usr/local/bin/horizon-entrypoint.sh']
     environment:
-      ENABLE_HORIZON: "true"
+      ENABLE_HORIZON: 'true'
     depends_on:
       redis:
         condition: service_started
@@ -89,9 +89,9 @@ services:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    entrypoint: ["sh", "/usr/local/bin/worker-entrypoint.sh"]
+    entrypoint: ['sh', '/usr/local/bin/worker-entrypoint.sh']
     environment:
-      WAIT_FOR_DB: "true"
+      WAIT_FOR_DB: 'true'
     depends_on:
       app:
         condition: service_started
@@ -114,9 +114,9 @@ services:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    entrypoint: ["sh", "/usr/local/bin/scheduler-entrypoint.sh"]
+    entrypoint: ['sh', '/usr/local/bin/scheduler-entrypoint.sh']
     environment:
-      WAIT_FOR_DB: "true"
+      WAIT_FOR_DB: 'true'
     depends_on:
       app:
         condition: service_started
@@ -140,17 +140,18 @@ services:
       BACKEND_URL: http://web
       SESSION_SECRET: ${FRONTEND_SESSION_SECRET:-change_me}
       LARAVEL_API_KEY: ${LARAVEL_API_KEY:-}
-      COOKIE_SECURE: "false"
+      COOKIE_SECURE: 'false'
       COOKIE_SAMESITE: lax
       LOG_LEVEL: debug
     command: sh -lc "cd src/server && npm install && npm run dev"
     ports:
-      - "5174:3000"
+      - '5174:3000'
     depends_on:
       - web
     volumes:
       - ./src/server:/app/src/server
       - ./src/ui:/app/src/ui
+      - ./src/shared:/app/src/shared
       # keep node_modules inside container
       - /app/src/server/node_modules
       - /app/src/ui/node_modules
@@ -165,11 +166,12 @@ services:
       VITE_API_PROXY_TARGET: http://frontend:3000
     command: sh -lc "npm install && npm run dev -- --host"
     ports:
-      - "5173:5173"
+      - '5173:5173'
     depends_on:
       - frontend
     volumes:
       - ./src/ui:/app/src/ui
+      - ./src/shared:/app/src/shared
       - /app/src/ui/node_modules
 
 volumes:

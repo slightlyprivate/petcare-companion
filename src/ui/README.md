@@ -7,7 +7,10 @@ Dev
 
 - Prereq: Dev stack running via `docker compose -f docker-compose.dev.yml up`
 - Start UI dev server: `npm install && npm run dev` inside `src/ui`
-- API proxy: All `/api/*` calls are proxied to the BFF at `http://localhost:5174`
+- API proxy: The dev server proxies application calls to the BFF at `http://localhost:5174` (or
+  `VITE_API_PROXY_TARGET`):
+  - `/api/*` → BFF (Laravel upstream)
+  - `/auth/*`, `/user/*`, `/pets/*`, `/appointments/*`, `/credits/*`, `/gifts/*` → BFF endpoints
 
 Proxy target
 
