@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useMe } from '../api/auth/hooks';
 import Spinner from './Spinner';
+import { PATHS } from '../routes/paths';
 
 /**
  * Component that ensures its children are only rendered for authenticated users.
@@ -19,7 +20,7 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
     const qs = new URLSearchParams({ redirectTo }).toString();
     return (
       <Navigate
-        to={{ pathname: '/login', search: `?${qs}` }}
+        to={{ pathname: PATHS.AUTH.SIGNIN, search: `?${qs}` }}
         replace
         state={{ from: loc, redirectTo }}
       />

@@ -4,6 +4,7 @@ import Button from '../components/Button';
 import ErrorMessage from '../components/ErrorMessage';
 import { useRequestOtp, useVerifyOtp } from '../api/auth/hooks';
 import { ensureCsrf } from '../lib/csrf';
+import { PATHS } from '../routes/paths';
 
 /**
  * Login page allowing users to authenticate via one-time password (OTP).
@@ -22,7 +23,7 @@ export default function LoginOtp() {
     const fromLegacy = loc?.state?.from
       ? `${loc.state.from.pathname || ''}${loc.state.from.search || ''}${loc.state.from.hash || ''}`
       : undefined;
-    return fromState || fromSearch || fromLegacy || '/dashboard';
+    return fromState || fromSearch || fromLegacy || PATHS.DASHBOARD.ROOT;
   }, [loc]);
 
   async function onRequest(e: FormEvent) {
@@ -46,7 +47,7 @@ export default function LoginOtp() {
 
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="text-xl font-semibold mb-4">Login via OTP</h1>
+      <h1 className="text-xl font-semibold mb-4">Sign in</h1>
       {step === 'request' ? (
         <form onSubmit={onRequest} className="space-y-3">
           <input

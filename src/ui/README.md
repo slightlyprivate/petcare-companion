@@ -42,6 +42,27 @@ Project structure guidance
 - `pages/`: Route-level screens that compose components and domain hooks.
 - `routes/`: Route config and bootstrapping; avoid feature logic here.
 
+Routes
+
+- Centralized route paths live in `src/ui/src/routes/paths.ts` as `PATHS` constants.
+- Always import and use `PATHS` instead of hardcoding strings like `/dashboard` or `/auth/signin`.
+- Route map (UI):
+  - Public: `/` (Landing), `/discover`, `/pet/:slug`
+  - Auth: `/auth/signin`, `/auth/signup`, `/auth/verify`
+  - Dashboard: `/dashboard` (index → My Pets), `/dashboard/pets`, `/dashboard/pets/new`,
+    `/dashboard/pets/:id`, `/dashboard/pets/:id/settings`, `/dashboard/appointments`,
+    `/dashboard/gifts`, `/dashboard/account`, `/dashboard/admin/gift-types`
+  - Not Found: `*`
+
+Linting and route guard
+
+- A lightweight guard prevents introducing hardcoded UI route strings:
+  - `npm run lint:routes` checks for `to="/..."`, `path: '/...'`, and
+    `window.location.assign('/...')`.
+  - Add/modify routes by updating `paths.ts` and `routes.config.tsx` using those constants.
+- ESLint config (`.eslintrc.cjs`) includes `no-restricted-syntax` selectors that will flag common
+  patterns when ESLint is installed. Run `npm run lint` after adding ESLint to your dev deps.
+
 HTTP clients
 
 - `http.api`: Use for calls to the upstream Laravel API (prefix `VITE_API_BASE`, default `/api`).

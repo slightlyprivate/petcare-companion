@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PATHS } from '../routes/paths';
 
 /**
  * NotFound component
@@ -11,7 +12,7 @@ export default function NotFound() {
       <p className="text-sm text-brand-fg mb-4">
         The page you're looking for doesn't exist or was moved.
       </p>
-      <Link className="text-brand-accent underline" to="/">
+      <Link className="text-brand-accent underline" to={PATHS.ROOT}>
         Go to Home
       </Link>
     </div>

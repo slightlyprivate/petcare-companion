@@ -4,14 +4,15 @@ import { Link } from 'react-router-dom';
 import { PATHS } from '../routes/paths';
 
 /**
- * Home page displaying a list of public pets.
+ * Discover public pets page.
+ * @returns Discover public pets component
  */
-export default function Home() {
+export default function Discover() {
   const { data, isLoading, error } = usePublicPets();
   const pets = data?.data ?? [];
   return (
     <div>
-      <h1 className="text-xl font-semibold mb-3">Public Pets</h1>
+      <h1 className="text-xl font-semibold mb-3">Discover Public Pets</h1>
       <QueryBoundary loading={isLoading} error={error}>
         <ul className="space-y-2">
           {pets.map((p: any) => (
