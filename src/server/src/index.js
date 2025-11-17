@@ -78,6 +78,8 @@ app.get('/session/ping', (req, res) => {
 // Generic API proxy: forwards /api/* to Laravel backend
 app.all(`${API_PREFIX}/*`, handleProxy);
 // Forward BFF JSON endpoints by rewriting to /api/* internally via handleProxy
+// Cover both the prefix root (e.g., /pets) and nested paths (e.g., /pets/123)
+app.all(BFF_REWRITE_PREFIXES, handleProxy);
 app.all(
   BFF_REWRITE_PREFIXES.map((p) => `${p}/*`),
   handleProxy,
