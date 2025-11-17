@@ -18,6 +18,9 @@ seed:
 	docker compose -f $(DEV_COMPOSE) exec app php artisan migrate
 	docker compose -f $(DEV_COMPOSE) exec app php artisan db:seed
 
+pint:
+	docker compose -f $(DEV_COMPOSE) exec app ./vendor/bin/pint
+
 logs:
 	docker compose -f $(DEV_COMPOSE) logs -f --tail=100
 

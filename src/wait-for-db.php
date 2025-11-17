@@ -1,4 +1,5 @@
 <?php
+
 $host = getenv('DB_HOST') ?: 'db';
 $port = (int) (getenv('DB_PORT') ?: 3306);
 $timeout = 60;
@@ -12,4 +13,3 @@ for ($i = 0; $i < $timeout; $i++) {
 }
 fwrite(STDERR, "MySQL not ready after {$timeout}s at {$host}:{$port}\n");
 exit(1);
-

@@ -28,6 +28,7 @@ class HorizonServiceProvider extends ServiceProvider
             }
 
             $user = $request->user();
+
             return $user && method_exists($user, 'getAttribute') && $user->getAttribute('role') === 'admin';
         });
     }
