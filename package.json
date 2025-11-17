@@ -1,0 +1,20 @@
+{
+  "name": "petcare-companion-root",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "prepare": "husky install",
+    "format:check": "npm --prefix src/ui run format:check && npm --prefix src/server run format:check",
+    "format": "npm --prefix src/ui run format && npm --prefix src/server run format"
+  },
+  "devDependencies": {
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.3"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,css,md,json,yaml,yml,html}": [
+      "prettier --write"
+    ]
+  }
+}
