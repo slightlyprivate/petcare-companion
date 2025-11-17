@@ -28,7 +28,7 @@ export default function Button({
       : variant === 'secondary'
         ? 'bg-brand-secondary text-brand-primary hover:bg-brand-secondary-200'
         : variant === 'danger'
-          ? 'bg-brand-danger text-white hover:bg-brand-danger-700'
+          ? 'bg-red-600 text-white hover:bg-red-700'
           : 'bg-transparent text-brand-fg hover:bg-brand-muted/40';
   const sizeCls =
     size === 'sm'

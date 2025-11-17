@@ -1,4 +1,4 @@
-import { logger, withRequestContext } from '../lib/logger.js';
+import { withRequestContext } from '../lib/logger.js';
 
 // 404 handler for unmatched routes
 export function notFound(_req, res, _next) {
@@ -22,4 +22,3 @@ export function errorHandler(err, req, res, _next) {
 
   return res.status(status).json({ error: { message, code } });
 }
-

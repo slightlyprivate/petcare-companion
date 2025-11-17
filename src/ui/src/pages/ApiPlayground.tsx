@@ -463,7 +463,7 @@ export default function ApiPlayground() {
                 className="border rounded px-3 py-1.5 w-full"
                 placeholder="gift type id"
                 value={giftTypeId}
-                onChange={(e) => setGiftTypeId(e.target.value)}
+                onChange={(e) => setGiftTypeId(e.target.value === '' ? '' : Number(e.target.value))}
               />
               {createGift.isError && (
                 <ErrorMessage message={(createGift.error as any)?.message || 'Error'} />
@@ -578,10 +578,11 @@ export default function ApiPlayground() {
               className="space-y-2"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (apptPetId && apptAt)
+                if (apptPetId && apptTitle && apptScheduledAt)
                   createAppt.mutate({
                     petId: apptPetId,
-                    at: apptAt,
+                    title: apptTitle,
+                    scheduled_at: apptScheduledAt,
                     notes: apptNotes || undefined,
                   });
               }}

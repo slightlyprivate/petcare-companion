@@ -18,7 +18,6 @@ export const useGiftTypes = () =>
  * Hook to create a gift for a specific pet.
  */
 export function useCreateGift() {
-  const qc = useQueryClient();
   return useAppMutation({
     mutationFn: client.createGift,
     onSuccess: () => {

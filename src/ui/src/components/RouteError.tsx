@@ -19,7 +19,7 @@ export default function RouteError() {
             {status} {statusText || ''}
           </span>
         ) : null}
-        <div className={isAuth ? 'mt-1 text-brand-fg' : 'mt-1 text-brand-danger'}>
+        <div className={isAuth ? 'mt-1 text-brand-fg' : 'mt-1 text-red-600'}>
           {isAuth ? 'You do not have permission to view this resource.' : message}
         </div>
       </div>
