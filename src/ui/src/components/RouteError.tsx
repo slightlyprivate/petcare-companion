@@ -6,11 +6,12 @@ export default function RouteError() {
   const navigate = useNavigate();
 
   const { status, statusText, message } = normalizeError(error);
+  const isAuth = status === 401 || status === 403;
 
   return (
     <div className="max-w-xl mx-auto p-6 bg-brand-bg rounded">
       <h1 className="text-xl font-semibold mb-2 text-brand-primary">
-        Unexpected Application Error
+        {isAuth ? 'Access Restricted' : 'Unexpected Application Error'}
       </h1>
       <div className="text-sm text-brand-fg mb-4">
         {status ? (
@@ -18,7 +19,9 @@ export default function RouteError() {
             {status} {statusText || ''}
           </span>
         ) : null}
-        <div className="mt-1 text-brand-danger">{message}</div>
+        <div className={isAuth ? 'mt-1 text-brand-fg' : 'mt-1 text-brand-danger'}>
+          {isAuth ? 'You do not have permission to view this resource.' : message}
+        </div>
       </div>
       <div className="flex gap-2">
         <Button onClick={() => navigate(-1)} size="sm" variant="secondary">

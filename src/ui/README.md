@@ -30,6 +30,18 @@ Notes
 - Tailwind v4 is enabled through the Vite plugin; no extra config is required.
 - Example screen queries `/api/public/pets` to demonstrate TanStack Query usage.
 
+Project structure guidance
+
+- `lib/`: Cross-cutting utilities used by more than one domain (e.g., HTTP clients, CSRF helpers,
+  query wrappers, notifications, config, brand utilities). These should be UI-agnostic and reusable.
+- `api/<domain>`: Domain-specific clients (`client.ts`) and hooks (`hooks.ts`). Keep logic close to
+  the domain; avoid importing UI components here.
+- `components/`: Pure presentational building blocks (Button, Spinner, ErrorMessage, StatusMessage,
+  QueryBoundary) that do not depend on domain code.
+- `layouts/`: Shells and navigational structure; `AppLayout` owns the browser chrome.
+- `pages/`: Route-level screens that compose components and domain hooks.
+- `routes/`: Route config and bootstrapping; avoid feature logic here.
+
 HTTP clients
 
 - `http.api`: Use for calls to the upstream Laravel API (prefix `VITE_API_BASE`, default `/api`).
@@ -66,6 +78,14 @@ Query helpers
 - For cursor/page flows, use `usePaginatedQuery` to keep previous data while fetching the next page.
   Example:
   `usePaginatedQuery({ queryKey: [qk.pets.all, page], queryFn: () => listPublicPets({ page }), keepPreviousData: true })`.
+
+Testing plan (lightweight)
+
+- CSRF behavior: Manually validate `GET /auth/csrf` via the API Playground before building flows.
+  The UI logs dev warnings if storage is unavailable or if a 419 refresh fails.
+- For unit tests (future), prefer Vitest; focus on `ensureCsrf` happy/failure paths and
+  `axiosClient` transient retry behavior (network/5xx retry, 419 refresh once). Avoid adding a test
+  runner until the repository standardizes on one.
 
 Optimistic updates
 

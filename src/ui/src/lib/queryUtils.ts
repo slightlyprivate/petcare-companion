@@ -10,3 +10,20 @@ export function resetOnLogout(qc: QueryClient) {
     clearCsrfToken();
   } catch {}
 }
+
+// Invalidate a list of query keys
+export function invalidateMany(qc: QueryClient, keys: readonly unknown[][]) {
+  for (const key of keys) {
+    qc.invalidateQueries({ queryKey: key as any });
+  }
+}
+
+// Common list/detail invalidation pattern
+export function invalidateListAndDetail(
+  qc: QueryClient,
+  listKey: readonly unknown[],
+  detailKey: readonly unknown[] | null,
+) {
+  qc.invalidateQueries({ queryKey: listKey as any });
+  if (detailKey) qc.invalidateQueries({ queryKey: detailKey as any });
+}
