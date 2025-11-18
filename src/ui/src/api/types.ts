@@ -1,10 +1,12 @@
 /**
  * User of the PetCare Companion application.
  */
+import type { Role } from '../constants/roles';
+
 export interface User {
   id: number;
   email: string;
-  role?: string;
+  role?: Role;
 }
 
 /**

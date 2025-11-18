@@ -1,6 +1,8 @@
 import { lazy } from 'react';
 import { Outlet } from 'react-router-dom';
 import RouteGuard from '../components/RouteGuard';
+import RequireRole from '../components/RequireRole';
+import { ROLES } from '../constants/roles';
 import RouteError from '../components/RouteError';
 import NotFound from '../pages/Public/NotFound';
 import { PATHS } from './paths';
@@ -86,7 +88,11 @@ export const routes = [
           },
           {
             path: PATHS.DASHBOARD.ADMIN.GIFT_TYPES,
-            element: <AdminGiftTypes />,
+            element: (
+              <RequireRole allow={ROLES.ADMIN}>
+                <AdminGiftTypes />
+              </RequireRole>
+            ),
             errorElement: <RouteError />,
           },
         ],
