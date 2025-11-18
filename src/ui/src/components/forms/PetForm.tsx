@@ -37,7 +37,7 @@ export default function PetForm({
   useEffect(() => {
     // Sync when initial changes
     setValues((v) => ({ ...v, ...initial }));
-  }, [initial?.name, initial?.species, initial?.owner_name, initial?.breed, initial?.birth_date]);
+  }, [initial]);
 
   const canSubmit = !!values.name && !!values.species && !!values.owner_name;
 

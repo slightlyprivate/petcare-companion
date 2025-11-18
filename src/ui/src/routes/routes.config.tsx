@@ -98,7 +98,7 @@ export const routes = [
         ],
       },
       {
-        path: '/dev',
+        path: PATHS.DEV,
         element: <Outlet />,
         children: [
           { index: true, element: <DevHome />, errorElement: <RouteError /> },

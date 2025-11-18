@@ -76,9 +76,9 @@ export async function request<T = unknown>(path: string, opts: RequestOptions = 
         (d?.message as string | undefined) ||
         `Request failed: ${status ?? 'network'}`,
     );
-    const e = new Error(msg);
-    (e as any).status = status;
-    (e as any).data = data;
+    const e = new Error(msg) as ApiError;
+    e.status = status;
+    e.data = data;
     throw e;
   }
 }

@@ -24,6 +24,7 @@ export const PATHS = {
       GIFT_TYPES: '/dashboard/admin/gift-types',
     },
   },
+  DEV: '/dev',
 } as const;
 
 export type AppPaths = typeof PATHS;
