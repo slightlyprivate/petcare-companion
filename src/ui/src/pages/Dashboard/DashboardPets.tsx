@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { PATHS } from '../routes/paths';
+import { PATHS } from '../../routes/paths';
 
 /**
  * Dashboard pets management page.

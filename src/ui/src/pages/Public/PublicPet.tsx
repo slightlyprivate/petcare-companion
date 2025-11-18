@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { PATHS } from '../routes/paths';
+import { PATHS } from '../../routes/paths';
 
 /**
  * Public pet details page.

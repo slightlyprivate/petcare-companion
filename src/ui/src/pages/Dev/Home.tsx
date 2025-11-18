@@ -1,7 +1,7 @@
-import QueryBoundary from '../components/QueryBoundary';
-import { usePublicPets } from '../api/pets/hooks';
+import QueryBoundary from '../../components/QueryBoundary';
+import { usePublicPets } from '../../api/pets/hooks';
 import { Link } from 'react-router-dom';
-import { PATHS } from '../routes/paths';
+import { PATHS } from '../../routes/paths';
 
 /**
  * Home page displaying a list of public pets.

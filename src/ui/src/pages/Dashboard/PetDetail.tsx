@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import QueryBoundary from '../components/QueryBoundary';
-import { usePublicPet } from '../api/pets/hooks';
+import QueryBoundary from '../../components/QueryBoundary';
+import { usePublicPet } from '../../api/pets/hooks';
 
 /**
  * Pet detail page displaying information about a specific pet.

@@ -1,5 +1,5 @@
-import QueryBoundary from '../components/QueryBoundary';
-import { useCreditPurchases } from '../api/credits/hooks';
+import QueryBoundary from '../../components/QueryBoundary';
+import { useCreditPurchases } from '../../api/credits/hooks';
 
 /**
  * Purchases page displaying the list of credit purchases for the user.

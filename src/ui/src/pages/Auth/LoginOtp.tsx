@@ -1,10 +1,10 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Button from '../components/Button';
-import ErrorMessage from '../components/ErrorMessage';
-import { useRequestOtp, useVerifyOtp } from '../api/auth/hooks';
-import { ensureCsrf } from '../lib/csrf';
-import { PATHS } from '../routes/paths';
+import Button from '../../components/Button';
+import ErrorMessage from '../../components/ErrorMessage';
+import { useRequestOtp, useVerifyOtp } from '../../api/auth/hooks';
+import { ensureCsrf } from '../../lib/csrf';
+import { PATHS } from '../../routes/paths';
 
 /**
  * Login page allowing users to authenticate via one-time password (OTP).

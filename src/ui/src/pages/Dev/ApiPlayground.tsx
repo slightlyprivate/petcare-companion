@@ -1,8 +1,8 @@
 import { FormEvent, useMemo, useState } from 'react';
-import QueryBoundary from '../components/QueryBoundary';
-import ErrorMessage from '../components/ErrorMessage';
-import Button from '../components/Button';
-import { useMe, useLogout, useRequestOtp, useVerifyOtp } from '../api/auth/hooks';
+import QueryBoundary from '../../components/QueryBoundary';
+import ErrorMessage from '../../components/ErrorMessage';
+import Button from '../../components/Button';
+import { useMe, useLogout, useRequestOtp, useVerifyOtp } from '../../api/auth/hooks';
 import {
   usePublicPets,
   usePublicPet,
@@ -11,24 +11,24 @@ import {
   useUpdatePet,
   useDeletePet,
   useRestorePet,
-} from '../api/pets/hooks';
-import * as petsClient from '../api/pets/client';
-import { useGiftTypes, useCreateGift } from '../api/gifts/hooks';
-import * as giftClient from '../api/gifts/client';
-import { useCreditPurchases, usePurchaseCredits } from '../api/credits/hooks';
+} from '../../api/pets/hooks';
+import * as petsClient from '../../api/pets/client';
+import { useGiftTypes, useCreateGift } from '../../api/gifts/hooks';
+import * as giftClient from '../../api/gifts/client';
+import { useCreditPurchases, usePurchaseCredits } from '../../api/credits/hooks';
 import {
   useAppointmentsByPet,
   useCreateAppointment,
   useUpdateAppointment,
   useCancelAppointment,
-} from '../api/appointments/hooks';
+} from '../../api/appointments/hooks';
 import {
   useNotificationPreferences,
   useDisableAllNotifications,
   useEnableAllNotifications,
   useExportUserData,
   useDeleteUserData,
-} from '../api/user/hooks';
+} from '../../api/user/hooks';
 
 export default function ApiPlayground() {
   // Auth
