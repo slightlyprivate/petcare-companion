@@ -11,7 +11,7 @@ export default function QueryBoundary({
   children,
 }: {
   loading: boolean;
-  error: any;
+  error: unknown;
   children: ReactNode;
 }) {
   if (loading)

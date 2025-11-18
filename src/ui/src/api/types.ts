@@ -67,3 +67,20 @@ export interface Paginated<T> {
     per_page: number;
   };
 }
+
+/**
+ * User notification preferences.
+ * Shape may vary by backend; common flags included.
+ */
+export interface NotificationPreferences {
+  email_enabled?: boolean;
+  sms_enabled?: boolean;
+  push_enabled?: boolean;
+  [key: string]: unknown;
+}
+
+/**
+ * Opaque export types used in Dev Playground displays.
+ */
+export type GiftReceipt = Record<string, unknown>;
+export type PetReport = Record<string, unknown>;

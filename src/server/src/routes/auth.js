@@ -1,21 +1,28 @@
 import { Router } from 'express';
 import { makeApiClient } from '../lib/axios.js';
-import { config } from '../lib/config.js';
 import { CookieNames, loggedInCookieOptions, tokenCookieOptions } from '../lib/cookies.js';
 import { withRequestContext } from '../lib/logger.js';
+import { copyUpstreamHeaders, applyNoCache } from '../services/proxy.js';
 
 export const auth = Router();
 
 // Issue a CSRF token
 auth.get('/csrf', (req, res) => {
+  // Lightweight route; still apply no-cache for consistency
+  applyNoCache(res);
   res.json({ csrfToken: req.session?.csrfToken });
 });
 
 // Start OTP flow: request code
 auth.post('/request', async (req, res) => {
+  const rl = withRequestContext(req);
   const api = makeApiClient(req);
   const upstream = await api.post('/api/auth/request', req.body);
-  res.status(upstream.status).json(upstream.data);
+  res.status(upstream.status);
+  copyUpstreamHeaders(res, upstream);
+  applyNoCache(res);
+  rl.info('auth_request_result', { status: upstream.status });
+  res.json(upstream.data);
 });
 
 // Verify OTP → returns token from Laravel; store in session and set httpOnly cookie
@@ -39,7 +46,11 @@ auth.post('/verify', async (req, res) => {
   rl.info('auth_verify_result', { status: upstream.status });
   // Do not leak tokens to the client; return a sanitized payload
   const safeUser = upstream.data?.user ?? null;
-  res.status(upstream.status).json({ ok: upstream.status >= 200 && upstream.status < 300, user: safeUser });
+  res.status(upstream.status);
+  // Surface any upstream headers (CORS, cookies, etc.)
+  copyUpstreamHeaders(res, upstream);
+  applyNoCache(res);
+  res.json({ ok: upstream.status >= 200 && upstream.status < 300, user: safeUser });
 });
 
 // Logout: clear session + cookies

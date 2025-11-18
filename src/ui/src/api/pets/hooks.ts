@@ -56,11 +56,11 @@ export function useUpdatePet() {
  */
 export function useDeletePet() {
   const qc = useQueryClient();
-  return useAppMutation({
+  return useAppMutation<unknown, unknown, number | string>({
     mutationFn: client.deletePet,
     onSuccess: (_d, id) => {
       qc.invalidateQueries({ queryKey: qk.pets.mine });
-      if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id as any) });
+      if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id) });
     },
   });
 }
@@ -70,11 +70,11 @@ export function useDeletePet() {
  */
 export function useRestorePet() {
   const qc = useQueryClient();
-  return useAppMutation({
+  return useAppMutation<unknown, unknown, number | string>({
     mutationFn: client.restorePet,
     onSuccess: (_d, id) => {
       qc.invalidateQueries({ queryKey: qk.pets.mine });
-      if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id as any) });
+      if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id) });
     },
   });
 }

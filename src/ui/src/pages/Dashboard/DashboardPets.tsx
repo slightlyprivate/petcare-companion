@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { PATHS } from '../../routes/paths';
 import QueryBoundary from '../../components/QueryBoundary';
 import { usePets } from '../../api/pets/hooks';
+import type { Pet } from '../../api/types';
 
 /**
  * Dashboard pets management page.
@@ -23,7 +24,7 @@ export default function DashboardPets() {
           <div className="text-sm text-brand-fg">You have no pets yet.</div>
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {pets.map((p: any) => (
+            {pets.map((p: Pet) => (
               <li key={p.id} className="border rounded p-3">
                 <div className="font-medium">{p.name}</div>
                 <div className="text-sm text-gray-600">{p.species}</div>

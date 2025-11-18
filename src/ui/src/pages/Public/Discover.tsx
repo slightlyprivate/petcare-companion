@@ -2,6 +2,7 @@ import QueryBoundary from '../../components/QueryBoundary';
 import { usePublicPets } from '../../api/pets/hooks';
 import { Link } from 'react-router-dom';
 import { PATHS } from '../../routes/paths';
+import type { Pet } from '../../api/types';
 
 /**
  * Discover public pets page.
@@ -15,7 +16,7 @@ export default function Discover() {
       <h1 className="text-xl font-semibold mb-3">Discover Public Pets</h1>
       <QueryBoundary loading={isLoading} error={error}>
         <ul className="space-y-2">
-          {pets.map((p: any) => (
+          {pets.map((p: Pet & { slug?: string }) => (
             <li key={p.id} className="border rounded p-3 flex justify-between">
               <div>
                 <div className="font-medium">{p.name}</div>
