@@ -12,7 +12,6 @@ export default defineConfig(() => {
     '/auth/request': { target, changeOrigin: true },
     '/auth/verify': { target, changeOrigin: true },
     '/auth/logout': { target, changeOrigin: true },
-    '/brand': { target: 'http://localhost:8080', changeOrigin: true },
   };
   for (const prefix of BFF_REWRITE_PREFIXES) {
     proxyEntries[prefix] = { target, changeOrigin: true };
