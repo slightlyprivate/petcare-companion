@@ -5,14 +5,13 @@ namespace App\Notifications\Auth;
 use App\Helpers\NotificationHelper;
 use App\Messages\TwilioMessage;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * Notification sent when OTP is requested for authentication.
  */
-class OtpSentNotification extends Notification implements ShouldQueue
+class OtpSentNotification extends Notification
 {
     use Queueable;
 
