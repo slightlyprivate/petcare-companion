@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('notification_preferences', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->boolean('otp_notifications')->default(true);
             $table->boolean('login_notifications')->default(true);
             $table->boolean('gift_notifications')->default(true);

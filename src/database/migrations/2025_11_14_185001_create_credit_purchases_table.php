@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('credit_purchases', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('user_id')->constrained()->onDelete('cascade');
             $table->foreignUuid('wallet_id')->constrained()->onDelete('cascade');
             $table->foreignUuid('credit_bundle_id')->constrained()->onDelete('restrict');
             $table->unsignedInteger('credits');
