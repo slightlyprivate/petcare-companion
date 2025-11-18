@@ -78,3 +78,13 @@ export function useRestorePet() {
     },
   });
 }
+/**
+ * Hook to fetch a pet by id (authenticated route).
+ */
+export function usePet(id: number | string) {
+  return useAppQuery({
+    queryKey: qk.pets.detail(id),
+    queryFn: () => client.getPet(id),
+    enabled: !!id,
+  });
+}
