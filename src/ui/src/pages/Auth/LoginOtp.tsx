@@ -1,10 +1,12 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import ErrorMessage from '../../components/ErrorMessage';
-import { useRequestOtp, useVerifyOtp } from '../../api/auth/hooks';
+import { useRequestOtp, useVerifyOtp, useMe } from '../../api/auth/hooks';
 import { ensureCsrf } from '../../lib/csrf';
+import { useToast } from '../../lib/notifications';
 import { PATHS } from '../../routes/paths';
+import Spinner from '../../components/Spinner';
 
 /**
  * Login page allowing users to authenticate via one-time password (OTP).
@@ -17,6 +19,8 @@ export default function LoginOtp() {
   const verifyOtp = useVerifyOtp();
   const navigate = useNavigate();
   const loc = useLocation() as any;
+  const toast = useToast();
+  const { data: me, isLoading: meLoading } = useMe();
   const redirectTo = useMemo(() => {
     const fromState = loc?.state?.redirectTo as string | undefined;
     const fromSearch = new URLSearchParams(loc.search).get('redirectTo') || undefined;
@@ -26,10 +30,30 @@ export default function LoginOtp() {
     return fromState || fromSearch || fromLegacy || PATHS.DASHBOARD.ROOT;
   }, [loc]);
 
+  if (meLoading)
+    return (
+      <div className="flex items-center justify-center p-8" aria-busy>
+        <Spinner />
+      </div>
+    );
+
+  if (me) return <Navigate to={PATHS.DASHBOARD.ROOT} replace />;
+
   async function onRequest(e: FormEvent) {
     e.preventDefault();
     await ensureCsrf();
-    requestOtp.mutate({ email }, { onSuccess: () => setStep('verify') });
+    requestOtp.mutate(
+      { email },
+      {
+        onSuccess: () => {
+          setStep('verify');
+          toast.success('Code sent. Check your email.');
+        },
+        onError: (err: any) => {
+          toast.error(err?.message || 'Failed to send code');
+        },
+      },
+    );
   }
 
   async function onVerify(e: FormEvent) {
@@ -39,7 +63,11 @@ export default function LoginOtp() {
       { email, code },
       {
         onSuccess: () => {
+          toast.success('Signed in successfully');
           navigate(redirectTo, { replace: true });
+        },
+        onError: (err: any) => {
+          toast.error(err?.message || 'Invalid code');
         },
       },
     );
