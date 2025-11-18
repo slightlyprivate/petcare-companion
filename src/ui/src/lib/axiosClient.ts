@@ -51,7 +51,8 @@ client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
       token = getCsrfToken() || token;
     }
     if (token) {
-      cfg.headers.set('X-CSRF-Token', token);
+      // Laravel Sanctum expects X-XSRF-TOKEN header
+      cfg.headers.set('X-XSRF-TOKEN', token);
     }
   }
 
@@ -88,7 +89,8 @@ client.interceptors.response.use(
         const token = getCsrfToken();
         cfg.__csrfRetried = true;
         if (token) {
-          cfg.headers.set('X-CSRF-Token', token);
+          // Laravel Sanctum expects X-XSRF-TOKEN header
+          cfg.headers.set('X-XSRF-TOKEN', token);
         }
         return client.request(cfg as AxiosRequestConfig);
       } catch (e) {

@@ -1,4 +1,4 @@
-import { api, proxy } from '../../lib/http';
+import { api } from '../../lib/http';
 import type { Paginated as PaginatedType } from '../../lib/fetch';
 import { normalizePaginated } from '../../lib/fetch';
 import type { CreditPurchase } from '../types';
@@ -15,4 +15,4 @@ export const listPurchases = async (): Promise<PaginatedType<CreditPurchase>> =>
  * Purchase credits for the authenticated user.
  */
 export const purchase = (payload: { credit_bundle_id: string; return_url: string }) =>
-  proxy('/credits/purchase', { method: 'POST', body: payload });
+  api('/credits/purchase', { method: 'POST', body: payload });
