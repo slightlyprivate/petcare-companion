@@ -1,13 +1,13 @@
 import { useParams } from 'react-router-dom';
 import QueryBoundary from '../../components/QueryBoundary';
-import { usePublicPet } from '../../api/pets/hooks';
+import { usePet } from '../../api/pets/hooks';
 
 /**
  * Pet detail page displaying information about a specific pet.
  */
 export default function PetDetail() {
   const { id } = useParams();
-  const { data: pet, isLoading, error } = usePublicPet(id!);
+  const { data: pet, isLoading, error } = usePet(id!);
 
   return (
     <div>

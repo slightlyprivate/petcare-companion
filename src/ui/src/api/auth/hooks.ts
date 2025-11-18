@@ -7,8 +7,22 @@ import * as client from './client';
 /**
  * Hook to fetch the currently authenticated user's information.
  */
+export function useAuthStatus() {
+  return useAppQuery({
+    queryKey: ['auth', 'status'] as const,
+    queryFn: client.getStatus,
+    retry: 0,
+  });
+}
+
 export function useMe() {
-  return useAppQuery({ queryKey: qk.auth.me, queryFn: client.getMe, retry: 0 });
+  const status = useAuthStatus();
+  return useAppQuery({
+    queryKey: qk.auth.me,
+    queryFn: client.getMe,
+    retry: 0,
+    enabled: !!status.data,
+  });
 }
 
 /**

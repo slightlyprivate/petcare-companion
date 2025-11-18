@@ -7,6 +7,7 @@ import { ensureCsrf } from '../../lib/csrf';
 import { useToast } from '../../lib/notifications';
 import { PATHS } from '../../routes/paths';
 import Spinner from '../../components/Spinner';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Login page allowing users to authenticate via one-time password (OTP).
@@ -21,6 +22,7 @@ export default function LoginOtp() {
   const loc = useLocation() as any;
   const toast = useToast();
   const { data: me, isLoading: meLoading } = useMe();
+  const qc = useQueryClient();
   const redirectTo = useMemo(() => {
     const fromState = loc?.state?.redirectTo as string | undefined;
     const fromSearch = new URLSearchParams(loc.search).get('redirectTo') || undefined;
@@ -64,6 +66,10 @@ export default function LoginOtp() {
       {
         onSuccess: () => {
           toast.success('Signed in successfully');
+          // Mark auth status as true and refetch me to update navigation state
+          qc.setQueryData(['auth', 'status'], true);
+          qc.invalidateQueries({ queryKey: ['auth', 'status'] });
+          qc.invalidateQueries({ queryKey: ['auth', 'me'] as any });
           navigate(redirectTo, { replace: true });
         },
         onError: (err: any) => {
