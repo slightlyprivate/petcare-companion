@@ -11,7 +11,7 @@ export default function Landing() {
       <img
         src="/brand/illustrations/hero.png"
         alt="PetCare Companion Hero"
-        className="w-full max-w-md mx-auto mb-6 rounded-lg shadow-lg"
+        className="w-50 max-w-md mx-auto mb-6 rounded-lg shadow-lg"
       />
       <h1 className="text-3xl font-bold mb-4">PetCare Companion</h1>
       <p className="text-brand-fg mb-8">
