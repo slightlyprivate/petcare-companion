@@ -58,7 +58,7 @@ export async function request<T = unknown>(path: string, opts: RequestOptions = 
       headers['Content-Type'] = 'application/json';
       axConfig.data = opts.body;
     } else {
-      axConfig.data = opts.body as unknown as never;
+      axConfig.data = opts.body;
     }
   }
 

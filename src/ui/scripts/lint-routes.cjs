@@ -37,10 +37,10 @@ for (const file of files) {
   lines.forEach((line, idx) => {
     const n = idx + 1;
     if (/\bto=\"\//.test(line)) offenders.push({ file, n, line });
-    if (/\bto=\{[`\']\//.test(line)) offenders.push({ file, n, line });
-    if (/\bpath:\s*[`'`]\//.test(line)) offenders.push({ file, n, line });
-    if (/window\.location\.assign\s*\(\s*[`'`]\//.test(line)) offenders.push({ file, n, line });
-    if (/pathname:\s*[`'`]\//.test(line)) offenders.push({ file, n, line });
+    if (/\bto=\{(`|')\//.test(line)) offenders.push({ file, n, line });
+    if (/\bpath:\s*(`|'|")\//.test(line)) offenders.push({ file, n, line });
+    if (/window\.location\.assign\s*\(\s*(`|'|")\//.test(line)) offenders.push({ file, n, line });
+    if (/pathname:\s*(`|'|")\//.test(line)) offenders.push({ file, n, line });
   });
 }
 
@@ -53,4 +53,3 @@ if (offenders.length) {
 } else {
   console.log('OK: No hardcoded UI routes found.');
 }
-

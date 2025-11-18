@@ -26,12 +26,17 @@ export function handleAuthError(err: ApiError) {
   redirecting = true;
   if (isDev) {
     // eslint-disable-next-line no-console
-    console.warn('[auth] 401 received; forcing logout and redirecting to home');
+    console.warn('[auth] 401 received; forcing logout and redirecting to signin');
   }
   try {
-    window.history.pushState({}, '', PATHS.ROOT);
+    const currentPath = window.location.pathname + window.location.search;
+    window.history.pushState(
+      {},
+      '',
+      `${PATHS.AUTH.SIGNIN}?redirectTo=${encodeURIComponent(currentPath)}`,
+    );
     window.dispatchEvent(new PopStateEvent('popstate'));
   } catch {
-    window.location.href = PATHS.ROOT;
+    window.location.href = `${PATHS.AUTH.SIGNIN}?redirectTo=${encodeURIComponent(window.location.pathname + window.location.search)}`;
   }
 }

@@ -83,9 +83,7 @@ export default function DashboardAppointments() {
                 isSubmitting={createAppt.isPending}
                 initial={{
                   scheduled_at: selectedDate
-                    ? new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000)
-                        .toISOString()
-                        .slice(0, 16)
+                    ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}T00:00`
                     : '',
                 }}
                 onSubmit={onCreate}
