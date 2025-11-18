@@ -16,7 +16,7 @@ class NotificationPreferencesService
     /**
      * Get notification preferences for a user.
      */
-    public function getUserPreferences(int $userId): NotificationPreference
+    public function getUserPreferences(string $userId): NotificationPreference
     {
         $user = User::find($userId);
         if (! $user) {
@@ -47,7 +47,7 @@ class NotificationPreferencesService
     /**
      * Update a specific notification preference for a user.
      */
-    public function updateUserPreference(int $userId, string $type, bool $enabled): NotificationPreference
+    public function updateUserPreference(string $userId, string $type, bool $enabled): NotificationPreference
     {
         $user = User::find($userId);
         if (! $user) {

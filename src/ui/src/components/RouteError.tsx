@@ -2,7 +2,7 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-d
 import Button from './Button';
 
 export default function RouteError() {
-  const error = useRouteError() as any;
+  const error = useRouteError();
   const navigate = useNavigate();
 
   const { status, statusText, message } = normalizeError(error);
@@ -31,16 +31,16 @@ export default function RouteError() {
           Home
         </Button>
       </div>
-      {import.meta.env.DEV && error?.stack ? (
+      {import.meta.env.DEV && (error as Error)?.stack ? (
         <pre className="mt-4 text-xs bg-brand-bg p-2 rounded overflow-auto border border-brand-muted">
-          {String(error.stack)}
+          {String((error as Error).stack)}
         </pre>
       ) : null}
     </div>
   );
 }
 
-function normalizeError(err: any): { status?: number; statusText?: string; message: string } {
+function normalizeError(err: unknown): { status?: number; statusText?: string; message: string } {
   if (!err) return { message: 'Unknown error' };
   if (isRouteErrorResponse(err)) {
     return {
@@ -50,8 +50,9 @@ function normalizeError(err: any): { status?: number; statusText?: string; messa
         (err.data && (err.data.message || err.data.error?.message)) || err.statusText || 'Error',
     };
   }
-  const status = typeof err.status === 'number' ? err.status : undefined;
-  const statusText = err.statusText || undefined;
-  const message = err.message || String(err) || 'Error';
+  const anyErr = err as { status?: number; statusText?: string; message?: string } | undefined;
+  const status = typeof anyErr?.status === 'number' ? anyErr.status : undefined;
+  const statusText = anyErr?.statusText || undefined;
+  const message = anyErr?.message || String(err) || 'Error';
   return { status, statusText, message };
 }

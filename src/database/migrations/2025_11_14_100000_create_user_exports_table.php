@@ -13,14 +13,12 @@ return new class extends Migration
     {
         Schema::create('user_exports', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->bigInteger('user_id')->unsigned()->index();
+            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
             $table->string('file_path');
             $table->string('file_name');
             $table->dateTime('expires_at')->index();
             $table->dateTime('downloaded_at')->nullable();
             $table->timestamps();
-
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

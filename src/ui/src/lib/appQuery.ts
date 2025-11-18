@@ -60,8 +60,16 @@ export function usePaginatedQuery<
   TQueryKey extends QueryKey = QueryKey,
 >(options: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>): UseQueryResult<TData, TError> {
   const withDefaults = {
-    placeholderData: options.placeholderData ?? ((prev) => prev as any),
+    placeholderData:
+      options.placeholderData ??
+      ((prev: TData | TQueryFnData | undefined) => prev as unknown as TData),
     ...options,
   } as UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
   return rqUseQuery(withDefaults);
 }
+
+/**
+ * Convenience alias for simple page-based lists.
+ * Equivalent to usePaginatedQuery with placeholderData for keeping previous data.
+ */
+export const usePageQuery = usePaginatedQuery;

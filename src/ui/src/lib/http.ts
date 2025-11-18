@@ -12,15 +12,18 @@ export type HttpError = Error & {
   status?: number;
   code?: string | number;
   details?: unknown;
-  data?: any;
+  data?: unknown;
 };
 
 export function toHttpError(err: unknown): HttpError {
-  const e = err as any;
+  const e = err as
+    | { message?: string; status?: number; code?: string | number; data?: unknown }
+    | undefined;
   const out: HttpError = new Error(e?.message || 'Request failed');
   out.status = typeof e?.status === 'number' ? e.status : undefined;
-  out.code = e?.code ?? e?.data?.code;
-  out.details = e?.data?.errors || e?.data?.detail || e?.data;
+  const dataObj = (e?.data || {}) as Record<string, unknown>;
+  out.code = e?.code ?? (dataObj?.code as string | number | undefined);
+  out.details = dataObj?.errors || dataObj?.detail || e?.data;
   out.data = e?.data;
   return out;
 }
@@ -35,30 +38,30 @@ export interface HttpClientOptions {
 }
 
 export interface HttpClient {
-  get<T = any>(path: string, opts?: Omit<CoreOptions, 'method' | 'base'>): Promise<T>;
-  post<T = any>(
+  get<T = unknown>(path: string, opts?: Omit<CoreOptions, 'method' | 'base'>): Promise<T>;
+  post<T = unknown>(
     path: string,
-    body?: any,
+    body?: unknown,
     opts?: Omit<CoreOptions, 'method' | 'base' | 'body'>,
   ): Promise<T>;
-  put<T = any>(
+  put<T = unknown>(
     path: string,
-    body?: any,
+    body?: unknown,
     opts?: Omit<CoreOptions, 'method' | 'base' | 'body'>,
   ): Promise<T>;
-  patch<T = any>(
+  patch<T = unknown>(
     path: string,
-    body?: any,
+    body?: unknown,
     opts?: Omit<CoreOptions, 'method' | 'base' | 'body'>,
   ): Promise<T>;
-  delete<T = any>(path: string, opts?: Omit<CoreOptions, 'method' | 'base'>): Promise<T>;
+  delete<T = unknown>(path: string, opts?: Omit<CoreOptions, 'method' | 'base'>): Promise<T>;
 }
 
 export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
   const base = options.base ?? 'api';
   const headers = options.headers ?? {};
   const logging = options.enableLogging ?? isDev;
-  const log = (...args: any[]) => {
+  const log = (...args: unknown[]) => {
     try {
       // eslint-disable-next-line no-console
       console.debug('[http]', ...args);
@@ -95,7 +98,7 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
       }
       if (hErr.status === 401 || hErr.status === 419) {
         // Global auth handling to complement RequireAuth for background queries
-        handleAuthError(hErr as any);
+        handleAuthError(hErr);
       }
       throw hErr;
     }

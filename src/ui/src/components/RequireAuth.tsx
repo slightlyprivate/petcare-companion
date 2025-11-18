@@ -1,12 +1,13 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useMe } from '../api/auth/hooks';
+import { useAuthStatus } from '../api/auth/hooks';
 import Spinner from './Spinner';
+import { PATHS } from '../routes/paths';
 
 /**
  * Component that ensures its children are only rendered for authenticated users.
  */
 export default function RequireAuth({ children }: { children: JSX.Element }) {
-  const { data: me, isLoading } = useMe();
+  const { data: isAuthenticated, isLoading } = useAuthStatus();
   const loc = useLocation();
   if (isLoading)
     return (
@@ -14,12 +15,12 @@ export default function RequireAuth({ children }: { children: JSX.Element }) {
         <Spinner />
       </div>
     );
-  if (!me) {
+  if (!isAuthenticated) {
     const redirectTo = `${loc.pathname}${loc.search}${loc.hash}`;
     const qs = new URLSearchParams({ redirectTo }).toString();
     return (
       <Navigate
-        to={{ pathname: '/login', search: `?${qs}` }}
+        to={{ pathname: PATHS.AUTH.SIGNIN, search: `?${qs}` }}
         replace
         state={{ from: loc, redirectTo }}
       />

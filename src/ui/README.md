@@ -42,6 +42,27 @@ Project structure guidance
 - `pages/`: Route-level screens that compose components and domain hooks.
 - `routes/`: Route config and bootstrapping; avoid feature logic here.
 
+Routes
+
+- Centralized route paths live in `src/ui/src/routes/paths.ts` as `PATHS` constants.
+- Always import and use `PATHS` instead of hardcoding strings like `/dashboard` or `/auth/signin`.
+- Route map (UI):
+  - Public: `/` (Landing), `/discover`, `/pet/:slug`
+  - Auth: `/auth/signin`, `/auth/signup`, `/auth/verify`
+  - Dashboard: `/dashboard` (index → My Pets), `/dashboard/pets`, `/dashboard/pets/new`,
+    `/dashboard/pets/:id`, `/dashboard/pets/:id/settings`, `/dashboard/appointments`,
+    `/dashboard/gifts`, `/dashboard/account`, `/dashboard/admin/gift-types`
+  - Not Found: `*`
+
+Linting and route guard
+
+- A lightweight guard prevents introducing hardcoded UI route strings:
+  - `npm run lint:routes` checks for `to="/..."`, `path: '/...'`, and
+    `window.location.assign('/...')`.
+  - Add/modify routes by updating `paths.ts` and `routes.config.tsx` using those constants.
+- ESLint config (`.eslintrc.cjs`) includes `no-restricted-syntax` selectors that will flag common
+  patterns when ESLint is installed. Run `npm run lint` after adding ESLint to your dev deps.
+
 HTTP clients
 
 - `http.api`: Use for calls to the upstream Laravel API (prefix `VITE_API_BASE`, default `/api`).
@@ -78,6 +99,29 @@ Query helpers
 - For cursor/page flows, use `usePaginatedQuery` to keep previous data while fetching the next page.
   Example:
   `usePaginatedQuery({ queryKey: [qk.pets.all, page], queryFn: () => listPublicPets({ page }), keepPreviousData: true })`.
+
+Cache invalidation patterns
+
+- `src/ui/src/lib/queryUtils.ts` exposes helpers to reduce manual cache touches:
+  - `invalidateMany(qc, [qk.pets.all, qk.pets.mine])`
+  - `invalidateListAndDetail(qc, qk.pets.mine, qk.pets.detail(id))` Use these in mutation
+    `onSuccess` blocks instead of reaching into cache data structures.
+
+Shared UI primitives
+
+- Favor primitives under `src/ui/src/components/` to keep Tailwind consistent:
+  - `Button`, `StatusMessage`, `ErrorMessage`, `Spinner`, `QueryBoundary`
+  - `Section`: standard titled card with border/padding
+  - `TextInput`: consistent input styling for forms These reduce duplicated classes and visual drift
+    between sections.
+
+Linting and type safety
+
+- TS is `strict: true` and we include a lightweight guard to prevent `any` usage:
+  - `npm run lint:any` scans for `: any`, `as any`, `any[]`, `useState<any>`
+- A Tailwind duplicate-class guard is available:
+  - `npm run lint:twdups` flags repeated class tokens within a single `className` string.
+- Combine all guards with `npm run lint:all`.
 
 Testing plan (lightweight)
 

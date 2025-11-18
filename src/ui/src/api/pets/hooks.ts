@@ -1,13 +1,31 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useAppQuery, useAppMutation } from '../../lib/appQuery';
 import { qk } from '../queryKeys';
-import * as client from './client';
+import {
+  listPublicPets,
+  getPublicPet,
+  listPets,
+  createPet,
+  updatePet,
+  deletePet,
+  restorePet,
+  getPet,
+} from './client';
+
+type UpdatePetVariables = {
+  id: number | string;
+  name: string;
+  species: string;
+  owner_name: string;
+  breed?: string | null;
+  birth_date?: string | null;
+};
 
 /**
  * Hook to fetch the list of public pets.
  */
 export function usePublicPets() {
-  return useAppQuery({ queryKey: qk.pets.all, queryFn: client.listPublicPets });
+  return useAppQuery({ queryKey: qk.pets.all, queryFn: listPublicPets });
 }
 
 /**
@@ -16,14 +34,14 @@ export function usePublicPets() {
 export function usePublicPet(id: number | string) {
   return useAppQuery({
     queryKey: qk.pets.detail(id),
-    queryFn: () => client.getPublicPet(id),
+    queryFn: () => getPublicPet(id),
     enabled: !!id,
   });
 }
 
 // Authenticated pets
 export function usePets() {
-  return useAppQuery({ queryKey: qk.pets.mine, queryFn: client.listPets });
+  return useAppQuery({ queryKey: qk.pets.mine, queryFn: listPets });
 }
 
 /**
@@ -32,7 +50,7 @@ export function usePets() {
 export function useCreatePet() {
   const qc = useQueryClient();
   return useAppMutation({
-    mutationFn: client.createPet,
+    mutationFn: createPet,
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.pets.mine }),
   });
 }
@@ -42,8 +60,8 @@ export function useCreatePet() {
  */
 export function useUpdatePet() {
   const qc = useQueryClient();
-  return useAppMutation({
-    mutationFn: client.updatePet,
+  return useAppMutation<unknown, unknown, UpdatePetVariables>({
+    mutationFn: updatePet,
     onSuccess: (_d, v) => {
       qc.invalidateQueries({ queryKey: qk.pets.mine });
       if (v?.id) qc.invalidateQueries({ queryKey: qk.pets.detail(v.id) });
@@ -56,11 +74,11 @@ export function useUpdatePet() {
  */
 export function useDeletePet() {
   const qc = useQueryClient();
-  return useAppMutation({
-    mutationFn: client.deletePet,
+  return useAppMutation<unknown, unknown, number | string>({
+    mutationFn: deletePet,
     onSuccess: (_d, id) => {
       qc.invalidateQueries({ queryKey: qk.pets.mine });
-      if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id as any) });
+      if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id) });
     },
   });
 }
@@ -70,11 +88,21 @@ export function useDeletePet() {
  */
 export function useRestorePet() {
   const qc = useQueryClient();
-  return useAppMutation({
-    mutationFn: client.restorePet,
+  return useAppMutation<unknown, unknown, number | string>({
+    mutationFn: restorePet,
     onSuccess: (_d, id) => {
       qc.invalidateQueries({ queryKey: qk.pets.mine });
-      if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id as any) });
+      if (id) qc.invalidateQueries({ queryKey: qk.pets.detail(id) });
     },
+  });
+}
+/**
+ * Hook to fetch a pet by id (authenticated route).
+ */
+export function usePet(id: number | string) {
+  return useAppQuery({
+    queryKey: qk.pets.detail(id),
+    queryFn: () => getPet(id),
+    enabled: !!id,
   });
 }

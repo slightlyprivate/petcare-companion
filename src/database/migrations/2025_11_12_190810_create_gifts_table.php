@@ -18,8 +18,8 @@ return new class extends Migration
 
         Schema::create('gifts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('pet_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('user_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('pet_id')->constrained()->onDelete('cascade');
             $table->unsignedBigInteger('cost_in_credits');
 
             $stripeSessionId = $table->string('stripe_session_id')->nullable();
