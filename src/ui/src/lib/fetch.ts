@@ -7,7 +7,7 @@ type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 /**
  * Request options interface
  */
-export interface RequestOptions<TBody = any> {
+export interface RequestOptions<TBody = unknown> {
   method?: Method;
   body?: TBody;
   headers?: Record<string, string>;
@@ -34,7 +34,7 @@ const joinUrl = (base: string, path: string) => {
  * @param opts The request options.
  * @returns The API response.
  */
-export async function request<T = any>(path: string, opts: RequestOptions = {}): Promise<T> {
+export async function request<T = unknown>(path: string, opts: RequestOptions = {}): Promise<T> {
   const baseOpt = opts.base ?? 'api';
   const baseUrl = baseOpt === 'api' ? API_BASE : baseOpt === 'proxy' ? PROXY_BASE : baseOpt;
   const url = joinUrl(baseUrl, path);
@@ -58,7 +58,7 @@ export async function request<T = any>(path: string, opts: RequestOptions = {}):
       headers['Content-Type'] = 'application/json';
       axConfig.data = opts.body;
     } else {
-      axConfig.data = opts.body as any;
+      axConfig.data = opts.body as unknown as never;
     }
   }
 
@@ -70,13 +70,15 @@ export async function request<T = any>(path: string, opts: RequestOptions = {}):
     const status = axErr.response?.status;
     const data = axErr.response?.data;
 
-    const msg =
-      (data as any)?.error?.message ||
-      (data as any)?.message ||
-      `Request failed: ${status ?? 'network'}`;
-    const e: any = new Error(msg);
-    e.status = status;
-    e.data = data;
+    const d = data as Record<string, unknown> | undefined;
+    const msg = String(
+      (d?.error as Record<string, unknown> | undefined)?.message ||
+        (d?.message as string | undefined) ||
+        `Request failed: ${status ?? 'network'}`,
+    );
+    const e = new Error(msg);
+    (e as any).status = status;
+    (e as any).data = data;
     throw e;
   }
 }
@@ -87,7 +89,7 @@ export async function request<T = any>(path: string, opts: RequestOptions = {}):
  * @param opts The request options.
  * @returns The API response.
  */
-export function api<T = any>(path: string, opts: Omit<RequestOptions, 'base'> = {}) {
+export function api<T = unknown>(path: string, opts: Omit<RequestOptions, 'base'> = {}) {
   return request<T>(path, { ...opts, base: 'api' });
 }
 
@@ -97,12 +99,12 @@ export function api<T = any>(path: string, opts: Omit<RequestOptions, 'base'> = 
  * @param opts The request options.
  * @returns The API response.
  */
-export function proxy<T = any>(path: string, opts: Omit<RequestOptions, 'base'> = {}) {
+export function proxy<T = unknown>(path: string, opts: Omit<RequestOptions, 'base'> = {}) {
   return request<T>(path, { ...opts, base: 'proxy' });
 }
 
 // Cross-cutting helpers
-export type ApiError = Error & { status?: number; data?: any };
+export type ApiError = Error & { status?: number; data?: unknown };
 
 /**
  * Determines if an error is an authentication error (401, 403, 419).
@@ -110,7 +112,7 @@ export type ApiError = Error & { status?: number; data?: any };
  * @returns True if the error is an authentication error, false otherwise.
  */
 export function isAuthError(err: unknown): err is ApiError {
-  const e = err as any;
+  const e = err as { status?: number } | null;
   return (
     !!e &&
     typeof e === 'object' &&
@@ -132,9 +134,18 @@ export interface Paginated<T> {
  * @param res The API response object.
  * @returns The normalized paginated response.
  */
-export function normalizePaginated<T>(res: any): Paginated<T> {
+export function normalizePaginated<T>(res: unknown): Paginated<T> {
   if (Array.isArray(res)) return { data: res };
-  if (res && Array.isArray(res.data)) return { data: res.data, meta: res.meta };
+  if (
+    res &&
+    typeof res === 'object' &&
+    'data' in res &&
+    Array.isArray((res as { data: unknown }).data)
+  )
+    return {
+      data: (res as { data: T[]; meta?: Paginated<T>['meta'] }).data,
+      meta: (res as { meta?: Paginated<T>['meta'] }).meta,
+    };
   return { data: [] };
 }
 
@@ -143,7 +154,7 @@ export function normalizePaginated<T>(res: any): Paginated<T> {
  * @param res The API response object.
  * @returns The unwrapped resource or null if not found.
  */
-export function unwrapResource<T>(res: any): T | null {
+export function unwrapResource<T>(res: unknown): T | null {
   if (
     res &&
     typeof res === 'object' &&
@@ -151,7 +162,7 @@ export function unwrapResource<T>(res: any): T | null {
     'data' in res &&
     !Array.isArray(res.data)
   ) {
-    return res.data as T;
+    return (res as { data: T }).data as T;
   }
   return (res as T) ?? null;
 }

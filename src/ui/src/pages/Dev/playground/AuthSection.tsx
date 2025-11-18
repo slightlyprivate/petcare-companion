@@ -46,7 +46,9 @@ export default function AuthSection() {
               onChange={(e) => setEmail(e.target.value)}
             />
             {requestOtp.isError && (
-              <ErrorMessage message={(requestOtp.error as any)?.message || 'Error'} />
+              <ErrorMessage
+                message={(requestOtp.error as { message?: string })?.message || 'Error'}
+              />
             )}
             <Button isLoading={requestOtp.isPending} disabled={!email} size="sm">
               Request
@@ -67,7 +69,9 @@ export default function AuthSection() {
               onChange={(e) => setCode(e.target.value)}
             />
             {verifyOtp.isError && (
-              <ErrorMessage message={(verifyOtp.error as any)?.message || 'Error'} />
+              <ErrorMessage
+                message={(verifyOtp.error as { message?: string })?.message || 'Error'}
+              />
             )}
             <Button isLoading={verifyOtp.isPending} disabled={!email || !code} size="sm">
               Verify

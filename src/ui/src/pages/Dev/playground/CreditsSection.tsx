@@ -60,7 +60,9 @@ export default function CreditsSection() {
             onChange={(e) => setCreditReturnUrl(e.target.value)}
           />
           {purchaseCredits.isError && (
-            <ErrorMessage message={(purchaseCredits.error as any)?.message || 'Error'} />
+            <ErrorMessage
+              message={(purchaseCredits.error as { message?: string })?.message || 'Error'}
+            />
           )}
           <Button size="sm" isLoading={purchaseCredits.isPending} disabled={!canPurchase}>
             Purchase

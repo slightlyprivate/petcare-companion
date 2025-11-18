@@ -13,15 +13,15 @@ export function getQueryClient() {
     staleTime: 60 * 1000, // 1 minute caching by default
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: (failureCount: number, error: unknown) => {
-      const err = error as ApiError;
+      const err = error as { status?: number };
       if (isAuthError(err)) return false;
-      const status = (err as any)?.status;
+      const status = err?.status;
       if (status === 404) return false;
       return failureCount < 2; // up to 2 retries for network/5xx
     },
     retryDelay: (attempt: number) => Math.min(1000 * 2 ** attempt, 8000),
     useErrorBoundary: (error: unknown) => {
-      const status = (error as any)?.status;
+      const status = (error as { status?: number })?.status;
       return typeof status === 'number' && status >= 500; // bubble 5xx to route error boundaries
     },
     onError: (error: unknown) => {
@@ -32,9 +32,9 @@ export function getQueryClient() {
 
   const mutationsDefault = {
     retry: (failureCount: number, error: unknown) => {
-      const err = error as ApiError;
+      const err = error as { status?: number };
       if (isAuthError(err)) return false;
-      const status = (err as any)?.status;
+      const status = err?.status;
       if (status === 422) return false; // validation shouldn't retry
       return failureCount < 1; // single retry for transient failures
     },

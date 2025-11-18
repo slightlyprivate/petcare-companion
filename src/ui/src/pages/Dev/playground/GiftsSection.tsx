@@ -58,7 +58,9 @@ export default function GiftsSection() {
               onChange={(e) => setGiftTypeId(e.target.value === '' ? '' : Number(e.target.value))}
             />
             {createGift.isError && (
-              <ErrorMessage message={(createGift.error as any)?.message || 'Error'} />
+              <ErrorMessage
+                message={(createGift.error as { message?: string })?.message || 'Error'}
+              />
             )}
             <Button size="sm" isLoading={createGift.isPending} disabled={!canCreateGift}>
               Create Gift
@@ -74,7 +76,9 @@ export default function GiftsSection() {
                   const data = await giftClient.exportReceipt(giftIdForReceipt);
                   setGiftReceipt(data as GiftReceipt);
                 } catch (err) {
-                  setGiftReceipt({ error: (err as any)?.message || String(err) });
+                  setGiftReceipt({
+                    error: (err as { message?: string } | undefined)?.message || String(err),
+                  });
                 }
               }
             }}

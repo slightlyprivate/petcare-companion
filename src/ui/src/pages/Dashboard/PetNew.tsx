@@ -20,7 +20,8 @@ export default function PetNew() {
         toast.success('Pet created');
         navigate(PATHS.DASHBOARD.PETS, { replace: true });
       },
-      onError: (err: any) => toast.error(err?.message || 'Failed to create pet'),
+      onError: (err: unknown) =>
+        toast.error((err as { message?: string } | undefined)?.message || 'Failed to create pet'),
     });
   }
 

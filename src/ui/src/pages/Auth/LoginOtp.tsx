@@ -19,7 +19,7 @@ export default function LoginOtp() {
   const requestOtp = useRequestOtp();
   const verifyOtp = useVerifyOtp();
   const navigate = useNavigate();
-  const loc = useLocation() as any;
+  const loc = useLocation();
   const toast = useToast();
   const { data: me, isLoading: meLoading } = useMe();
   const qc = useQueryClient();
@@ -51,8 +51,9 @@ export default function LoginOtp() {
           setStep('verify');
           toast.success('Code sent. Check your email.');
         },
-        onError: (err: any) => {
-          toast.error(err?.message || 'Failed to send code');
+        onError: (err: unknown) => {
+          const msg = (err as { message?: string } | undefined)?.message || 'Failed to send code';
+          toast.error(msg);
         },
       },
     );
@@ -69,11 +70,12 @@ export default function LoginOtp() {
           // Mark auth status as true and refetch me to update navigation state
           qc.setQueryData(['auth', 'status'], true);
           qc.invalidateQueries({ queryKey: ['auth', 'status'] });
-          qc.invalidateQueries({ queryKey: ['auth', 'me'] as any });
+          qc.invalidateQueries({ queryKey: ['auth', 'me'] });
           navigate(redirectTo, { replace: true });
         },
-        onError: (err: any) => {
-          toast.error(err?.message || 'Invalid code');
+        onError: (err: unknown) => {
+          const msg = (err as { message?: string } | undefined)?.message || 'Invalid code';
+          toast.error(msg);
         },
       },
     );
@@ -91,7 +93,9 @@ export default function LoginOtp() {
             onChange={(e) => setEmail(e.target.value)}
           />
           {requestOtp.isError && (
-            <ErrorMessage message={(requestOtp.error as any)?.message || 'Error'} />
+            <ErrorMessage
+              message={(requestOtp.error as { message?: string })?.message || 'Error'}
+            />
           )}
           <Button disabled={!email || requestOtp.isPending}>Send Code</Button>
         </form>
@@ -110,7 +114,7 @@ export default function LoginOtp() {
             onChange={(e) => setCode(e.target.value)}
           />
           {verifyOtp.isError && (
-            <ErrorMessage message={(verifyOtp.error as any)?.message || 'Error'} />
+            <ErrorMessage message={(verifyOtp.error as { message?: string })?.message || 'Error'} />
           )}
           <Button disabled={!email || !code || verifyOtp.isPending}>Verify</Button>
         </form>

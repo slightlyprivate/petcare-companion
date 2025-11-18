@@ -3,6 +3,7 @@ import axios, {
   AxiosInstance,
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
+  AxiosHeaders,
 } from 'axios';
 import { isDev } from './config';
 import { getCsrfToken, isStorageAvailable } from './csrfStore';
@@ -50,8 +51,7 @@ client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
       token = getCsrfToken() || token;
     }
     if (token) {
-      cfg.headers = (cfg.headers ?? ({} as any)) as any;
-      (cfg.headers as any)['X-CSRF-Token'] = token;
+      cfg.headers.set('X-CSRF-Token', token);
     }
   }
 
@@ -88,10 +88,9 @@ client.interceptors.response.use(
         const token = getCsrfToken();
         cfg.__csrfRetried = true;
         if (token) {
-          cfg.headers = cfg.headers || {};
-          (cfg.headers as any)['X-CSRF-Token'] = token;
+          cfg.headers.set('X-CSRF-Token', token);
         }
-        return client.request(cfg as any);
+        return client.request(cfg as AxiosRequestConfig);
       } catch (e) {
         if (isDev) {
           // eslint-disable-next-line no-console
@@ -103,7 +102,9 @@ client.interceptors.response.use(
     // Global auth redirect support
     if (status === 401 || status === 419) {
       // Best-effort notify; guarded against loops internally
-      handleAuthError({ name: 'AuthError', message: error.message, status } as any);
+      handleAuthError({ name: 'AuthError', message: error.message, status } as unknown as Error & {
+        status?: number;
+      });
     }
 
     // Transient retry: network, 5xx, 429
@@ -114,7 +115,7 @@ client.interceptors.response.use(
       const backoff = Math.min(200 * 2 ** Math.min(5, count), 4000);
       cfg.__retryCount = count + 1;
       await delay(backoff);
-      return client.request(cfg as any);
+      return client.request(cfg as AxiosRequestConfig);
     }
 
     if (isDev) {

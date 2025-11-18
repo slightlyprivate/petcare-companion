@@ -98,7 +98,9 @@ export default function PetsSection() {
                     const data = await petsClient.getPublicPetReport(reportPetId);
                     setPetReport(data as PetReport);
                   } catch (err) {
-                    setPetReport({ error: (err as any)?.message || String(err) });
+                    setPetReport({
+                      error: (err as { message?: string } | undefined)?.message || String(err),
+                    });
                   }
                 }
               }}
@@ -165,7 +167,9 @@ export default function PetsSection() {
               onChange={(e) => setNewPetBirthDate(e.target.value)}
             />
             {createPet.isError && (
-              <ErrorMessage message={(createPet.error as any)?.message || 'Error'} />
+              <ErrorMessage
+                message={(createPet.error as { message?: string })?.message || 'Error'}
+              />
             )}
             <Button
               size="sm"
@@ -228,7 +232,9 @@ export default function PetsSection() {
               onChange={(e) => setUpdBirthDate(e.target.value)}
             />
             {updatePet.isError && (
-              <ErrorMessage message={(updatePet.error as any)?.message || 'Error'} />
+              <ErrorMessage
+                message={(updatePet.error as { message?: string })?.message || 'Error'}
+              />
             )}
             <Button
               size="sm"
@@ -255,7 +261,9 @@ export default function PetsSection() {
               onChange={(e) => setDelPetId(e.target.value)}
             />
             {deletePet.isError && (
-              <ErrorMessage message={(deletePet.error as any)?.message || 'Error'} />
+              <ErrorMessage
+                message={(deletePet.error as { message?: string })?.message || 'Error'}
+              />
             )}
             <Button size="sm" variant="danger" isLoading={deletePet.isPending} disabled={!delPetId}>
               Delete
@@ -276,7 +284,9 @@ export default function PetsSection() {
               onChange={(e) => setRestoreId(e.target.value)}
             />
             {restorePet.isError && (
-              <ErrorMessage message={(restorePet.error as any)?.message || 'Error'} />
+              <ErrorMessage
+                message={(restorePet.error as { message?: string })?.message || 'Error'}
+              />
             )}
             <Button size="sm" isLoading={restorePet.isPending} disabled={!restoreId}>
               Restore

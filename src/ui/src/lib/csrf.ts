@@ -15,13 +15,16 @@ export async function ensureCsrf(): Promise<string> {
         expiresAt: typeof exp === 'number' && !Number.isNaN(exp) ? exp : undefined,
       });
     }
-    return (data as any)?.csrfToken;
+    return data?.csrfToken ?? '';
   } catch (err) {
     if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console
       console.warn('[csrf] Failed to fetch CSRF token', err);
     }
-    const e: any = new Error('Failed to acquire CSRF token');
+    const e = new Error('Failed to acquire CSRF token') as Error & {
+      code?: string;
+      cause?: unknown;
+    };
     e.cause = err;
     e.code = 'CSRF_FETCH_FAILED';
     throw e;

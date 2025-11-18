@@ -3,6 +3,7 @@ import Calendar, { type CalendarEvent } from '../../components/calendar/Calendar
 import QueryBoundary from '../../components/QueryBoundary';
 import { useAppointmentsByPet, useCreateAppointment } from '../../api/appointments/hooks';
 import { usePets } from '../../api/pets/hooks';
+import type { Appointment, Pet } from '../../api/types';
 import AppointmentForm from '../../components/forms/AppointmentForm';
 import { useToast } from '../../lib/notifications';
 import { ensureCsrf } from '../../lib/csrf';
@@ -13,7 +14,7 @@ import { ensureCsrf } from '../../lib/csrf';
 export default function DashboardAppointments() {
   const toast = useToast();
   const pets = usePets();
-  const petOptions = (pets.data?.data ?? []) as any[];
+  const petOptions = (pets.data?.data ?? []) as Pet[];
   const [petId, setPetId] = useState<string | ''>('');
   const [month, setMonth] = useState<Date>(new Date());
   const appts = useAppointmentsByPet(petId);
@@ -21,8 +22,8 @@ export default function DashboardAppointments() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   const events: CalendarEvent[] = useMemo(() => {
-    const rows = (appts.data as any)?.data ?? [];
-    return rows.map((r: any) => ({ id: r.id, title: r.title, date: new Date(r.scheduled_at) }));
+    const rows = (appts.data as { data?: Appointment[] } | undefined)?.data ?? [];
+    return rows.map((r) => ({ id: r.id, title: r.title, date: new Date(r.scheduled_at) }));
   }, [appts.data]);
 
   async function onCreate(values: { title: string; scheduled_at: string; notes?: string }) {
@@ -32,7 +33,8 @@ export default function DashboardAppointments() {
       { petId, title: values.title, scheduled_at: values.scheduled_at, notes: values.notes },
       {
         onSuccess: () => toast.success('Appointment created'),
-        onError: (e: any) => toast.error(e?.message || 'Failed to create'),
+        onError: (e: unknown) =>
+          toast.error((e as { message?: string } | undefined)?.message || 'Failed to create'),
       },
     );
   }

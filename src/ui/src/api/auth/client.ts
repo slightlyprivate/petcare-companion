@@ -14,8 +14,8 @@ export async function getStatus(): Promise<boolean> {
   try {
     await api('/auth/status');
     return true;
-  } catch (e: any) {
-    const status = e?.status;
+  } catch (e: unknown) {
+    const status = (e as { status?: number } | undefined)?.status;
     if (status === 401) return false;
     throw e;
   }

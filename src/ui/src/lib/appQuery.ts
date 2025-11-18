@@ -60,7 +60,9 @@ export function usePaginatedQuery<
   TQueryKey extends QueryKey = QueryKey,
 >(options: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>): UseQueryResult<TData, TError> {
   const withDefaults = {
-    placeholderData: options.placeholderData ?? ((prev) => prev as any),
+    placeholderData:
+      options.placeholderData ??
+      ((prev: TData | TQueryFnData | undefined) => prev as unknown as TData),
     ...options,
   } as UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
   return rqUseQuery(withDefaults);

@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useMe } from '../api/auth/hooks';
 import Spinner from './Spinner';
 import { PATHS } from '../routes/paths';
+import type { Role } from '../constants/roles';
 
 type RequireRoleProps = {
   children: JSX.Element;
@@ -24,7 +25,8 @@ export default function RequireRole({ children, allow, fallbackTo }: RequireRole
     );
 
   // If missing user or role not permitted, bounce
-  if (!me || (me as any).role == null || !allowed.includes((me as any).role)) {
+  const role = (me as { role?: Role } | null | undefined)?.role;
+  if (!me || role == null || !allowed.includes(role)) {
     return <Navigate to={fallbackTo || PATHS.DASHBOARD.ROOT} replace />;
   }
 

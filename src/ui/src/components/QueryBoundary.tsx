@@ -21,6 +21,11 @@ export default function QueryBoundary({
         <span className="ml-2">Loading…</span>
       </div>
     );
-  if (error) return <ErrorMessage message={(error as any)?.message || String(error) || 'Error'} />;
+  if (error)
+    return (
+      <ErrorMessage
+        message={(error as { message?: string } | undefined)?.message || String(error) || 'Error'}
+      />
+    );
   return <>{children}</>;
 }
