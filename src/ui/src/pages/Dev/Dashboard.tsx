@@ -1,5 +1,5 @@
-import { useMe } from '../api/auth/hooks';
-import QueryBoundary from '../components/QueryBoundary';
+import { useMe } from '../../api/auth/hooks';
+import QueryBoundary from '../../components/QueryBoundary';
 
 /**
  * Dashboard page displaying user information.

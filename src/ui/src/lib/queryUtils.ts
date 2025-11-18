@@ -14,7 +14,7 @@ export function resetOnLogout(qc: QueryClient) {
 // Invalidate a list of query keys
 export function invalidateMany(qc: QueryClient, keys: readonly unknown[][]) {
   for (const key of keys) {
-    qc.invalidateQueries({ queryKey: key as any });
+    qc.invalidateQueries({ queryKey: key });
   }
 }
 
@@ -24,6 +24,6 @@ export function invalidateListAndDetail(
   listKey: readonly unknown[],
   detailKey: readonly unknown[] | null,
 ) {
-  qc.invalidateQueries({ queryKey: listKey as any });
-  if (detailKey) qc.invalidateQueries({ queryKey: detailKey as any });
+  qc.invalidateQueries({ queryKey: listKey });
+  if (detailKey) qc.invalidateQueries({ queryKey: detailKey });
 }

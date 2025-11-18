@@ -1,60 +1,38 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useMe, useLogout } from '../api/auth/hooks';
-import Spinner from '../components/Spinner';
-import { NAV_ITEMS } from './nav';
+import { PATHS } from '../routes/paths';
+import Navigation from '../components/Navigation';
 
 // Unified application layout (navigation chrome + routed content)
 export default function AppLayout() {
   const { data: me } = useMe();
   const logout = useLogout();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-brand-bg text-brand-primary">
-      <nav className="flex items-center justify-between px-4 py-3 border-b bg-white">
-        <div className="flex items-center space-x-4">
+      <header className="sticky top-0 z-50 border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/75">
+        <div className="mx-auto flex items-center justify-between px-4 py-3">
           <Link
-            to="/"
+            to={PATHS.ROOT}
             className="font-semibold focus:outline-none focus:ring-2 focus:ring-brand-accent rounded text-brand-primary"
           >
             PetCare
           </Link>
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `text-sm ${isActive ? 'text-brand-primary font-medium' : 'text-brand-fg'} focus:outline-none focus:ring-2 focus:ring-brand-accent rounded`
-              }
-              end={item.end}
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          <Navigation
+            isAuthenticated={!!me}
+            onLogout={() => {
+              if (!logout.isPending)
+                logout.mutate(undefined, {
+                  onSuccess: () => {
+                    navigate(PATHS.ROOT, { replace: true });
+                  },
+                });
+            }}
+            isLoggingOut={logout.isPending}
+          />
         </div>
-        <div>
-          {me ? (
-            <button
-              className="inline-flex items-center gap-2 text-sm text-brand-accent focus:outline-none focus:ring-2 focus:ring-brand-accent rounded disabled:opacity-50"
-              onClick={() => {
-                if (!logout.isPending && window.confirm('Are you sure you want to logout?')) {
-                  logout.mutate();
-                }
-              }}
-              disabled={logout.isPending}
-            >
-              {logout.isPending ? <Spinner /> : null}
-              <span>Logout</span>
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              className="text-sm text-brand-accent focus:outline-none focus:ring-2 focus:ring-brand-accent rounded"
-            >
-              Login
-            </Link>
-          )}
-        </div>
-      </nav>
+      </header>
       <main className="p-4">
         <Outlet />
       </main>

@@ -11,6 +11,9 @@ upd:
 down:
 	docker compose -f $(DEV_COMPOSE) down
 
+restart:
+	docker compose -f $(DEV_COMPOSE) restart
+
 migrate:
 	docker compose -f $(DEV_COMPOSE) exec app php artisan migrate
 

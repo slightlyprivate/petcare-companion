@@ -8,6 +8,20 @@ export async function getMe() {
 }
 
 /**
+ * Check authentication status (204 if authenticated; 401 if not).
+ */
+export async function getStatus(): Promise<boolean> {
+  try {
+    await api('/auth/status');
+    return true;
+  } catch (e: unknown) {
+    const status = (e as { status?: number } | undefined)?.status;
+    if (status === 401) return false;
+    throw e;
+  }
+}
+
+/**
  * Request a one-time password (OTP) to be sent to the user's email.
  */
 export async function requestOtp(payload: { email: string }) {

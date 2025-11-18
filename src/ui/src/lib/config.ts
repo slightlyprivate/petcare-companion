@@ -18,7 +18,7 @@ const normalizeBase = (value: string | undefined, fallback: string) => {
 
 export const API_BASE = normalizeBase(import.meta.env.VITE_API_BASE, '/api');
 // Prefer VITE_PROXY_BASE
-export const PROXY_BASE = normalizeBase((import.meta.env as any).VITE_PROXY_BASE, '');
+export const PROXY_BASE = normalizeBase(import.meta.env.VITE_PROXY_BASE, '');
 export const isDev = import.meta.env.DEV;
 
 // Basic runtime guardrails

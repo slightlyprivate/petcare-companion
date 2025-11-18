@@ -50,7 +50,7 @@ class AppointmentService
     /**
      * Find a appointment by ID.
      */
-    public function findById(int $id): ?Appointment
+    public function findById(string $id): ?Appointment
     {
         return Appointment::find($id);
     }

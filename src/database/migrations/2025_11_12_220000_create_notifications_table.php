@@ -14,13 +14,12 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('type');
-            $table->morphs('notifiable');
+            // Use UUID morphs to match UUID primary keys (e.g., users)
+            $table->uuidMorphs('notifiable');
             $table->text('data');
             $table->dateTime('read_at')->nullable();
             $table->timestamps();
-
-            $table->index('notifiable_type');
-            $table->index('notifiable_id');
+            // uuidMorphs already creates an index on (notifiable_type, notifiable_id)
         });
     }
 

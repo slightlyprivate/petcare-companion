@@ -25,7 +25,7 @@ function loadFromStorage() {
   } catch {
     // storage not available (SSR or privacy mode); fall back to memory only
     storageAvailable = false;
-    if (import.meta.env.DEV && !warnedStorage) {
+    if (!warnedStorage) {
       // eslint-disable-next-line no-console
       console.warn('[csrf] Local storage unavailable; CSRF token kept in memory only.');
       warnedStorage = true;
@@ -72,7 +72,7 @@ export function setCsrfToken(t: string, opts?: { ttlMs?: number; expiresAt?: num
     if (expiresAt) localStorage.setItem(STORE_EXP_KEY, String(expiresAt));
   } catch {
     storageAvailable = false;
-    if (import.meta.env.DEV && !warnedStorage) {
+    if (!warnedStorage) {
       // eslint-disable-next-line no-console
       console.warn('[csrf] Failed to persist CSRF token; storage unavailable.');
       warnedStorage = true;

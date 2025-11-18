@@ -7,7 +7,11 @@ export default defineConfig(() => {
   const target = process.env.VITE_API_PROXY_TARGET || 'http://frontend:3000';
   const proxyEntries: Record<string, { target: string; changeOrigin: boolean }> = {
     '/api': { target, changeOrigin: true },
-    '/auth': { target, changeOrigin: true },
+    // Proxy only the BFF auth endpoints, not SPA routes like /auth/signin
+    '/auth/csrf': { target, changeOrigin: true },
+    '/auth/request': { target, changeOrigin: true },
+    '/auth/verify': { target, changeOrigin: true },
+    '/auth/logout': { target, changeOrigin: true },
   };
   for (const prefix of BFF_REWRITE_PREFIXES) {
     proxyEntries[prefix] = { target, changeOrigin: true };

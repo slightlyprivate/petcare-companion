@@ -1,4 +1,5 @@
 import { api, proxy } from '../../lib/http';
+import type { NotificationPreferences } from '../types';
 
 /**
  * Fetch user profile details.
@@ -14,12 +15,13 @@ export const updateUserProfile = (payload: { name?: string; email?: string }) =>
 /**
  * User notification preferences endpoints
  */
-export const getNotificationPreferences = () => api('/user/notification-preferences');
+export const getNotificationPreferences = (): Promise<NotificationPreferences> =>
+  api('/user/notification-preferences');
 
 /**
  * Update user notification preferences.
  */
-export const updateNotificationPreferences = (payload: any) =>
+export const updateNotificationPreferences = (payload: Partial<NotificationPreferences>) =>
   proxy('/user/notification-preferences', { method: 'PUT', body: payload });
 
 /**
