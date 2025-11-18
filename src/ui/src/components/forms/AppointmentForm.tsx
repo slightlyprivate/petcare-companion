@@ -1,5 +1,7 @@
 import { FormEvent, useState } from 'react';
 import Button from '../Button';
+import TextInput from '../TextInput';
+import TextArea from '../TextArea';
 
 export type AppointmentFormValues = {
   title: string;
@@ -29,36 +31,27 @@ export default function AppointmentForm({ initial, onSubmit, isSubmitting }: Pro
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="space-y-1">
-        <label className="text-sm">Title</label>
-        <input
-          className="w-full border rounded px-3 py-2"
-          placeholder="Veterinary appointment"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-1">
-        <label className="text-sm">Scheduled At</label>
-        <input
-          type="datetime-local"
-          className="w-full border rounded px-3 py-2"
-          value={scheduledAt}
-          onChange={(e) => setScheduledAt(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-1">
-        <label className="text-sm">Notes (optional)</label>
-        <textarea
-          className="w-full border rounded px-3 py-2"
-          placeholder="Any additional details"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          rows={3}
-        />
-      </div>
+      <TextInput
+        label="Title"
+        placeholder="Veterinary appointment"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        required
+      />
+      <TextInput
+        label="Scheduled At"
+        type="datetime-local"
+        value={scheduledAt}
+        onChange={(e) => setScheduledAt(e.target.value)}
+        required
+      />
+      <TextArea
+        label="Notes (optional)"
+        placeholder="Any additional details"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        rows={3}
+      />
       <div>
         <Button type="submit" isLoading={!!isSubmitting} disabled={!title || !scheduledAt}>
           Save Appointment

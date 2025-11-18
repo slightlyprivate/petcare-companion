@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Button from '../Button';
+import TextInput from '../TextInput';
 
 export type PetFormValues = {
   name: string;
@@ -56,55 +57,40 @@ export default function PetForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="space-y-1">
-        <label className="text-sm">Name</label>
-        <input
-          className="w-full border rounded px-3 py-2"
-          placeholder="Pet name"
-          value={values.name}
-          onChange={(e) => update('name', e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-1">
-        <label className="text-sm">Species</label>
-        <input
-          className="w-full border rounded px-3 py-2"
-          placeholder="Dog, Cat, ..."
-          value={values.species}
-          onChange={(e) => update('species', e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-1">
-        <label className="text-sm">Owner Name</label>
-        <input
-          className="w-full border rounded px-3 py-2"
-          placeholder="Owner name"
-          value={values.owner_name}
-          onChange={(e) => update('owner_name', e.target.value)}
-          required
-        />
-      </div>
+      <TextInput
+        label="Name"
+        placeholder="Pet name"
+        value={values.name}
+        onChange={(e) => update('name', e.target.value)}
+        required
+      />
+      <TextInput
+        label="Species"
+        placeholder="Dog, Cat, ..."
+        value={values.species}
+        onChange={(e) => update('species', e.target.value)}
+        required
+      />
+      <TextInput
+        label="Owner Name"
+        placeholder="Owner name"
+        value={values.owner_name}
+        onChange={(e) => update('owner_name', e.target.value)}
+        required
+      />
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1">
-          <label className="text-sm">Breed (optional)</label>
-          <input
-            className="w-full border rounded px-3 py-2"
-            placeholder="Breed"
-            value={values.breed || ''}
-            onChange={(e) => update('breed', e.target.value)}
-          />
-        </div>
-        <div className="space-y-1">
-          <label className="text-sm">Birth Date (YYYY-MM-DD)</label>
-          <input
-            className="w-full border rounded px-3 py-2"
-            placeholder="YYYY-MM-DD"
-            value={values.birth_date || ''}
-            onChange={(e) => update('birth_date', e.target.value)}
-          />
-        </div>
+        <TextInput
+          label="Breed (optional)"
+          placeholder="Breed"
+          value={values.breed || ''}
+          onChange={(e) => update('breed', e.target.value)}
+        />
+        <TextInput
+          label="Birth Date (YYYY-MM-DD)"
+          placeholder="YYYY-MM-DD"
+          value={values.birth_date || ''}
+          onChange={(e) => update('birth_date', e.target.value)}
+        />
       </div>
 
       <div className="flex items-center gap-2 pt-1">

@@ -10,8 +10,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint . --ext .ts,.tsx || echo 'Tip: install eslint to enable rule enforcement'",
+    "lint:any": "node ./scripts/lint-any.cjs",
+    "lint:twdups": "node ./scripts/lint-tailwind-dups.cjs",
     "lint:routes": "node ./scripts/lint-routes.cjs",
-    "lint:all": "npm run -s lint:routes && npm run -s lint"
+    "lint:all": "npm run -s lint:routes && npm run -s lint:any && npm run -s lint:twdups && npm run -s lint"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.59.0",

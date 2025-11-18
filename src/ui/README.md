@@ -100,6 +100,29 @@ Query helpers
   Example:
   `usePaginatedQuery({ queryKey: [qk.pets.all, page], queryFn: () => listPublicPets({ page }), keepPreviousData: true })`.
 
+Cache invalidation patterns
+
+- `src/ui/src/lib/queryUtils.ts` exposes helpers to reduce manual cache touches:
+  - `invalidateMany(qc, [qk.pets.all, qk.pets.mine])`
+  - `invalidateListAndDetail(qc, qk.pets.mine, qk.pets.detail(id))` Use these in mutation
+    `onSuccess` blocks instead of reaching into cache data structures.
+
+Shared UI primitives
+
+- Favor primitives under `src/ui/src/components/` to keep Tailwind consistent:
+  - `Button`, `StatusMessage`, `ErrorMessage`, `Spinner`, `QueryBoundary`
+  - `Section`: standard titled card with border/padding
+  - `TextInput`: consistent input styling for forms These reduce duplicated classes and visual drift
+    between sections.
+
+Linting and type safety
+
+- TS is `strict: true` and we include a lightweight guard to prevent `any` usage:
+  - `npm run lint:any` scans for `: any`, `as any`, `any[]`, `useState<any>`
+- A Tailwind duplicate-class guard is available:
+  - `npm run lint:twdups` flags repeated class tokens within a single `className` string.
+- Combine all guards with `npm run lint:all`.
+
 Testing plan (lightweight)
 
 - CSRF behavior: Manually validate `GET /auth/csrf` via the API Playground before building flows.

@@ -2,6 +2,7 @@ import { FormEvent, useMemo, useState } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import ErrorMessage from '../../components/ErrorMessage';
+import TextInput from '../../components/TextInput';
 import { useRequestOtp, useVerifyOtp, useMe } from '../../api/auth/hooks';
 import { ensureCsrf } from '../../lib/csrf';
 import { useToast } from '../../lib/notifications';
@@ -86,12 +87,7 @@ export default function LoginOtp() {
       <h1 className="text-xl font-semibold mb-4">Sign in</h1>
       {step === 'request' ? (
         <form onSubmit={onRequest} className="space-y-3">
-          <input
-            className="border rounded px-3 py-2 w-full"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <TextInput placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
           {requestOtp.isError && (
             <ErrorMessage
               message={(requestOtp.error as { message?: string })?.message || 'Error'}
@@ -101,18 +97,8 @@ export default function LoginOtp() {
         </form>
       ) : (
         <form onSubmit={onVerify} className="space-y-3">
-          <input
-            className="border rounded px-3 py-2 w-full"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            className="border rounded px-3 py-2 w-full"
-            placeholder="Code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          />
+          <TextInput placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <TextInput placeholder="Code" value={code} onChange={(e) => setCode(e.target.value)} />
           {verifyOtp.isError && (
             <ErrorMessage message={(verifyOtp.error as { message?: string })?.message || 'Error'} />
           )}

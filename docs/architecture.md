@@ -10,15 +10,20 @@
 
 ## Context
 
-This document explains the system architecture and design decisions for **PetCare Companion**, a Laravel + MySQL micro-app created to demonstrate modern PHP engineering practices. It reflects a focus on maintainability, clarity, and proper MVC separation in a Dockerized environment.
+This document explains the system architecture and design decisions for **PetCare Companion**, a
+Laravel + MySQL micro-app created to demonstrate modern PHP engineering practices. It reflects a
+focus on maintainability, clarity, and proper MVC separation in a Dockerized environment.
 
 ## Key Points
 
 - **Domain:** Manage pets, appointments, and a virtual gift economy with credit-based gifting.
-- **Primary Goal:** Demonstrate production-quality Laravel patterns with Stripe integration for credit purchases in a compact, testable API.
-- **Architecture Style:** MVC + REST, with clear validation, resources, service layer, and comprehensive test coverage.
+- **Primary Goal:** Demonstrate production-quality Laravel patterns with Stripe integration for
+  credit purchases in a compact, testable API.
+- **Architecture Style:** MVC + REST, with clear validation, resources, service layer, and
+  comprehensive test coverage.
 - **Environment:** Containerized PHP-FPM + Nginx + MySQL stack using Docker Compose.
-- **Authorization:** Dual-role system (standard user vs. system admin) enforced through Laravel policies.
+- **Authorization:** Dual-role system (standard user vs. system admin) enforced through Laravel
+  policies.
 - **Payment Processing:** Stripe Checkout for credit purchases; gifts use wallet credits.
 
 ## Application Layers
@@ -37,29 +42,36 @@ This document explains the system architecture and design decisions for **PetCar
 ### 3. Service Layer
 
 - Business logic separated into service classes (e.g., `PetGiftService`, `StripeWebhookService`).
-- Services handle complex operations like Stripe payment processing, credit allocation, and gift creation.
+- Services handle complex operations like Stripe payment processing, credit allocation, and gift
+  creation.
 - Controllers remain thin by delegating business logic to services.
-- Gift-specific services: `GiftService` for receipt generation. `PetGiftService` creates wallet-funded gifts (no Stripe checkout for gifts).
+- Gift-specific services: `GiftService` for receipt generation. `PetGiftService` creates
+  wallet-funded gifts (no Stripe checkout for gifts).
 
 ### 4. Validation Layer
 
-- Separate Form Request classes handle validation rules (`StorePetRequest`, `StoreAppointmentRequest`, `StoreGiftRequest`, `ExportGiftReceiptRequest`).
+- Separate Form Request classes handle validation rules (`StorePetRequest`,
+  `StoreAppointmentRequest`, `StoreGiftRequest`, `ExportGiftReceiptRequest`).
 - Ensures input sanitation and standardized 422 responses on validation failure.
-- Gift validation requires `gift_type_id` (active), and wallet sufficiency is checked against the catalog price via a custom rule. Server enforces price; client-provided amounts are ignored.
+- Gift validation requires `gift_type_id` (active), and wallet sufficiency is checked against the
+  catalog price via a custom rule. Server enforces price; client-provided amounts are ignored.
 
 ### 5. Authorization Layer
 
 - Role information stored on the `users.role` column backed by the `App\Enums\UserRole` enum.
 - `AuthServiceProvider` registers policies for `User` and `Pet` models.
-- Policies grant owners access to their own resources while administrators (`UserRole::ADMIN`) receive full visibility and control.
+- Policies grant owners access to their own resources while administrators (`UserRole::ADMIN`)
+  receive full visibility and control.
 - Feature tests cover both privileged and non-privileged scenarios to prevent regressions.
 
 ### 6. Model Layer
 
 - Eloquent ORM manages persistence.
-- Models (`Pet`, `Appointment`, `Gift`, `Wallet`, `CreditTransaction`) define relationships and `$fillable` fields.
+- Models (`Pet`, `Appointment`, `Gift`, `Wallet`, `CreditTransaction`) define relationships and
+  `$fillable` fields.
 - Database enforced with foreign key constraints and cascading deletes for child records.
-- Gift model includes UUID primary keys, credit cost tracking, and status management methods (`markAsPaid()`, `markAsFailed()`).
+- Gift model includes UUID primary keys, credit cost tracking, and status management methods
+  (`markAsPaid()`, `markAsFailed()`).
 - Wallet model tracks user credit balances with balance modification methods.
 - CreditTransaction model logs all credit movements with type and description tracking.
 
@@ -71,16 +83,20 @@ This document explains the system architecture and design decisions for **PetCar
 
 ### 8. Payment Layer
 
-- **Stripe Integration**: Stripe Checkout is used to sell credit bundles. Webhooks complete purchases, increment wallet balances, and log transactions. Expired sessions are marked failed.
+- **Stripe Integration**: Stripe Checkout is used to sell credit bundles. Webhooks complete
+  purchases, increment wallet balances, and log transactions. Expired sessions are marked failed.
 - **Virtual Credits**: Users purchase credits via Stripe (not real currency outside the platform).
 - **Wallet System**: Each user has a wallet tracking credit balance.
-- **Credit Transactions**: Full logging of all credit purchases and gift expenditures (transactions include `amount_credits`).
-- **Gift Processing**: Gifts are funded from the wallet immediately in a DB transaction; no Stripe for gifts.
+- **Credit Transactions**: Full logging of all credit purchases and gift expenditures (transactions
+  include `amount_credits`).
+- **Gift Processing**: Gifts are funded from the wallet immediately in a DB transaction; no Stripe
+  for gifts.
 - **Status Management**: Credits and gifts track states (pending, paid, failed) with timestamps.
 
 #### Credit Conversion Standard
 
-The application uses a **standardized credit conversion rate** defined in `App\Constants\CreditConstants`:
+The application uses a **standardized credit conversion rate** defined in
+`App\Constants\CreditConstants`:
 
 - **5 credits = $1.00 (100 cents)** → 1 credit = 20 cents
 - **Constant:** `CREDITS_PER_DOLLAR = 5` (all conversions derive from this)
@@ -97,11 +113,13 @@ The application uses a **standardized credit conversion rate** defined in `App\C
 - `PetGiftService` — logs wallet debits for gifts
 - Directory/reporting resources — display totals
 
-This centralized constant ensures uniform credit valuation across all payment flows and prevents miscalculations.
+This centralized constant ensures uniform credit valuation across all payment flows and prevents
+miscalculations.
 
 ### 9. Database Layer
 
-- MySQL 8 used for persistence, with tables for pets, appointments, gifts, wallets, and credit transactions.
+- MySQL 8 used for persistence, with tables for pets, appointments, gifts, wallets, and credit
+  transactions.
 - Migration-based schema evolution.
 - Seeder files provide sample data for demonstration and testing.
 - Relationships:
@@ -117,7 +135,8 @@ This centralized constant ensures uniform credit valuation across all payment fl
 
 - Feature tests validate CRUD flows, gift transactions, and response formats.
 - Comprehensive gift API testing including server-side catalog pricing and wallet debits.
-- Credit transaction logging and wallet balance verification; purchase completion tested end-to-end via webhook.
+- Credit transaction logging and wallet balance verification; purchase completion tested end-to-end
+  via webhook.
 - Tests run in isolated SQLite memory or test database through Docker.
 - Target coverage: successful CRUD paths + gift flows + validation failure cases.
 
@@ -140,10 +159,34 @@ This centralized constant ensures uniform credit valuation across all payment fl
 - `.env` defines app, database, and Stripe configuration.
 - `.env.example` stored for reproducibility.
 - CSRF enabled for Blade routes; REST endpoints expect token-based or stateless access.
-- Authorization checks use Laravel policies invoked from controllers (`authorize` helpers) to protect resource endpoints.
-- Admin-only write endpoints (e.g., Gift Type CRUD) are protected via both Form Requests and route `can:*` middleware, with policies registered in `AuthServiceProvider`.
+- Authorization checks use Laravel policies invoked from controllers (`authorize` helpers) to
+  protect resource endpoints.
+- Admin-only write endpoints (e.g., Gift Type CRUD) are protected via both Form Requests and route
+  `can:*` middleware, with policies registered in `AuthServiceProvider`.
 - Stripe webhook signature verification ensures payment security.
 - Sensitive data (like DB credentials and Stripe keys) excluded from version control.
+
+### BFF and CSRF Contract
+
+The Node BFF mediates browser <→ Laravel traffic and enforces a uniform CSRF/session model.
+
+- CSRF issuance: `GET /auth/csrf` returns `{ csrfToken, ttlMs?, expiresAt? }`.
+  - UI obtains and stores this via `src/ui/src/lib/csrf.ts` and `csrfStore.ts`.
+  - CSRF token is attached as `X-CSRF-Token` on unsafe methods (POST/PUT/PATCH/DELETE) by
+    `axiosClient`.
+- Mutation enforcement: The BFF requires a valid CSRF token for mutating routes under `/auth/*` and
+  all proxied `/api/*` mutations.
+- Session + Auth: After `POST /auth/verify`, the BFF stores the backend token in the session and
+  sets an httpOnly cookie; subsequent proxied `/api/*` calls include
+  `Authorization: Bearer <token>`.
+- Header forwarding: Selected headers are forwarded upstream; proxy copies relevant headers back
+  (CORS, cookies, content-type) and disables caching in dev to avoid stale 304s.
+
+References:
+
+- BFF auth routes: `src/server/src/routes/auth.js`
+- BFF proxy helpers: `src/server/src/services/proxy.js`
+- UI CSRF: `src/ui/src/lib/csrf.ts`, `src/ui/src/lib/csrfStore.ts`, `src/ui/src/lib/axiosClient.ts`
 
 ## Performance and Maintainability
 
@@ -156,7 +199,8 @@ This centralized constant ensures uniform credit valuation across all payment fl
 
 - Laravel selected for rapid development and MVC familiarity.
 - Lightweight passwordless auth paired with explicit role-based authorization using policies.
-- Stripe Checkout chosen for simple, explicit credit purchase flows without subscription scaffolding.
+- Stripe Checkout chosen for simple, explicit credit purchase flows without subscription
+  scaffolding.
 - Docker chosen for parity and environment reproducibility.
 - Service layer introduced for complex business logic (payment processing, webhooks).
 - Small dataset seeded for deterministic demo output.
@@ -165,8 +209,10 @@ This centralized constant ensures uniform credit valuation across all payment fl
 
 - Pattern: follow `PetRestoreController` for soft-deleted resource restoration.
 - Authorization: enforce via model policies (owner or admin only).
-- Endpoints: add `POST /api/gifts/{gift}/restore` and `POST /api/appointments/{appointment}/restore` if/when implemented.
-- Tests: include success paths (owner/admin) and denial paths (non-owner), plus validation for already-restored entities.
+- Endpoints: add `POST /api/gifts/{gift}/restore` and `POST /api/appointments/{appointment}/restore`
+  if/when implemented.
+- Tests: include success paths (owner/admin) and denial paths (non-owner), plus validation for
+  already-restored entities.
 
 ## Data Flow Diagrams
 
@@ -291,7 +337,8 @@ graph TB
 
 ## Gift Economy System Architecture
 
-The PetCare Companion uses a symbolic **gift economy** model. This section details the system architecture, data flow, and design rationale.
+The PetCare Companion uses a symbolic **gift economy** model. This section details the system
+architecture, data flow, and design rationale.
 
 ### Why Gift Economy Instead of Direct Donations?
 
@@ -408,7 +455,8 @@ The gift economy model provides several advantages:
 
 **Key Methods**:
 
-- `createGift(User $user, Pet $pet, int $costInCredits, string $returnUrl)`: Creates gift record and returns checkout session URL
+- `createGift(User $user, Pet $pet, int $costInCredits, string $returnUrl)`: Creates gift record and
+  returns checkout session URL
 - `createStripeCheckoutSession(Gift $gift)`: Generates Stripe Checkout session
 - `generateUniqueId()`: Creates unique gift identifier for Stripe metadata
 
@@ -460,7 +508,8 @@ The gift economy model provides several advantages:
 
 **GiftController** (`App\Http\Controllers\Gift\GiftController`):
 
-- `exportReceipt(ExportGiftReceiptRequest $request, Gift $gift)`: Exports gift receipt as PDF (200 OK)
+- `exportReceipt(ExportGiftReceiptRequest $request, Gift $gift)`: Exports gift receipt as PDF (200
+  OK)
 
 **PetGiftController** (`App\Http\Controllers\Pet\PetGiftController`):
 
@@ -511,7 +560,8 @@ sequenceDiagram
 
 - **10-100 credits**: Small tokens of appreciation (common daily gifts)
 - **100-1,000 credits**: Substantial gestures of support (weekly/monthly contributors)
-- **1,000-1,000,000 credits**: Premium tiers, special occasions, or bulk contributions (future feature)
+- **1,000-1,000,000 credits**: Premium tiers, special occasions, or bulk contributions (future
+  feature)
 
 **Wallet Operations**:
 
@@ -532,8 +582,10 @@ sequenceDiagram
 **Operational Notes**:
 
 - `checkout.session.expired` marks pending credit purchases as failed.
-- A scheduled command scans and logs stale pending credit purchases: `php artisan credits:scan-stale --minutes=30`.
-- Admin gift type creation/update requires numeric `cost_in_credits`; create defaults to 100 if omitted.
+- A scheduled command scans and logs stale pending credit purchases:
+  `php artisan credits:scan-stale --minutes=30`.
+- Admin gift type creation/update requires numeric `cost_in_credits`; create defaults to 100 if
+  omitted.
 - Pet restore is authorized via policy (`restore`) and allows admins to restore on behalf of users.
 
 - Stripe checkout session creation failures → Gift remains pending, user retries
@@ -655,7 +707,9 @@ Returns PDF file with gift receipt details.
 
 **Overview**:
 
-The public reporting system provides comprehensive transparency for pet profiles and gift contributions. Donors can view detailed gift histories and summaries without authentication, promoting trust and engagement.
+The public reporting system provides comprehensive transparency for pet profiles and gift
+contributions. Donors can view detailed gift histories and summaries without authentication,
+promoting trust and engagement.
 
 **Key Components**:
 
@@ -720,20 +774,20 @@ PublicPetReportResource::toArray()
     "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Fluffy",
     "gift_count": 12,
-    "total_gifts_value": 150.00,
+    "total_gifts_value": 150.0,
     "gift_summaries_by_type": [
       {
         "gift_type_id": "...",
         "gift_type_name": "Toy",
         "count": 5,
-        "total_value": 100.00,
-        "average_value": 20.00
+        "total_value": 100.0,
+        "average_value": 20.0
       },
       {
         "gift_type_id": "...",
         "gift_type_name": "Treat",
         "count": 7,
-        "total_value": 50.00,
+        "total_value": 50.0,
         "average_value": 7.14
       }
     ],
@@ -743,7 +797,7 @@ PublicPetReportResource::toArray()
         "type_label": "Gift Sent",
         "amount_credits": 50,
         "amount_cents": 1000,
-        "amount_dollars": 10.00,
+        "amount_dollars": 10.0,
         "reason": "Gift sent to Fluffy",
         "related_type": "Gift",
         "related_id": "abc123...",

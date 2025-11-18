@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Button from '../Button';
+import TextInput from '../TextInput';
 
 export type PetSettingsValues = {
   is_public: boolean;
@@ -58,19 +59,14 @@ export default function PetSettingsForm({ initial, onSubmit, isSubmitting }: Pet
         </label>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-sm" htmlFor="share_slug">
-          Public URL slug (optional)
-        </label>
-        <input
-          id="share_slug"
-          className="w-full border rounded px-3 py-2"
-          placeholder="e.g. bella-the-cat"
-          value={values.share_slug || ''}
-          onChange={(e) => setValues((v) => ({ ...v, share_slug: e.target.value }))}
-        />
-        <p className="text-xs text-gray-500">Used for the SEO-friendly public pet page.</p>
-      </div>
+      <TextInput
+        label="Public URL slug (optional)"
+        id="share_slug"
+        placeholder="e.g. bella-the-cat"
+        value={values.share_slug || ''}
+        onChange={(e) => setValues((v) => ({ ...v, share_slug: e.target.value }))}
+      />
+      <p className="text-xs text-gray-500">Used for the SEO-friendly public pet page.</p>
 
       <div>
         <Button type="submit" isLoading={!!isSubmitting}>

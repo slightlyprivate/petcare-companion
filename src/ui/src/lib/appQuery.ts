@@ -67,3 +67,9 @@ export function usePaginatedQuery<
   } as UseQueryOptions<TQueryFnData, TError, TData, TQueryKey>;
   return rqUseQuery(withDefaults);
 }
+
+/**
+ * Convenience alias for simple page-based lists.
+ * Equivalent to usePaginatedQuery with placeholderData for keeping previous data.
+ */
+export const usePageQuery = usePaginatedQuery;
