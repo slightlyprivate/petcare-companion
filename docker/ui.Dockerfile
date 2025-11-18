@@ -10,6 +10,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Copy UI sources and build
 COPY src/ui ./src/ui
+COPY src/shared ./src/shared
 RUN cd src/ui && npm run build
 
 
