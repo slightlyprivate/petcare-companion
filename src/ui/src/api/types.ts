@@ -4,7 +4,7 @@
 import type { Role } from '../constants/roles';
 
 export interface User {
-  id: number;
+  id: string;
   email: string;
   role?: Role;
 }
@@ -13,7 +13,7 @@ export interface User {
  * Public information about a pet.
  */
 export interface Pet {
-  id: number;
+  id: string;
   name: string;
   species: string;
 }
@@ -22,8 +22,8 @@ export interface Pet {
  * Appointment for a pet.
  */
 export interface Appointment {
-  id: number;
-  pet_id: number;
+  id: string;
+  pet_id: string;
   title: string;
   scheduled_at: string;
 }
@@ -32,7 +32,7 @@ export interface Appointment {
  * Gift type available for purchase with credits.
  */
 export interface GiftType {
-  id: number;
+  id: string;
   name: string;
   cost_in_credits: number;
 }
@@ -41,9 +41,9 @@ export interface GiftType {
  * Gift given to a pet.
  */
 export interface Gift {
-  id: number;
-  pet_id: number;
-  gift_type_id: number;
+  id: string;
+  pet_id: string;
+  gift_type_id: string;
   created_at?: string;
 }
 
@@ -51,7 +51,7 @@ export interface Gift {
  * Credit purchase made by a user.
  */
 export interface CreditPurchase {
-  id: number;
+  id: string;
   amount_credits: number;
   status: string;
 }
