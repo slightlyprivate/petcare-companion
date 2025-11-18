@@ -94,7 +94,7 @@ class PetService
     /**
      * Find a pet by ID.
      */
-    public function findById(int $id): ?Pet
+    public function findById(string $id): ?Pet
     {
         return Pet::find($id);
     }
