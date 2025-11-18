@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 import { Outlet } from 'react-router-dom';
-import RequireAuth from '../components/RequireAuth';
+import RouteGuard from '../components/RouteGuard';
 import RouteError from '../components/RouteError';
 import NotFound from '../pages/Public/NotFound';
 import { PATHS } from './paths';
@@ -51,9 +51,9 @@ export const routes = [
       {
         path: PATHS.DASHBOARD.ROOT,
         element: (
-          <RequireAuth>
+          <RouteGuard>
             <DashboardLayout />
-          </RequireAuth>
+          </RouteGuard>
         ),
         children: [
           { index: true, element: <DashboardPets />, errorElement: <RouteError /> },
