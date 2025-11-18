@@ -1,6 +1,8 @@
 import { isDev } from './config';
 import { PATHS } from '../routes/paths';
 import type { ApiError } from './fetch';
+import { getQueryClient } from './queryClient';
+import { resetOnLogout } from './queryUtils';
 
 let redirecting = false;
 
@@ -12,27 +14,24 @@ let redirecting = false;
 export function handleAuthError(err: ApiError) {
   if (redirecting) return;
   const status = err?.status;
-  if (status !== 401 && status !== 419) return;
+  // Only force logout + redirect on 401 (Unauthenticated)
+  if (status !== 401) return;
 
-  // Avoid redirect loops on the login route
-  const { pathname, search, hash } = window.location;
-  // Avoid redirect loops on any auth routes
-  if (pathname.startsWith(PATHS.AUTH.ROOT)) return;
+  // Clear client caches/tokens to ensure a clean state
+  try {
+    const qc = getQueryClient();
+    resetOnLogout(qc);
+  } catch {}
 
   redirecting = true;
-  const redirectTo = `${pathname}${search}${hash}`;
-  const qs = new URLSearchParams({ redirectTo }).toString();
   if (isDev) {
     // eslint-disable-next-line no-console
-    console.warn('[auth] redirecting to signin due to auth error', status);
+    console.warn('[auth] 401 received; forcing logout and redirecting to home');
   }
-  const url = `${PATHS.AUTH.SIGNIN}?${qs}`;
   try {
-    // Client-side navigate to avoid dev proxy intercepting /auth/*
-    window.history.pushState({}, '', url);
+    window.history.pushState({}, '', PATHS.ROOT);
     window.dispatchEvent(new PopStateEvent('popstate'));
   } catch {
-    // Fallback
-    window.location.href = url;
+    window.location.href = PATHS.ROOT;
   }
 }
