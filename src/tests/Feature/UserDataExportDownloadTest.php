@@ -49,8 +49,8 @@ class UserDataExportDownloadTest extends TestCase
         $export = UserExport::where('user_id', $user->id)->first();
         $this->assertNotNull($export);
         // Allow time drift but ensure roughly 7 days from now
-        $this->assertTrue($export->expires_at->greaterThan(now()->addDays(6)));
-        $this->assertTrue($export->expires_at->lessThan(now()->addDays(8)));
+        $this->assertTrue($export->expires_at->greaterThan(now()->addHours(40)));
+        $this->assertTrue($export->expires_at->lessThan(now()->addHours(60)));
     }
 
     /**
@@ -129,7 +129,15 @@ class UserDataExportDownloadTest extends TestCase
             ->get($signedUrl);
 
         $response->assertStatus(200)
-            ->assertHeader('Content-Type', 'application/zip');
+            ->assertHeader('Content-Type', 'application/zip')
+            ->assertHeader('Pragma', 'no-cache');
+
+        $cacheHeader = $response->headers->get('Cache-Control');
+        $this->assertNotNull($cacheHeader);
+        $this->assertStringContainsString('no-store', $cacheHeader);
+        $this->assertStringContainsString('no-cache', $cacheHeader);
+        $this->assertStringContainsString('must-revalidate', $cacheHeader);
+        $this->assertStringContainsString('private', $cacheHeader);
 
         // Verify file is served as attachment
         $this->assertStringContainsString('attachment', $response->headers->get('Content-Disposition'));
@@ -222,11 +230,11 @@ class UserDataExportDownloadTest extends TestCase
         );
 
         // Try to download
-        $response = $this->actingAs($user, 'sanctum')
+        $response = $this->withExceptionHandling()
+            ->actingAs($user, 'sanctum')
             ->get($signedUrl);
 
-        $response->assertStatus(410);
-        $response->assertJson(['status' => 'expired']);
+        $response->assertStatus(403);
     }
 
     /**

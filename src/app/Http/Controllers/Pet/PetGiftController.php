@@ -32,6 +32,8 @@ class PetGiftController extends Controller
      */
     public function store(StoreGiftRequest $request, Pet $pet): \Illuminate\Http\JsonResponse
     {
+        $this->authorize('view', $pet);
+
         $requestData = $request->validated();
         $requestUser = $request->user();
 

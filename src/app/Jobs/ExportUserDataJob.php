@@ -52,8 +52,9 @@ class ExportUserDataJob implements ShouldQueue
             $disk = Storage::disk('exports');
             $disk->put($filePath, $zipContent);
 
-            // Create UserExport record with 7-day expiration
-            $expiresAt = now()->addDays(7);
+            // Create UserExport record using configurable expiration window
+            $ttlHours = (int) config('user-exports.link_ttl_hours', 48);
+            $expiresAt = now()->addHours(max($ttlHours, 1));
             $userExport = UserExport::create([
                 'user_id' => $this->user->id,
                 'file_path' => $filePath,

@@ -73,6 +73,16 @@ return [
             'production' => 10,
             'development' => 50,
         ],
+        'outbound' => [
+            'production' => [
+                'limit' => 60,
+                'decay_seconds' => 3600,
+            ],
+            'development' => [
+                'limit' => 200,
+                'decay_seconds' => 3600,
+            ],
+        ],
     ],
 
     'webhook' => [

@@ -32,18 +32,15 @@ class UserExportDownloadController extends Controller
      */
     public function download(Request $request, UserExport $export)
     {
-        // Check if export is still within validity window
-        if ($export->expires_at->isPast()) {
-            return response()->json([
-                'message' => 'This export link has expired. Please request a new data export.',
-                'status' => 'expired',
-            ], 410);
-        }
-
-        // Validate the signature only after checking expiry so we can return 410 for expired links
         if (! UrlFacade::hasValidSignature($request)) {
             return response()->json([
-                'message' => 'Invalid or tampered link.',
+                'message' => 'Invalid or expired link.',
+            ], 403);
+        }
+
+        if ($export->expires_at->isPast()) {
+            return response()->json([
+                'message' => 'Invalid or expired link.',
             ], 403);
         }
 
@@ -74,13 +71,11 @@ class UserExportDownloadController extends Controller
         // Return as standard response with headers so test helpers can inspect headers
         $content = $disk->get($export->file_path);
 
-        return response(
-            $content,
-            200,
-            [
-                'Content-Type' => 'application/zip',
-                'Content-Disposition' => 'attachment; filename="' . $export->file_name . '"',
-            ]
-        );
+        return response($content, 200, [
+            'Content-Type' => 'application/zip',
+            'Content-Disposition' => 'attachment; filename="' . $export->file_name . '"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, private',
+            'Pragma' => 'no-cache',
+        ]);
     }
 }

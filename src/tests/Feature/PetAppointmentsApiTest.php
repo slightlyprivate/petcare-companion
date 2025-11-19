@@ -314,6 +314,52 @@ class PetAppointmentsApiTest extends TestCase
     }
 
     #[Test]
+    public function it_blocks_listing_appointments_for_unowned_pet()
+    {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $otherOwner = User::factory()->create();
+        $pet = Pet::factory()->for($otherOwner)->create();
+
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments");
+
+        $response->assertStatus(403);
+    }
+
+    #[Test]
+    public function it_throttles_appointment_creation_per_user()
+    {
+        $originalLimit = config('rate-limits.appointment.write.development');
+        config(['rate-limits.appointment.write.development' => 1]);
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
+
+        $payload = [
+            'title' => 'Annual Checkup',
+            'scheduled_at' => Carbon::now()->addDay()->toDateTimeString(),
+            'notes' => 'Initial attempt',
+        ];
+
+        try {
+            $this->actingAs($user, 'sanctum')->postJson("/api/pets/{$pet->id}/appointments", $payload)->assertStatus(201);
+
+            $secondPayload = [
+                'title' => 'Follow-up',
+                'scheduled_at' => Carbon::now()->addDays(2)->toDateTimeString(),
+                'notes' => 'Second attempt',
+            ];
+
+            $response = $this->actingAs($user, 'sanctum')->postJson("/api/pets/{$pet->id}/appointments", $secondPayload);
+
+            $response->assertStatus(429);
+        } finally {
+            config(['rate-limits.appointment.write.development' => $originalLimit]);
+        }
+    }
+
+    #[Test]
     public function it_rejects_creating_appointments_for_unowned_pet()
     {
         /** @var Authenticatable $user */

@@ -38,6 +38,8 @@ class GiftController extends Controller
         /** @var Pet $pet */
         $pet = Pet::findOrFail($data['pet_id']);
 
+        $this->authorize('view', $pet);
+
         $result = $this->petGiftService->createGift($data, $user, $pet);
 
         return response()->json($result, 201);
@@ -62,7 +64,7 @@ class GiftController extends Controller
 
             return response($pdfContent, 200, [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="receipt_'.$gift->id.'.pdf"',
+                'Content-Disposition' => 'attachment; filename="receipt_' . $gift->id . '.pdf"',
                 'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
                 'Pragma' => 'no-cache',
             ]);

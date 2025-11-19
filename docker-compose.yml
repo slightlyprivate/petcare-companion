@@ -11,6 +11,7 @@ services:
     image: ghcr.io/yourorg/petcare-app:prod
     env_file: .env
     read_only: true
+    user: www-data
     tmpfs:
       - /tmp
     healthcheck:
@@ -18,6 +19,8 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    networks:
+      - backend
 
   web:
     container_name: petcare_web
@@ -25,8 +28,9 @@ services:
     depends_on:
       - app
     ports:
-      - '8080:80'
+      - '127.0.0.1:8080:80'
     read_only: true
+    user: www-data
     tmpfs:
       - /var/cache/nginx
       - /var/run
@@ -35,6 +39,9 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    networks:
+      - frontend
+      - backend
 
   worker:
     container_name: petcare_worker
@@ -42,15 +49,19 @@ services:
     command: php artisan queue:work --sleep=3 --tries=3 --memory=256
     env_file: .env
     read_only: true
+    user: www-data
     tmpfs:
       - /tmp
+    networks:
+      - backend
 
   ui:
     container_name: petcare_ui
     image: ghcr.io/yourorg/petcare-ui:prod
     ports:
-      - '8081:80'
+      - '127.0.0.1:8081:80'
     read_only: true
+    user: www-data
     tmpfs:
       - /var/cache/nginx
       - /var/run
@@ -59,3 +70,11 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge

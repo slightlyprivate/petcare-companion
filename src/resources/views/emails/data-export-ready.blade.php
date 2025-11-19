@@ -18,7 +18,7 @@ The export contains your data in JSON format for easy access and portability.
 Download Your Data
 @endcomponent
 
-**Note**: This download link is valid for 7 days. For security reasons, please download your data promptly.
+**Note**: This download link is valid for 48 hours. For security reasons, please download your data promptly.
 
 If you did not request this data export, please ignore this email.
 
