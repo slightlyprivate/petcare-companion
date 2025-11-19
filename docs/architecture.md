@@ -4,7 +4,6 @@
 
 - Root overview: `README.md`
 - API (Laravel): `src/README.md`
-- BFF Server: `src/server/README.md`
 - UI (Vite + React): `src/ui/README.md`
 - Compose and containers: `docker-compose.yml`, `docker/`
 
@@ -166,27 +165,27 @@ miscalculations.
 - Stripe webhook signature verification ensures payment security.
 - Sensitive data (like DB credentials and Stripe keys) excluded from version control.
 
-### BFF and CSRF Contract
+### Sanctum CSRF and Auth Contract
 
-The Node BFF mediates browser <→ Laravel traffic and enforces a uniform CSRF/session model.
+Laravel Sanctum provides session-based authentication with CSRF protection for the React UI.
 
-- CSRF issuance: `GET /auth/csrf` returns `{ csrfToken, ttlMs?, expiresAt? }`.
-  - UI obtains and stores this via `src/ui/src/lib/csrf.ts` and `csrfStore.ts`.
-  - CSRF token is attached as `X-CSRF-Token` on unsafe methods (POST/PUT/PATCH/DELETE) by
+- CSRF issuance: `GET /sanctum/csrf-cookie` sets the `XSRF-TOKEN` cookie.
+  - UI obtains this via `src/ui/src/lib/csrf.ts` which reads the cookie.
+  - CSRF token is attached as `X-XSRF-TOKEN` on unsafe methods (POST/PUT/PATCH/DELETE) by
     `axiosClient`.
-- Mutation enforcement: The BFF requires a valid CSRF token for mutating routes under `/auth/*` and
-  all proxied `/api/*` mutations.
-- Session + Auth: After `POST /auth/verify`, the BFF stores the backend token in the session and
-  sets an httpOnly cookie; subsequent proxied `/api/*` calls include
-  `Authorization: Bearer <token>`.
-- Header forwarding: Selected headers are forwarded upstream; proxy copies relevant headers back
-  (CORS, cookies, content-type) and disables caching in dev to avoid stale 304s.
+- Mutation enforcement: Laravel requires a valid CSRF token for mutating routes under `/api/auth/*`
+  and all authenticated `/api/*` mutations.
+- Session + Auth: After `POST /api/auth/verify`, Laravel Sanctum creates a session and sets an
+  httpOnly session cookie; subsequent `/api/*` calls are authenticated via the session cookie.
+- CORS: Laravel's CORS configuration allows requests from the UI origin, with credentials enabled to
+  support cookie-based authentication.
 
 References:
 
-- BFF auth routes: `src/server/src/routes/auth.js`
-- BFF proxy helpers: `src/server/src/services/proxy.js`
-- UI CSRF: `src/ui/src/lib/csrf.ts`, `src/ui/src/lib/csrfStore.ts`, `src/ui/src/lib/axiosClient.ts`
+- UI CSRF (handles Sanctum's XSRF-TOKEN cookie): `src/ui/src/lib/csrf.ts`,
+  `src/ui/src/lib/csrfStore.ts`, `src/ui/src/lib/axiosClient.ts`
+- Laravel Sanctum config: `config/sanctum.php`
+- Laravel auth routes: `routes/api.php`
 
 ## Performance and Maintainability
 

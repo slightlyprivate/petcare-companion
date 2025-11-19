@@ -30,8 +30,16 @@ class AuthVerificationController extends AuthController
      */
     public function verifyOtp(AuthVerificationRequest $request): \Illuminate\Http\JsonResponse
     {
-        [$user, $token] = $this->userService->validate($request->email, $request->code);
+        $user = $this->userService->validate($request->email, $request->code);
 
-        return response()->json(['token' => $token, 'user' => $user]);
+        // Log the user in using Laravel's session-based auth (Sanctum SPA mode)
+        auth()->login($user);
+
+        // Regenerate session to prevent session fixation attacks (if session is available)
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
+
+        return response()->json(['user' => $user]);
     }
 }

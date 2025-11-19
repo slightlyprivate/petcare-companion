@@ -1,4 +1,4 @@
-import { api, proxy } from '../../lib/http';
+import { api } from '../../lib/http';
 import type { Paginated as PaginatedType } from '../../lib/fetch';
 import { normalizePaginated, unwrapResource } from '../../lib/fetch';
 import type { Pet } from '../types';
@@ -44,7 +44,7 @@ export const createPet = (payload: {
   owner_name: string;
   breed?: string | null;
   birth_date?: string | null; // YYYY-MM-DD
-}) => proxy('/pets', { method: 'POST', body: payload });
+}) => api('/pets', { method: 'POST', body: payload });
 
 /**
  * Update pet details
@@ -56,17 +56,17 @@ export const updatePet = (payload: {
   owner_name: string;
   breed?: string | null;
   birth_date?: string | null;
-}) => proxy(`/pets/${payload.id}`, { method: 'PUT', body: payload });
+}) => api(`/pets/${payload.id}`, { method: 'PUT', body: payload });
 
 /**
  * Delete a pet
  */
-export const deletePet = (id: number | string) => proxy(`/pets/${id}`, { method: 'DELETE' });
+export const deletePet = (id: number | string) => api(`/pets/${id}`, { method: 'DELETE' });
 
 /**
  * Restore a deleted pet
  */
-export const restorePet = (id: number | string) => proxy(`/pets/${id}/restore`, { method: 'POST' });
+export const restorePet = (id: number | string) => api(`/pets/${id}/restore`, { method: 'POST' });
 
 /**
  * Public pet report

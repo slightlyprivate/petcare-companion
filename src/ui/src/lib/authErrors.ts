@@ -21,11 +21,12 @@ export function handleAuthError(err: ApiError) {
   try {
     const qc = getQueryClient();
     resetOnLogout(qc);
-  } catch {}
+  } catch {
+    // Ignore if query client not available
+  }
 
   redirecting = true;
   if (isDev) {
-    // eslint-disable-next-line no-console
     console.warn('[auth] 401 received; forcing logout and redirecting to signin');
   }
   try {

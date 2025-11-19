@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "eslint . --ext .ts,.tsx || echo 'Tip: install eslint to enable rule enforcement'",
+    "lint": "eslint . || (echo 'Lint failures detected. Please fix them before committing.' && exit 1)",
+    "lint:fix": "eslint . --fix",
     "lint:any": "node ./scripts/lint-any.cjs",
     "lint:twdups": "node ./scripts/lint-tailwind-dups.cjs",
     "lint:routes": "node ./scripts/lint-routes.cjs",
@@ -28,14 +29,22 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^24.10.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.47.0",
+    "@typescript-eslint/parser": "^8.47.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
     "prettier": "^3.3.3",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.6.3",
+    "typescript-eslint": "^8.47.0",
     "vite": "^7.0.7"
   }
 }

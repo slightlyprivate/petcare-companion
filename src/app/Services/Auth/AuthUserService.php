@@ -40,7 +40,7 @@ class AuthUserService
     /**
      * Validate user by email and OTP code.
      */
-    public function validate(string $email, string $code): array
+    public function validate(string $email, string $code): User
     {
         // Validation logic here
         $otpService = new OtpService;
@@ -51,14 +51,13 @@ class AuthUserService
         }
 
         $user = $this->create($email);
-        $token = $user->createToken('auth_token')->plainTextToken;
 
         // Send login success notification if enabled
         if (NotificationHelper::isNotificationEnabled($user, 'login')) {
             Notification::send($user, new LoginSuccessNotification($user));
         }
 
-        return [$user, $token];
+        return $user;
     }
 
     /**

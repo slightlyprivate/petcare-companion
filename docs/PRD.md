@@ -2,22 +2,29 @@
 
 ## Context
 
-PetCare Companion is a comprehensive Laravel + MySQL application designed to demonstrate production-quality PHP skills for a backend engineering role emphasizing MVC architecture, RESTful APIs, authentication systems, payment processing, and Dockerized deployment.  
-This project's purpose is **portfolio credibility**—to showcase clean, modern PHP practices within a complete domain: pet management, appointment scheduling, user authentication, and a virtual gift economy system with credit-based gifting.
+PetCare Companion is a comprehensive Laravel + MySQL application designed to demonstrate
+production-quality PHP skills for a backend engineering role emphasizing MVC architecture, RESTful
+APIs, authentication systems, payment processing, and Dockerized deployment.  
+This project's purpose is **portfolio credibility**—to showcase clean, modern PHP practices within a
+complete domain: pet management, appointment scheduling, user authentication, and a virtual gift
+economy system with credit-based gifting.
 
 ## Key Points
 
-- **Primary Goal:** Deliver a polished, working application that highlights strong PHP, MySQL, Docker, and modern web development fundamentals.
-- **Scope:** Authenticated CRUD APIs for managing pets and appointments, OTP-based authentication, role-based access control, and a virtual gift economy system with credit purchases and gifting.
-- **Target User:** Developer recruiter or hiring manager evaluating code style, organization, fluency, and understanding of modern web application architecture.
-- **Technical Stack:**  
-  - PHP 8.2+  
-  - Laravel 12  
-  - MySQL 8  
+- **Primary Goal:** Deliver a polished, working application that highlights strong PHP, MySQL,
+  Docker, and modern web development fundamentals.
+- **Scope:** Authenticated CRUD APIs for managing pets and appointments, OTP-based authentication,
+  role-based access control, and a virtual gift economy system with credit purchases and gifting.
+- **Target User:** Developer recruiter or hiring manager evaluating code style, organization,
+  fluency, and understanding of modern web application architecture.
+- **Technical Stack:**
+  - PHP 8.2+
+  - Laravel 12
+  - MySQL 8
   - Laravel Sanctum (API Authentication)
   - Stripe (Credit Purchase Processing)
-  - Nginx  
-  - Docker & Docker Compose  
+  - Nginx
+  - Docker & Docker Compose
   - Postman Collection for API demonstration
 
 ## Requirements
@@ -90,7 +97,7 @@ This project's purpose is **portfolio credibility**—to showcase clean, modern 
   - PSR-12 code standards
   - Comprehensive test coverage
   - Clean separation of concerns
-- **Documentation:**  
+- **Documentation:**
   - README with quick-start and API overview
   - Architecture documentation describing domain model and design decisions
   - Postman collection demonstrating all endpoints

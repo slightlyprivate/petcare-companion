@@ -23,10 +23,10 @@ function loadFromStorage() {
       expiresAt = null;
     }
   } catch {
+    // Storage not available
     // storage not available (SSR or privacy mode); fall back to memory only
     storageAvailable = false;
     if (!warnedStorage) {
-      // eslint-disable-next-line no-console
       console.warn('[csrf] Local storage unavailable; CSRF token kept in memory only.');
       warnedStorage = true;
     }
@@ -45,7 +45,9 @@ export function getCsrfToken(): string | null {
     try {
       localStorage.removeItem(STORE_KEY);
       localStorage.removeItem(STORE_EXP_KEY);
-    } catch {}
+    } catch {
+      // Ignore storage errors
+    }
     token = null;
     expiresAt = null;
     return null;
@@ -73,7 +75,6 @@ export function setCsrfToken(t: string, opts?: { ttlMs?: number; expiresAt?: num
   } catch {
     storageAvailable = false;
     if (!warnedStorage) {
-      // eslint-disable-next-line no-console
       console.warn('[csrf] Failed to persist CSRF token; storage unavailable.');
       warnedStorage = true;
     }
@@ -86,7 +87,9 @@ export function clearCsrfToken() {
   try {
     localStorage.removeItem(STORE_KEY);
     localStorage.removeItem(STORE_EXP_KEY);
-  } catch {}
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 export function isStorageAvailable() {

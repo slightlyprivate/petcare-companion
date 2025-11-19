@@ -1,6 +1,10 @@
 services:
   # Production-oriented stack (images expected to be built/published)
   # Note: DB/Redis are external in production; inject hosts via env.
+  # Note: Ensure CORS is configured in Laravel to allow requests from the UI domain.
+  # For Laravel 11+, use the built-in CORS middleware or the fruitcake/laravel-cors package.
+  # Set SANCTUM_STATEFUL_DOMAINS=localhost:8081 and SESSION_DOMAIN=localhost in .env
+  # Add FRONTEND_URL=http://localhost:8081 to .env for local Docker; adjust for production domains.
 
   app:
     container_name: petcare_app
@@ -10,7 +14,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD-SHELL", "php -v >/dev/null 2>&1 || exit 1"]
+      test: ['CMD-SHELL', 'php -v >/dev/null 2>&1 || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -21,13 +25,13 @@ services:
     depends_on:
       - app
     ports:
-      - "8080:80"
+      - '8080:80'
     read_only: true
     tmpfs:
       - /var/cache/nginx
       - /var/run
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/health || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/health || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -41,20 +45,17 @@ services:
     tmpfs:
       - /tmp
 
-  frontend:
-    container_name: petcare_frontend
-    image: ghcr.io/yourorg/petcare-frontend:prod
-    environment:
-      SERVER_PORT: 3000
-      BACKEND_URL: http://web
-    depends_on:
-      - web
+  ui:
+    container_name: petcare_ui
+    image: ghcr.io/yourorg/petcare-ui:prod
     ports:
-      - "5174:3000"
+      - '8081:80'
     read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health >/dev/null 2>&1 || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/health >/dev/null 2>&1 || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
-

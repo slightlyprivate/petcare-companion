@@ -1,4 +1,4 @@
-# Multi-stage build for the Frontend (BFF + UI static)
+# Multi-stage build for the Frontend (UI static)
 
 FROM node:20-alpine AS ui-builder
 WORKDIR /app

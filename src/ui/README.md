@@ -7,16 +7,17 @@ Dev
 
 - Prereq: Dev stack running via `docker compose -f docker-compose.dev.yml up`
 - Start UI dev server: `npm install && npm run dev` inside `src/ui`
-- API proxy: The dev server proxies application calls to the BFF at `http://localhost:5174` (or
+- API proxy: The dev server proxies application calls to Laravel at `http://localhost:8000` (or
   `VITE_API_PROXY_TARGET`):
-  - `/api/*` → BFF (Laravel upstream)
-  - `/auth/*`, `/user/*`, `/pets/*`, `/appointments/*`, `/credits/*`, `/gifts/*` → BFF endpoints
+  - `/api/*` → Laravel API
+  - `/sanctum/*` → Laravel Sanctum (CSRF, auth)
+  - `/storage/*` → Laravel storage (uploaded files)
 
 Proxy target
 
 - In containerized dev (docker compose), Vite reads `VITE_API_PROXY_TARGET` from env and proxies to
-  `http://frontend:3000` (the BFF service name).
-- If running Vite locally on your host, set `VITE_API_PROXY_TARGET=http://localhost:5174` before
+  `http://web` (the Laravel service name).
+- If running Vite locally on your host, set `VITE_API_PROXY_TARGET=http://localhost:8000` before
   `npm run dev`, or create `.env.local` with that variable.
 
 Scripts
@@ -28,7 +29,8 @@ Scripts
 Notes
 
 - Tailwind v4 is enabled through the Vite plugin; no extra config is required.
-- Example screen queries `/api/public/pets` to demonstrate TanStack Query usage.
+- Authentication uses Laravel Sanctum with cookie-based sessions.
+- CSRF protection is handled automatically via `X-XSRF-TOKEN` header.
 
 Project structure guidance
 
@@ -65,27 +67,25 @@ Linting and route guard
 
 HTTP clients
 
-- `http.api`: Use for calls to the upstream Laravel API (prefix `VITE_API_BASE`, default `/api`).
-- `http.proxy`: Use for calls to the local BFF/Proxy (prefix `VITE_PROXY_BASE`). Prefer this for
-  auth flows and CSRF.
-- `request`: Low-level helper when you need a custom base or atypical options. Default includes
-  credentials and Axios-based retries.
+- `http.api`: Use for all calls to the Laravel API (prefix `VITE_API_BASE`, default `/api`).
+- `request`: Low-level helper when you need a custom base or atypical options. Includes credentials
+  and automatic CSRF token handling via `X-XSRF-TOKEN` header.
 
 Environment variables
 
-- `VITE_API_BASE`: Base URL for Laravel API (default `/api`). Required in production.
-- `VITE_PROXY_BASE`: Base URL for BFF (can be empty in dev to use relative paths via Vite proxy;
-  REQUIRED in production).
-- `VITE_API_PROXY_TARGET`: Dev-only proxy target for Vite (e.g., `http://frontend:3000` from
-  docker-compose.dev.yml, or `http://localhost:5174`).
+- `VITE_API_BASE`: Base URL for Laravel API (default `/api`). In production, set to your Laravel
+  backend URL.
+- `VITE_API_PROXY_TARGET`: Dev-only proxy target for Vite (e.g., `http://web` from
+  docker-compose.dev.yml, or `http://localhost:8000` for local Laravel).
 - See `.env.example` in `src/ui` for typical values.
 
-CSRF endpoint
+CSRF protection
 
-- The UI fetches CSRF via `GET /auth/csrf` (BFF). The BFF exposes this route and returns
-  `{ csrfToken, ttlMs?, expiresAt? }`.
-- Ensure the BFF container is reachable (via `VITE_API_PROXY_TARGET` in dev or `VITE_PROXY_BASE` in
-  production) before building user flows.
+- The UI uses Laravel Sanctum's standard CSRF flow via `GET /sanctum/csrf-cookie`, which sets the
+  `XSRF-TOKEN` cookie.
+- The `X-XSRF-TOKEN` header is automatically attached to all unsafe requests (POST, PUT, PATCH,
+  DELETE) by the HTTP client.
+- CSRF tokens are cached and automatically refreshed on 419 responses.
 
 API barrels
 
@@ -125,11 +125,11 @@ Linting and type safety
 
 Testing plan (lightweight)
 
-- CSRF behavior: Manually validate `GET /auth/csrf` via the API Playground before building flows.
-  The UI logs dev warnings if storage is unavailable or if a 419 refresh fails.
-- For unit tests (future), prefer Vitest; focus on `ensureCsrf` happy/failure paths and
-  `axiosClient` transient retry behavior (network/5xx retry, 419 refresh once). Avoid adding a test
-  runner until the repository standardizes on one.
+- CSRF behavior: Manually validate `GET /sanctum/csrf-cookie` sets the XSRF-TOKEN cookie. The UI
+  logs dev warnings if a 419 refresh fails.
+- For unit tests (future), prefer Vitest; focus on `ensureCsrf` happy/failure paths and HTTP client
+  transient retry behavior (network/5xx retry, 419 refresh once). Avoid adding a test runner until
+  the repository standardizes on one.
 
 Optimistic updates
 
@@ -144,6 +144,6 @@ Layout ownership
 
 CSRF visibility and debugging
 
-- CSRF is fetched via `/auth/csrf` and persisted in localStorage where available. In dev, the app
-  logs warnings when storage is unavailable (SSR/private modes) or when a CSRF refresh fails after
-  a 419.
+- CSRF tokens are obtained from the `XSRF-TOKEN` cookie set by `/sanctum/csrf-cookie`. A copy is
+  cached in localStorage for faster access. In dev, the app logs warnings when a CSRF refresh fails
+  after a 419.

@@ -37,7 +37,7 @@ You are a helpful repository assistant for a full-stack portfolio project called
 
 > “Create a GitHub Actions job to rebuild Scribe docs on merge to develop.”
 
-> “Help me clean up the BFF folder and migrate to direct Laravel API calls.”
+> "Help me configure Laravel CORS for the React UI in production."
 
 ## Notes
 

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState, useEffect } from 'react';
 import Button from '../Button';
 import TextInput from '../TextInput';
 
@@ -25,19 +25,23 @@ export default function PetForm({
   isSubmitting,
   onCancel,
 }: PetFormProps) {
-  const [values, setValues] = useState<PetFormValues>({
+  const [values, setValues] = useState<PetFormValues>(() => ({
     name: '',
     species: '',
     owner_name: '',
     breed: '',
     birth_date: '',
     ...initial,
-  });
+  }));
 
   useEffect(() => {
-    // Sync when initial changes
-    setValues((v) => ({ ...v, ...initial }));
-  }, [initial?.name, initial?.species, initial?.owner_name, initial?.breed, initial?.birth_date]);
+    if (initial) {
+      setValues((prev) => ({
+        ...prev,
+        ...initial,
+      }));
+    }
+  }, [initial]);
 
   const canSubmit = !!values.name && !!values.species && !!values.owner_name;
 

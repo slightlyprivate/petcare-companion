@@ -1,6 +1,6 @@
 import type { AxiosError } from 'axios';
 import axiosClient, { type AxiosExtendedConfig } from './axiosClient';
-import { API_BASE, PROXY_BASE } from './config';
+import { API_BASE } from './config';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -13,7 +13,7 @@ export interface RequestOptions<TBody = unknown> {
   headers?: Record<string, string>;
   signal?: AbortSignal;
   json?: boolean; // default true when body is present
-  base?: 'api' | 'proxy' | string; // default 'api'
+  base?: 'api' | string; // default 'api'
   retries?: number; // network/5xx retries, default 0
   timeoutMs?: number; // optional timeout for the request
 }
@@ -36,7 +36,7 @@ const joinUrl = (base: string, path: string) => {
  */
 export async function request<T = unknown>(path: string, opts: RequestOptions = {}): Promise<T> {
   const baseOpt = opts.base ?? 'api';
-  const baseUrl = baseOpt === 'api' ? API_BASE : baseOpt === 'proxy' ? PROXY_BASE : baseOpt;
+  const baseUrl = baseOpt === 'api' ? API_BASE : baseOpt === '' ? '' : baseOpt;
   const url = joinUrl(baseUrl, path);
 
   const method = (opts.method || 'GET').toUpperCase() as Method;
@@ -91,16 +91,6 @@ export async function request<T = unknown>(path: string, opts: RequestOptions = 
  */
 export function api<T = unknown>(path: string, opts: Omit<RequestOptions, 'base'> = {}) {
   return request<T>(path, { ...opts, base: 'api' });
-}
-
-/**
- * Proxy request helper
- * @param path The API endpoint path.
- * @param opts The request options.
- * @returns The API response.
- */
-export function proxy<T = unknown>(path: string, opts: Omit<RequestOptions, 'base'> = {}) {
-  return request<T>(path, { ...opts, base: 'proxy' });
 }
 
 // Cross-cutting helpers

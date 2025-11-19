@@ -9,8 +9,11 @@ export default function PetSettings() {
   const { id } = useParams();
   const toast = useToast();
 
-  function onSubmit(_values: PetSettingsValues) {
+  // TODO: Implement API call to persist pet settings via Laravel endpoint
+  // Track in backlog: POST /api/pets/{id}/settings with PetSettingsValues payload
+  function onSubmit(values: PetSettingsValues) {
     // Placeholder: would call an API to persist settings
+    console.log('Saving settings:', values);
     toast.success(`Settings saved for pet #${id}`);
   }
 

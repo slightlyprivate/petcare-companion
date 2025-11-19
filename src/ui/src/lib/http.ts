@@ -1,12 +1,11 @@
-// `api()` targets the upstream Laravel API
-// `proxy()` targets the local BFF (Node) server
-export { request, api, proxy, type RequestOptions } from './fetch';
+// `api()` targets the Laravel API
+export { request, api, type RequestOptions } from './fetch';
 
 import { isDev } from './config';
 import { handleAuthError } from './authErrors';
 import { request as coreRequest, type RequestOptions as CoreOptions } from './fetch';
 
-export type HttpBase = 'api' | 'proxy' | string;
+export type HttpBase = 'api' | string;
 
 export type HttpError = Error & {
   status?: number;
@@ -63,9 +62,10 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
   const logging = options.enableLogging ?? isDev;
   const log = (...args: unknown[]) => {
     try {
-      // eslint-disable-next-line no-console
       console.debug('[http]', ...args);
-    } catch {}
+    } catch {
+      // Ignore console errors
+    }
   };
 
   const doReq = async <T>(
@@ -113,8 +113,7 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
   };
 }
 
-// Prebuilt clients for convenience
+// Prebuilt client for convenience
 export const http = {
   api: createHttpClient({ base: 'api' }),
-  proxy: createHttpClient({ base: 'proxy' }),
 };
