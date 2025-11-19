@@ -16,7 +16,7 @@ export default function AuthLayout() {
             className="w-50 max-w-md mx-auto mb-6 rounded-lg"
           />
           <Link to={PATHS.ROOT} className="text-lg font-semibold text-brand-primary">
-            PetCare
+            PetCare Dashboard
           </Link>
           <div className="text-sm text-brand-fg">Sign in to continue</div>
         </header>
