@@ -214,7 +214,8 @@ class NotificationTest extends TestCase
         $key = sprintf('notification-outbound:%s', $user->id);
         RateLimiter::clear($key);
 
-        $notificationFactory = fn() => new class extends \Illuminate\Notifications\Notification {
+        $notificationFactory = fn () => new class extends \Illuminate\Notifications\Notification
+        {
             public function via(object $notifiable): array
             {
                 return ['database'];

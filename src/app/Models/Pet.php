@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
@@ -81,6 +82,48 @@ class Pet extends Model
     public function gifts(): HasMany
     {
         return $this->hasMany(Gift::class);
+    }
+
+    /**
+     * Get all pet-user relationships (owners and caregivers).
+     */
+    public function petUsers(): HasMany
+    {
+        return $this->hasMany(PetUser::class);
+    }
+
+    /**
+     * Get all users associated with this pet (owners and caregivers).
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'pet_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get only the owner relationships.
+     */
+    public function owners(): BelongsToMany
+    {
+        return $this->users()->wherePivot('role', 'owner');
+    }
+
+    /**
+     * Get only the caregiver relationships.
+     */
+    public function caregivers(): BelongsToMany
+    {
+        return $this->users()->wherePivot('role', 'caregiver');
+    }
+
+    /**
+     * Get all caregiver invitations for this pet.
+     */
+    public function caregiverInvitations(): HasMany
+    {
+        return $this->hasMany(PetCaregiverInvitation::class);
     }
 
     /**

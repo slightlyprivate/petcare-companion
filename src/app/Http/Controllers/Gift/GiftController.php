@@ -60,7 +60,7 @@ class GiftController extends Controller
 
             return response($pdfContent, 200, [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="receipt_' . $gift->id . '.pdf"',
+                'Content-Disposition' => 'attachment; filename="receipt_'.$gift->id.'.pdf"',
                 'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
                 'Pragma' => 'no-cache',
             ]);

@@ -73,7 +73,7 @@ class UserExportDownloadController extends Controller
 
         return response($content, 200, [
             'Content-Type' => 'application/zip',
-            'Content-Disposition' => 'attachment; filename="' . $export->file_name . '"',
+            'Content-Disposition' => 'attachment; filename="'.$export->file_name.'"',
             'Cache-Control' => 'no-store, no-cache, must-revalidate, private',
             'Pragma' => 'no-cache',
         ]);

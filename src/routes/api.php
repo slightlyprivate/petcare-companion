@@ -71,7 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('credits')->group(function () {
         Route::get('/purchases', [CreditPurchaseController::class, 'index'])
-            ->middleware('can:viewAny,' . \App\Models\CreditPurchase::class)
+            ->middleware('can:viewAny,'.\App\Models\CreditPurchase::class)
             ->name('credits.purchases.index');
         Route::get('/{creditPurchase}', [CreditPurchaseController::class, 'show'])
             ->middleware('can:view,creditPurchase')
@@ -118,7 +118,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin endpoints - Gift Types (rate-limited and authorization via route middleware)
     Route::middleware('throttle:admin.write')->group(function () {
         Route::post('/gift-types', [GiftTypeController::class, 'store'])
-            ->middleware('can:create,' . \App\Models\GiftType::class)
+            ->middleware('can:create,'.\App\Models\GiftType::class)
             ->name('gift-types.store');
         Route::put('/gift-types/{giftType}', [GiftTypeController::class, 'update'])
             ->middleware('can:update,giftType')

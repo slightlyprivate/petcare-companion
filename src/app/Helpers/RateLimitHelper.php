@@ -42,12 +42,14 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('auth.otp', function () use ($env) {
-            $limit = config('rate-limits.auth.otp.' . $env);
+            $limit = config('rate-limits.auth.otp.'.$env);
+
             return Limit::perHour($limit)->by(request()->ip());
         });
 
         RateLimiter::for('auth.verify', function () use ($env) {
-            $limit = config('rate-limits.auth.verify.' . $env);
+            $limit = config('rate-limits.auth.verify.'.$env);
+
             return Limit::perHour($limit)->by(request()->ip());
         });
     }
@@ -60,7 +62,8 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('pet.write', function () use ($env) {
-            $limit = config('rate-limits.pet.write.' . $env);
+            $limit = config('rate-limits.pet.write.'.$env);
+
             return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
@@ -73,7 +76,8 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('appointment.write', function () use ($env) {
-            $limit = config('rate-limits.appointment.write.' . $env);
+            $limit = config('rate-limits.appointment.write.'.$env);
+
             return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
@@ -88,7 +92,8 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('gift.write', function () use ($env) {
-            $limit = config('rate-limits.gift.write.' . $env);
+            $limit = config('rate-limits.gift.write.'.$env);
+
             return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
@@ -103,7 +108,8 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('credit.write', function () use ($env) {
-            $limit = config('rate-limits.credit.write.' . $env);
+            $limit = config('rate-limits.credit.write.'.$env);
+
             return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
@@ -118,7 +124,8 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('admin.write', function () use ($env) {
-            $limit = config('rate-limits.admin.write.' . $env);
+            $limit = config('rate-limits.admin.write.'.$env);
+
             return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
@@ -133,12 +140,14 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('user.data.export', function () use ($env) {
-            $limit = config('rate-limits.user_data.export.' . $env);
+            $limit = config('rate-limits.user_data.export.'.$env);
+
             return Limit::perDay($limit)->by(request()->user()->id);
         });
 
         RateLimiter::for('user.data.delete', function () use ($env) {
-            $limit = config('rate-limits.user_data.delete.' . $env);
+            $limit = config('rate-limits.user_data.delete.'.$env);
+
             return Limit::perDay($limit)->by(request()->user()->id);
         });
     }
@@ -151,7 +160,8 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('notification.write', function () use ($env) {
-            $limit = config('rate-limits.notification.write.' . $env);
+            $limit = config('rate-limits.notification.write.'.$env);
+
             return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
@@ -166,7 +176,8 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('webhook.stripe', function () use ($env) {
-            $limit = config('rate-limits.webhook.stripe.' . $env);
+            $limit = config('rate-limits.webhook.stripe.'.$env);
+
             return Limit::perMinute($limit)->by(request()->ip());
         });
     }
@@ -181,7 +192,8 @@ class RateLimitHelper
         $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
 
         RateLimiter::for('pet-care', function () use ($env) {
-            $limit = config('rate-limits.pet-care.default.' . $env);
+            $limit = config('rate-limits.pet-care.default.'.$env);
+
             return Limit::perHour($limit)->by(request()->user()->id);
         });
     }

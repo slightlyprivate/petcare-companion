@@ -20,7 +20,7 @@ class LogRequests
         if ($request->is('horizon*')) {
             return $next($request);
         }
-        Log::info('Request: ' . $request->method() . ' ' . $request->fullUrl() . ' from IP: ' . $request->ip());
+        Log::info('Request: '.$request->method().' '.$request->fullUrl().' from IP: '.$request->ip());
 
         return $next($request);
     }
