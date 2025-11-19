@@ -5,9 +5,8 @@ Thank you for your generous gift to help care for **{{ $petName }}**
 **Gift Summary:**
 
 - Pet: {{ $petName }}
-- Amount: ${{ $amount }}
-- Gift ID: {{ $giftId }}
-- Date: {{ $date }}
+- Credits Used: {{ $credits }}
+- Processed On: {{ $date }}
 
 Your support makes a real difference in the lives of our pets. We're grateful for your contribution.
 

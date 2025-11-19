@@ -1,7 +1,7 @@
 @component('mail::message')
 # Your Data Export is Ready
 
-Dear {{ $user->email }},
+Hello from PetCare Companion,
 
 Your personal data export from PetCare Companion is now ready. This export contains all your user information, pets, gifts, and appointments in a secure ZIP file format.
 

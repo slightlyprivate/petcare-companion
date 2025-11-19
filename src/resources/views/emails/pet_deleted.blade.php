@@ -7,7 +7,6 @@
 - Name: {{ $petName }}
 - Species: {{ $species }}
 - Breed: {{ $breed }}
-- Owner: {{ $ownerName }}
 
 If you did not intend to remove this pet, you may be able to restore it. Please contact our support team for assistance.
 

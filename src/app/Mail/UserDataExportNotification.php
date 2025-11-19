@@ -39,7 +39,6 @@ class UserDataExportNotification extends Mailable
         return new Content(
             view: 'emails.data-export-ready',
             with: [
-                'user' => $this->user,
                 'downloadUrl' => $this->downloadUrl,
             ],
         );
