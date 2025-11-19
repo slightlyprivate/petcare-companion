@@ -1,6 +1,7 @@
 # PetCare Companion — Monorepo
 
-A lightweight, educational monorepo demonstrating a Laravel API with a React UI, containerized with Docker Compose.
+A lightweight, educational monorepo demonstrating a Laravel API with a React UI, containerized with
+Docker Compose.
 
 ## Overview
 
@@ -110,15 +111,37 @@ graph LR
 
 ## Auth & Cookies
 
-- Flow: The React UI authenticates with Laravel using OTP login. Laravel Sanctum manages session-based
-  authentication using cookies. The UI makes direct API calls to Laravel endpoints.
+- Flow: The React UI authenticates with Laravel using OTP login. Laravel Sanctum manages
+  session-based authentication using cookies. The UI makes direct API calls to Laravel endpoints.
 - CSRF: Laravel Sanctum provides CSRF protection via `/sanctum/csrf-cookie`. The UI fetches this
   endpoint to get the XSRF-TOKEN cookie, which is then sent as the `X-XSRF-TOKEN` header on mutating
   requests.
-- Logout: `POST /api/auth/logout` clears the session/cookies and revokes the current Sanctum token in
-  Laravel.
+- Logout: `POST /api/auth/logout` clears the session/cookies and revokes the current Sanctum token
+  in Laravel.
 - Cookies: In production, ensure `SESSION_SECURE_COOKIE=true` in Laravel's `.env` and configure CORS
   appropriately for cross-origin requests.
+
+  **Laravel production config references:**
+  - **CORS:** Edit `config/cors.php` to allow your UI domain:
+    ```php
+    // config/cors.php
+    return [
+        'paths' => ['api/*', 'sanctum/csrf-cookie'],
+        'allowed_origins' => ['https://your-ui-domain.com'],
+        'supports_credentials' => true,
+    ];
+    ```
+  - **Sanctum domains:** Edit `SANCTUM_STATEFUL_DOMAINS` in `.env` to include your UI domain:
+    ```env
+    SANCTUM_STATEFUL_DOMAINS=your-ui-domain.com
+    ```
+  - **Session settings:** In `.env`, ensure cookies are secure and same-site is set for
+    cross-origin:
+    ```env
+    SESSION_SECURE_COOKIE=true
+    SESSION_SAME_SITE=lax
+    ```
+  - See also: `config/session.php` for session driver and cookie settings.
 
 ## Production Compose (Reference)
 
@@ -131,8 +154,10 @@ graph LR
 Environment wiring (UI)
 
 - UI build-time vars (Vite):
-  - `VITE_API_BASE` (default `/api`): required in production builds. Set to your Laravel API base URL.
-  - `VITE_API_PROXY_TARGET`: dev-only, points Vite's dev proxy at the Laravel backend (e.g., `http://web`).
+  - `VITE_API_BASE` (default `/api`): required in production builds. Set to your Laravel API base
+    URL.
+  - `VITE_API_PROXY_TARGET`: dev-only, points Vite's dev proxy at the Laravel backend (e.g.,
+    `http://web`).
 
 ## Documentation
 

@@ -4,6 +4,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(() => {
   // Proxy target should point to the Laravel backend (web service in docker-compose)
+  // Note: Ensure Laravel is configured with proper CORS headers to allow requests
+  // from the Vite dev server (typically http://localhost:5173 in development)
   const target = process.env.VITE_API_PROXY_TARGET || 'http://web';
 
   return {

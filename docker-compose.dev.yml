@@ -130,8 +130,8 @@ services:
     restart: unless-stopped
 
   # Dev Vite server for the UI with HMR
-  frontend-ui:
-    container_name: petcare_frontend_ui
+  ui:
+    container_name: petcare_ui
     image: node:20-alpine
     working_dir: /app/src/ui
     environment:

@@ -173,16 +173,17 @@ Laravel Sanctum provides session-based authentication with CSRF protection for t
   - UI obtains this via `src/ui/src/lib/csrf.ts` which reads the cookie.
   - CSRF token is attached as `X-XSRF-TOKEN` on unsafe methods (POST/PUT/PATCH/DELETE) by
     `axiosClient`.
-- Mutation enforcement: Laravel requires a valid CSRF token for mutating routes under `/api/auth/*` and
-  all authenticated `/api/*` mutations.
-- Session + Auth: After `POST /api/auth/verify`, Laravel Sanctum creates a session and sets an httpOnly 
-  session cookie; subsequent `/api/*` calls are authenticated via the session cookie.
-- CORS: Laravel's CORS configuration allows requests from the UI origin, with credentials enabled
-  to support cookie-based authentication.
+- Mutation enforcement: Laravel requires a valid CSRF token for mutating routes under `/api/auth/*`
+  and all authenticated `/api/*` mutations.
+- Session + Auth: After `POST /api/auth/verify`, Laravel Sanctum creates a session and sets an
+  httpOnly session cookie; subsequent `/api/*` calls are authenticated via the session cookie.
+- CORS: Laravel's CORS configuration allows requests from the UI origin, with credentials enabled to
+  support cookie-based authentication.
 
 References:
 
-- UI CSRF: `src/ui/src/lib/csrf.ts`, `src/ui/src/lib/csrfStore.ts`, `src/ui/src/lib/axiosClient.ts`
+- UI CSRF (handles Sanctum's XSRF-TOKEN cookie): `src/ui/src/lib/csrf.ts`,
+  `src/ui/src/lib/csrfStore.ts`, `src/ui/src/lib/axiosClient.ts`
 - Laravel Sanctum config: `config/sanctum.php`
 - Laravel auth routes: `routes/api.php`
 

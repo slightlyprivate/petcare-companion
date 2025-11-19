@@ -36,7 +36,7 @@ const joinUrl = (base: string, path: string) => {
  */
 export async function request<T = unknown>(path: string, opts: RequestOptions = {}): Promise<T> {
   const baseOpt = opts.base ?? 'api';
-  const baseUrl = baseOpt === 'api' ? API_BASE : baseOpt;
+  const baseUrl = baseOpt === 'api' ? API_BASE : baseOpt || API_BASE;
   const url = joinUrl(baseUrl, path);
 
   const method = (opts.method || 'GET').toUpperCase() as Method;

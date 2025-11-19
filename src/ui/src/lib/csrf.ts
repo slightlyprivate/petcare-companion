@@ -9,7 +9,8 @@ export async function ensureCsrf(): Promise<string> {
   try {
     // Call Laravel Sanctum's csrf-cookie endpoint
     // This sets the XSRF-TOKEN cookie that Laravel expects
-    await request('/sanctum/csrf-cookie', { base: '/' });
+    // Use the API base URL to ensure correct domain/path in all environments
+    await request('/sanctum/csrf-cookie');
 
     // Laravel sets the token in a cookie named XSRF-TOKEN
     // We need to read it from the cookie
@@ -41,9 +42,22 @@ function getCsrfTokenFromCookie(): string | null {
   const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
   if (!match) return null;
   // Decode the cookie value (Laravel URL-encodes it)
+  let token: string;
   try {
-    return decodeURIComponent(match[1]);
-  } catch {
-    return match[1];
+    token = decodeURIComponent(match[1]);
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.warn('[csrf] Failed to decode CSRF token from cookie', err);
+    }
+    return null;
   }
+  // Validate token format: Laravel Sanctum tokens are typically 40+ characters
+  // and contain alphanumeric characters plus common base64 chars
+  if (!/^[A-Za-z0-9+/=_-]{40,}$/.test(token)) {
+    if (import.meta.env.DEV) {
+      console.warn('[csrf] Invalid CSRF token format detected');
+    }
+    return null;
+  }
+  return token;
 }

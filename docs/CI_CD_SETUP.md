@@ -122,13 +122,14 @@ To modify the workflow:
 
 ```yaml
 matrix:
-  php: ["8.2", "8.3", "8.4"]
+  php: ['8.2', '8.3', '8.4']
 ```
 
 **Add additional extensions:**
 
 ```yaml
-extensions: curl, dom, fileinfo, libxml, mbstring, pcntl, pdo, sqlite, pdo_mysql, redis, soap, zip, gd
+extensions:
+  curl, dom, fileinfo, libxml, mbstring, pcntl, pdo, sqlite, pdo_mysql, redis, soap, zip, gd
 ```
 
 **Require services:**
@@ -138,10 +139,7 @@ services:
   redis:
     image: redis:latest
     options: >-
-      --health-cmd "redis-cli ping"
-      --health-interval 10s
-      --health-timeout 5s
-      --health-retries 5
+      --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     ports:
       - 6379:6379
 ```

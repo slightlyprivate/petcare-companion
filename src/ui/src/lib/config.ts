@@ -19,6 +19,10 @@ export const API_BASE = normalizeBase(import.meta.env.VITE_API_BASE, '/api');
 export const isDev = import.meta.env.DEV;
 
 // Basic runtime guardrails
-if (!API_BASE && import.meta.env.PROD) {
-  throw new Error('VITE_API_BASE is required in production.');
+if (!API_BASE) {
+  if (import.meta.env.PROD) {
+    throw new Error('VITE_API_BASE is required in production.');
+  } else {
+    warn('VITE_API_BASE is not set, using fallback "/api".');
+  }
 }

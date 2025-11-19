@@ -2,6 +2,9 @@ services:
   # Production-oriented stack (images expected to be built/published)
   # Note: DB/Redis are external in production; inject hosts via env.
   # Note: Configure CORS in Laravel to allow requests from the UI domain.
+  # Set SANCTUM_STATEFUL_DOMAINS=localhost:8081 and SESSION_DOMAIN=localhost in .env
+  # Update config/cors.php: 'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:8081')]
+  # Add FRONTEND_URL=http://localhost:8081 to .env for local Docker; adjust for production domains.
 
   app:
     container_name: petcare_app
@@ -11,7 +14,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ["CMD-SHELL", "php -v >/dev/null 2>&1 || exit 1"]
+      test: ['CMD-SHELL', 'php -v >/dev/null 2>&1 || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -22,13 +25,13 @@ services:
     depends_on:
       - app
     ports:
-      - "8080:80"
+      - '8080:80'
     read_only: true
     tmpfs:
       - /var/cache/nginx
       - /var/run
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/health || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/health || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -46,14 +49,13 @@ services:
     container_name: petcare_ui
     image: ghcr.io/yourorg/petcare-ui:prod
     ports:
-      - "8081:80"
+      - '8081:80'
     read_only: true
     tmpfs:
       - /var/cache/nginx
       - /var/run
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost/health >/dev/null 2>&1 || exit 1"]
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/health >/dev/null 2>&1 || exit 1']
       interval: 30s
       timeout: 5s
       retries: 3
-

@@ -5,13 +5,13 @@ import { clearCsrfToken } from './csrfStore';
 export function resetOnLogout(qc: QueryClient) {
   try {
     qc.clear();
-  } catch {
-    // Ignore clear errors
+  } catch (err) {
+    if (import.meta.env.DEV) console.warn('[queryUtils] Clear failed:', err);
   }
   try {
     clearCsrfToken();
-  } catch {
-    // Ignore clear errors
+  } catch (err) {
+    if (import.meta.env.DEV) console.warn('[queryUtils] clearCsrfToken failed:', err);
   }
 }
 
