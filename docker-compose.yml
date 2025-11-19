@@ -1,9 +1,9 @@
 services:
   # Production-oriented stack (images expected to be built/published)
   # Note: DB/Redis are external in production; inject hosts via env.
-  # Note: Configure CORS in Laravel to allow requests from the UI domain.
+  # Note: Ensure CORS is configured in Laravel to allow requests from the UI domain.
+  # For Laravel 11+, use the built-in CORS middleware or the fruitcake/laravel-cors package.
   # Set SANCTUM_STATEFUL_DOMAINS=localhost:8081 and SESSION_DOMAIN=localhost in .env
-  # Update config/cors.php: 'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:8081')]
   # Add FRONTEND_URL=http://localhost:8081 to .env for local Docker; adjust for production domains.
 
   app:

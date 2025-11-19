@@ -13,7 +13,7 @@ Docker Compose.
 
 - api: Laravel 12 application (path: `src/`), served behind Nginx.
 - web: Nginx reverse proxy for the Laravel API (port 8080 → 80 in container).
-- frontend-ui: Vite dev server with HMR for the React UI (development only).
+- ui: Vite dev server with HMR for the React UI (development only).
 - db: MySQL 8.0 with persistent volume.
 - redis: Redis 7 for cache/queue experimentation.
 
@@ -93,8 +93,7 @@ graph LR
   - Format: `npm run format`
   - Check: `npm run format:check`
 - In containers:
-  - UI (frontend-ui):
-    `docker compose -f docker-compose.dev.yml exec frontend-ui sh -lc "npm run format"`
+  - UI (frontend-ui): `docker compose -f docker-compose.dev.yml exec ui sh -lc "npm run format"`
 
 ### Pre-commit Hook (Husky)
 
