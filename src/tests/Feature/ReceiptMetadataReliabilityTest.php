@@ -86,6 +86,37 @@ class ReceiptMetadataReliabilityTest extends TestCase
     }
 
     /**
+     * Test that users cannot export receipts for gifts they do not own.
+     */
+    public function test_receipt_export_requires_gift_ownership(): void
+    {
+        /** @var Authenticatable $owner */
+        $owner = User::factory()->create();
+        /** @var Authenticatable $stranger */
+        $stranger = User::factory()->create();
+        $pet = Pet::factory()->create();
+
+        $gift = Gift::factory()->create([
+            'user_id' => $owner->id,
+            'pet_id' => $pet->id,
+            'status' => 'paid',
+            'stripe_charge_id' => 'ch_test_auth',
+            'stripe_metadata' => [
+                'amount' => 1000,
+                'currency' => 'usd',
+                'payment_method' => 'card',
+                'brand' => 'visa',
+                'last4' => '4242',
+            ],
+        ]);
+
+        $response = $this->actingAs($stranger, 'sanctum')
+            ->getJson("/api/gifts/{$gift->id}/receipt");
+
+        $response->assertForbidden();
+    }
+
+    /**
      * Test that metadata validator catches missing amount.
      */
     public function test_validator_catches_missing_amount(): void

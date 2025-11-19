@@ -73,7 +73,7 @@ class GiftApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         // Amount limits are enforced by gift type catalog; request no longer accepts raw amounts
         $this->assertTrue(true);
@@ -84,8 +84,9 @@ class GiftApiTest extends TestCase
      */
     public function test_gift_has_correct_relationships(): void
     {
+        /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         $gift = Gift::factory()->create([
             'user_id' => $user->id,
@@ -154,7 +155,7 @@ class GiftApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
         // Ensure wallet has sufficient credits
         $user->wallet()->create(['balance_credits' => 1000]);
 
@@ -181,7 +182,7 @@ class GiftApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
         // Ensure wallet has sufficient credits
         $user->wallet()->create(['balance_credits' => 1000]);
 

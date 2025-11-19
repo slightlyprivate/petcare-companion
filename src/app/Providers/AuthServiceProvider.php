@@ -4,11 +4,13 @@ namespace App\Providers;
 
 use App\Models\Appointment;
 use App\Models\CreditPurchase;
+use App\Models\Gift;
 use App\Models\GiftType;
 use App\Models\Pet;
 use App\Models\User;
 use App\Policies\AppointmentPolicy;
 use App\Policies\CreditPurchasePolicy;
+use App\Policies\GiftPolicy;
 use App\Policies\GiftTypePolicy;
 use App\Policies\PetPolicy;
 use App\Policies\UserPolicy;
@@ -32,6 +34,7 @@ class AuthServiceProvider extends ServiceProvider
         GiftType::class => GiftTypePolicy::class,
         CreditPurchase::class => CreditPurchasePolicy::class,
         Appointment::class => AppointmentPolicy::class,
+        Gift::class => GiftPolicy::class,
     ];
 
     /**

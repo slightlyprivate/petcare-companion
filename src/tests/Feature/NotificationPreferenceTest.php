@@ -53,11 +53,11 @@ class NotificationPreferenceTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('data.otp_notifications', true)
             ->assertJsonPath('data.login_notifications', true)
-            ->assertJsonPath('data.gift_notifications', true)
-            ->assertJsonPath('data.pet_update_notifications', true)
-            ->assertJsonPath('data.pet_create_notifications', true)
-            ->assertJsonPath('data.pet_delete_notifications', true)
-            ->assertJsonPath('data.sms_enabled', true)
+            ->assertJsonPath('data.gift_notifications', false)
+            ->assertJsonPath('data.pet_update_notifications', false)
+            ->assertJsonPath('data.pet_create_notifications', false)
+            ->assertJsonPath('data.pet_delete_notifications', false)
+            ->assertJsonPath('data.sms_enabled', false)
             ->assertJsonPath('data.email_enabled', true);
 
         $this->assertDatabaseHas('notification_preferences', [
