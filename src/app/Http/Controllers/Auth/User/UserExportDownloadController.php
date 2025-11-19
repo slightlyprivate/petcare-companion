@@ -59,7 +59,7 @@ class UserExportDownloadController extends Controller
             throw new AuthorizationException('You cannot access this export.');
         }
 
-        $disk = Storage::disk('local');
+        $disk = Storage::disk('exports');
 
         // Verify file exists
         if (! $disk->exists($export->file_path)) {
@@ -79,7 +79,7 @@ class UserExportDownloadController extends Controller
             200,
             [
                 'Content-Type' => 'application/zip',
-                'Content-Disposition' => 'attachment; filename="'.$export->file_name.'"',
+                'Content-Disposition' => 'attachment; filename="' . $export->file_name . '"',
             ]
         );
     }

@@ -38,18 +38,19 @@ class ExportUserDataJob implements ShouldQueue
             // Gather user data
             $userData = [
                 'user' => $this->user->only(['id', 'email', 'role', 'created_at', 'updated_at']),
-                'pets' => $this->user->pets()->get()->map(fn ($pet) => $pet->only(['id', 'name', 'species', 'breed', 'owner_name', 'is_public', 'created_at', 'updated_at']))->toArray(),
-                'gifts' => $this->user->gifts()->get()->map(fn ($gift) => $gift->only(['id', 'cost_in_credits', 'status', 'completed_at', 'created_at']))->toArray(),
-                'appointments' => Appointment::whereHas('pet', fn ($q) => $q->where('user_id', $this->user->id))->get()->map(fn ($apt) => $apt->only(['id', 'pet_id', 'title', 'scheduled_at', 'notes', 'created_at']))->toArray(),
+                'pets' => $this->user->pets()->get()->map(fn($pet) => $pet->only(['id', 'name', 'species', 'breed', 'owner_name', 'is_public', 'created_at', 'updated_at']))->toArray(),
+                'gifts' => $this->user->gifts()->get()->map(fn($gift) => $gift->only(['id', 'cost_in_credits', 'status', 'completed_at', 'created_at']))->toArray(),
+                'appointments' => Appointment::whereHas('pet', fn($q) => $q->where('user_id', $this->user->id))->get()->map(fn($apt) => $apt->only(['id', 'pet_id', 'title', 'scheduled_at', 'notes', 'created_at']))->toArray(),
             ];
 
             // Create zip file in memory and store using Storage::disk
             $zipContent = $this->generateZipContent($userData);
-            $fileName = 'user_data_'.$this->user->id.'_'.now()->timestamp.'.zip';
-            $filePath = 'exports/'.$fileName;
+            $fileName = 'user_data_' . $this->user->id . '_' . now()->timestamp . '.zip';
+            $filePath = "user-data/{$this->user->id}/{$fileName}";
 
-            // Store zip file using the local disk
-            Storage::disk('local')->put($filePath, $zipContent);
+            // Store zip file using the exports disk
+            $disk = Storage::disk('exports');
+            $disk->put($filePath, $zipContent);
 
             // Create UserExport record with 7-day expiration
             $expiresAt = now()->addDays(7);

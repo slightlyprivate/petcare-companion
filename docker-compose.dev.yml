@@ -37,7 +37,7 @@ services:
       MYSQL_PASSWORD: petpass
       MYSQL_ROOT_PASSWORD: rootpass
     ports:
-      - '3307:3306'
+      - '127.0.0.1:3307:3306'
     volumes:
       - dbdata:/var/lib/mysql
     healthcheck:
@@ -52,7 +52,7 @@ services:
     image: redis:7-alpine
     command: ['redis-server', '--appendonly', 'yes']
     ports:
-      - '6379:6379'
+      - '127.0.0.1:6379:6379'
     volumes:
       - redisdata:/data
 

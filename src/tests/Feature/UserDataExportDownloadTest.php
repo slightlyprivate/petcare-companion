@@ -30,6 +30,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_export_job_creates_user_export_record(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user */
@@ -52,10 +54,12 @@ class UserDataExportDownloadTest extends TestCase
     }
 
     /**
-     * Test that export file is stored in local disk.
+     * Test that export file is stored in exports disk.
      */
     public function test_export_file_stored_in_storage(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user */
@@ -68,10 +72,10 @@ class UserDataExportDownloadTest extends TestCase
         // Verify file exists in storage
         $export = UserExport::where('user_id', $user->id)->first();
         $this->assertNotNull($export);
-        $this->assertTrue(Storage::disk('local')->exists($export->file_path));
+        Storage::disk('exports')->assertExists($export->file_path);
 
         // Verify file is a valid zip
-        $content = Storage::disk('local')->get($export->file_path);
+        $content = Storage::disk('exports')->get($export->file_path);
         $this->assertStringStartsWith('PK', $content); // ZIP file signature
     }
 
@@ -80,6 +84,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_export_email_sent_with_signed_url(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user */
@@ -99,6 +105,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_user_can_download_export_with_signed_url(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user */
@@ -132,6 +140,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_unauthenticated_user_cannot_download_export(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user */
@@ -160,6 +170,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_user_cannot_download_another_users_export(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user1 */
@@ -222,6 +234,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_export_marked_as_downloaded(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user */
@@ -254,6 +268,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_cleanup_job_deletes_expired_exports(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user1 */
@@ -342,6 +358,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_export_with_no_data_creates_valid_zip(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user */
@@ -353,8 +371,8 @@ class UserDataExportDownloadTest extends TestCase
         $export = UserExport::where('user_id', $user->id)->first();
 
         // Verify file is stored and is a valid zip
-        $this->assertTrue(Storage::disk('local')->exists($export->file_path));
-        $content = Storage::disk('local')->get($export->file_path);
+        $this->assertTrue(Storage::disk('exports')->exists($export->file_path));
+        $content = Storage::disk('exports')->get($export->file_path);
         $this->assertStringStartsWith('PK', $content);
     }
 
@@ -363,6 +381,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_export_includes_all_data_types(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user */
@@ -379,7 +399,7 @@ class UserDataExportDownloadTest extends TestCase
         $export = UserExport::where('user_id', $user->id)->first();
 
         // Get file content and verify structure
-        $content = Storage::disk('local')->get($export->file_path);
+        $content = Storage::disk('exports')->get($export->file_path);
 
         // Create temporary file to extract
         $tmpFile = tempnam(sys_get_temp_dir(), 'test_');
