@@ -37,7 +37,9 @@ class PetAppointmentController extends Controller
      */
     public function store(StoreAppointmentRequest $request, Pet $pet): \Illuminate\Http\JsonResponse
     {
-        $appointment = $this->petAppointmentService->create($pet, $request->validated());
+        $this->authorize('update', $pet);
+
+        $appointment = $this->petAppointmentService->create($request->user(), $pet, $request->validated());
 
         return (new AppointmentResource($appointment))
             ->response()
@@ -49,6 +51,8 @@ class PetAppointmentController extends Controller
      */
     public function index(ListAppointmentRequest $request, Pet $pet): \Illuminate\Http\Resources\Json\AnonymousResourceCollection|\Illuminate\Http\JsonResponse
     {
+        $this->authorize('view', $pet);
+
         $helper = new AppointmentPaginationHelper($request);
 
         $appointments = $this->petAppointmentService->list($pet, $helper);

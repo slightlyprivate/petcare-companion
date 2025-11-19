@@ -29,15 +29,21 @@ class DeleteExpiredExportsJob implements ShouldQueue
         try {
             // Find all expired exports
             $expiredExports = UserExport::expired()->get();
+            $disk = Storage::disk('exports');
 
             $deletedCount = 0;
             $failedCount = 0;
 
             foreach ($expiredExports as $export) {
                 try {
-                    // Delete file from storage if it exists
-                    if (Storage::disk('local')->exists($export->file_path)) {
-                        Storage::disk('local')->delete($export->file_path);
+                    $fileDeleted = true;
+
+                    if ($disk->exists($export->file_path)) {
+                        $fileDeleted = $disk->delete($export->file_path);
+                    }
+
+                    if (! $fileDeleted) {
+                        throw new \RuntimeException('Failed to delete export archive from exports disk.');
                     }
 
                     // Delete the database record

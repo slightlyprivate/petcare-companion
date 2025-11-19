@@ -5,6 +5,8 @@ namespace App\Services\Pet;
 use App\Helpers\AppointmentPaginationHelper;
 use App\Models\Appointment;
 use App\Models\Pet;
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 
 /**
  * Service for managing pet appointments.
@@ -16,8 +18,12 @@ class PetAppointmentService
     /**
      * Create a new appointment for a pet.
      */
-    public function create(Pet $pet, array $data): Appointment
+    public function create(User $user, Pet $pet, array $data): Appointment
     {
+        if ($user->cannot('update', $pet)) {
+            throw new AuthorizationException('You are not authorized to manage appointments for this pet.');
+        }
+
         return $pet->appointments()->create($data);
     }
 

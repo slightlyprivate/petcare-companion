@@ -289,18 +289,18 @@ class UserDataExportDownloadTest extends TestCase
         ]);
 
         // Store a dummy file for the expired export
-        Storage::disk('local')->put($expiredExport->file_path, 'dummy content');
+        Storage::disk('exports')->put($expiredExport->file_path, 'dummy content');
 
         // Verify both exports exist
         $this->assertDatabaseCount('user_exports', 2);
-        $this->assertTrue(Storage::disk('local')->exists($expiredExport->file_path));
+        $this->assertTrue(Storage::disk('exports')->exists($expiredExport->file_path));
 
         // Run cleanup job
         (new DeleteExpiredExportsJob)->handle();
 
         // Verify expired export is deleted
         $this->assertDatabaseMissing('user_exports', ['id' => $expiredExport->id]);
-        $this->assertFalse(Storage::disk('local')->exists($expiredExport->file_path));
+        $this->assertFalse(Storage::disk('exports')->exists($expiredExport->file_path));
 
         // Verify unexpired export still exists
         $this->assertDatabaseHas('user_exports', ['user_id' => $user1->id]);
@@ -311,6 +311,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_cleanup_job_handles_missing_files(): void
     {
+        Storage::fake('exports');
+
         // Create expired export with non-existent file
         $expiredExport = UserExport::create([
             'user_id' => User::factory()->create()->id,
@@ -331,6 +333,8 @@ class UserDataExportDownloadTest extends TestCase
      */
     public function test_cleanup_command_runs_successfully(): void
     {
+        Storage::fake('exports');
+
         Mail::fake();
 
         /** @var Authenticatable $user */
