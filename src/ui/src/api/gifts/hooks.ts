@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useAppQuery, useAppMutation } from '../../lib/appQuery';
 import { qk } from '../queryKeys';
 import * as client from './client';

@@ -62,9 +62,10 @@ export function createHttpClient(options: HttpClientOptions = {}): HttpClient {
   const logging = options.enableLogging ?? isDev;
   const log = (...args: unknown[]) => {
     try {
-      // eslint-disable-next-line no-console
       console.debug('[http]', ...args);
-    } catch {}
+    } catch {
+      // Ignore console errors
+    }
   };
 
   const doReq = async <T>(

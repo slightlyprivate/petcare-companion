@@ -46,4 +46,3 @@ if (offenders.length) {
 } else {
   console.log('OK: No explicit `any` detected.');
 }
-

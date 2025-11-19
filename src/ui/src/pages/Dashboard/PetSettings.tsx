@@ -9,8 +9,9 @@ export default function PetSettings() {
   const { id } = useParams();
   const toast = useToast();
 
-  function onSubmit(_values: PetSettingsValues) {
+  function onSubmit(values: PetSettingsValues) {
     // Placeholder: would call an API to persist settings
+    console.log('Saving settings:', values);
     toast.success(`Settings saved for pet #${id}`);
   }
 

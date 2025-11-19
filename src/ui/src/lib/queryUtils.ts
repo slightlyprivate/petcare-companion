@@ -5,10 +5,14 @@ import { clearCsrfToken } from './csrfStore';
 export function resetOnLogout(qc: QueryClient) {
   try {
     qc.clear();
-  } catch {}
+  } catch {
+    // Ignore clear errors
+  }
   try {
     clearCsrfToken();
-  } catch {}
+  } catch {
+    // Ignore clear errors
+  }
 }
 
 // Invalidate a list of query keys

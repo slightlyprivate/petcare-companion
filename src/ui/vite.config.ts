@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig(() => {
   // Proxy target should point to the Laravel backend (web service in docker-compose)
   const target = process.env.VITE_API_PROXY_TARGET || 'http://web';
-  
+
   return {
     plugins: [react(), tailwindcss()],
     server: {

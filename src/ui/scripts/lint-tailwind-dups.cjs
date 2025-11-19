@@ -56,4 +56,3 @@ if (offenders.length) {
 } else {
   console.log('OK: No duplicate Tailwind classes found.');
 }
-

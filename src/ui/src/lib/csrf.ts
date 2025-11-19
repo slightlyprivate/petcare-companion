@@ -10,7 +10,7 @@ export async function ensureCsrf(): Promise<string> {
     // Call Laravel Sanctum's csrf-cookie endpoint
     // This sets the XSRF-TOKEN cookie that Laravel expects
     await request('/sanctum/csrf-cookie', { base: '/' });
-    
+
     // Laravel sets the token in a cookie named XSRF-TOKEN
     // We need to read it from the cookie
     const token = getCsrfTokenFromCookie();
@@ -21,7 +21,6 @@ export async function ensureCsrf(): Promise<string> {
     return token ?? '';
   } catch (err) {
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
       console.warn('[csrf] Failed to fetch CSRF token', err);
     }
     const e = new Error('Failed to acquire CSRF token') as Error & {

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import Button from '../Button';
 import TextInput from '../TextInput';
 
@@ -15,16 +15,12 @@ type PetSettingsFormProps = {
 };
 
 export default function PetSettingsForm({ initial, onSubmit, isSubmitting }: PetSettingsFormProps) {
-  const [values, setValues] = useState<PetSettingsValues>({
+  const [values, setValues] = useState<PetSettingsValues>(() => ({
     is_public: false,
     share_slug: '',
     allow_comments: false,
     ...initial,
-  });
-
-  useEffect(() => {
-    setValues((v) => ({ ...v, ...initial }));
-  }, [initial?.is_public, initial?.share_slug, initial?.allow_comments]);
+  }));
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();

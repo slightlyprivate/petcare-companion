@@ -3,14 +3,12 @@ import axios, {
   AxiosInstance,
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
-  AxiosHeaders,
 } from 'axios';
 import { isDev } from './config';
 import { getCsrfToken, isStorageAvailable } from './csrfStore';
 import { ensureCsrf } from './csrf';
 import { handleAuthError } from './authErrors';
 
-type UnsafeMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 const isUnsafe = (m?: string) =>
   !!m && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(m.toUpperCase());
 
@@ -46,7 +44,7 @@ client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
       try {
         await ensureCsrf();
       } catch {
-        // ignore; server will enforce CSRF
+        // Ignore; server will enforce CSRF
       }
       token = getCsrfToken() || token;
     }
@@ -58,9 +56,10 @@ client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
 
   if (isDev) {
     try {
-      // eslint-disable-next-line no-console
       console.debug('[http][req]', method, cfg.url);
-    } catch {}
+    } catch {
+      // Ignore console errors
+    }
   }
 
   return cfg as InternalAxiosRequestConfig;
@@ -71,9 +70,10 @@ client.interceptors.response.use(
   (response) => {
     if (isDev) {
       try {
-        // eslint-disable-next-line no-console
         console.debug('[http][res]', response.status, response.config.url);
-      } catch {}
+      } catch {
+        // Ignore console errors
+      }
     }
     return response;
   },
@@ -95,7 +95,6 @@ client.interceptors.response.use(
         return client.request(cfg as AxiosRequestConfig);
       } catch (e) {
         if (isDev) {
-          // eslint-disable-next-line no-console
           console.warn('[csrf] Retry after 419 failed; continuing with original error', e);
         }
       }
@@ -122,9 +121,10 @@ client.interceptors.response.use(
 
     if (isDev) {
       try {
-        // eslint-disable-next-line no-console
         console.debug('[http][err]', status, cfg.url, isStorageAvailable() ? '' : '(no storage)');
-      } catch {}
+      } catch {
+        // Ignore console errors
+      }
     }
 
     return Promise.reject(error);

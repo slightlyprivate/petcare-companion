@@ -22,7 +22,10 @@ export default function Navigation({ isAuthenticated, onLogout, isLoggingOut }: 
 
   useEffect(() => {
     // Close menu on route change
-    setOpen(false);
+    if (open) {
+      setOpen(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loc.pathname, loc.search, loc.hash]);
 
   useEffect(() => {
