@@ -7,9 +7,14 @@ import { PATHS } from '../routes/paths';
  */
 export default function AuthLayout() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen flex flex-col items-center justify-start p-6">
       <div className="w-full max-w-md space-y-6">
         <header className="text-center">
+          <img
+            src="/brand/illustrations/hero.png"
+            alt="PetCare Companion Hero"
+            className="w-50 max-w-md mx-auto mb-6 rounded-lg"
+          />
           <Link to={PATHS.ROOT} className="text-lg font-semibold text-brand-primary">
             PetCare
           </Link>

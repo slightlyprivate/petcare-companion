@@ -30,3 +30,10 @@ logs:
 ps:
 	docker compose -f $(DEV_COMPOSE) ps
 
+env:
+	docker compose -f $(DEV_COMPOSE) exec app cp .env.example .env
+	docker compose -f $(DEV_COMPOSE) exec app composer install
+	docker compose -f $(DEV_COMPOSE) exec app php artisan key:generate
+
+bash:
+	docker compose -f $(DEV_COMPOSE) exec app bash

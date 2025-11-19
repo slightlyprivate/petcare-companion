@@ -38,14 +38,16 @@ class RateLimitHelper
      */
     private static function configureAuthRateLimits(): void
     {
-        RateLimiter::for('auth.otp', function () {
-            // Allow 5 OTP requests per hour per IP (prevent brute force)
-            return Limit::perHour(5)->by(request()->ip());
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('auth.otp', function () use ($env) {
+            $limit = config('rate-limits.auth.otp.' . $env);
+            return Limit::perHour($limit)->by(request()->ip());
         });
 
-        RateLimiter::for('auth.verify', function () {
-            // Allow 10 verification attempts per hour per IP
-            return Limit::perHour(10)->by(request()->ip());
+        RateLimiter::for('auth.verify', function () use ($env) {
+            $limit = config('rate-limits.auth.verify.' . $env);
+            return Limit::perHour($limit)->by(request()->ip());
         });
     }
 
@@ -54,9 +56,11 @@ class RateLimitHelper
      */
     private static function configurePetRateLimits(): void
     {
-        RateLimiter::for('pet.write', function () {
-            // Allow 20 pet writes (create/update/delete) per hour per user
-            return Limit::perHour(20)->by(request()->user()->id);
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('pet.write', function () use ($env) {
+            $limit = config('rate-limits.pet.write.' . $env);
+            return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
 
@@ -65,9 +69,11 @@ class RateLimitHelper
      */
     private static function configureAppointmentRateLimits(): void
     {
-        RateLimiter::for('appointment.write', function () {
-            // Allow 30 appointment writes per hour per user
-            return Limit::perHour(30)->by(request()->user()->id);
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('appointment.write', function () use ($env) {
+            $limit = config('rate-limits.appointment.write.' . $env);
+            return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
 
@@ -78,9 +84,11 @@ class RateLimitHelper
      */
     private static function configureGiftRateLimits(): void
     {
-        RateLimiter::for('gift.write', function () {
-            // Allow 5 gifts per hour per user
-            return Limit::perHour(5)->by(request()->user()->id);
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('gift.write', function () use ($env) {
+            $limit = config('rate-limits.gift.write.' . $env);
+            return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
 
@@ -91,9 +99,11 @@ class RateLimitHelper
      */
     private static function configureCreditRateLimits(): void
     {
-        RateLimiter::for('credit.write', function () {
-            // Allow 10 credit purchases per hour per user
-            return Limit::perHour(10)->by(request()->user()->id);
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('credit.write', function () use ($env) {
+            $limit = config('rate-limits.credit.write.' . $env);
+            return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
 
@@ -104,9 +114,11 @@ class RateLimitHelper
      */
     private static function configureAdminRateLimits(): void
     {
-        RateLimiter::for('admin.write', function () {
-            // Allow 50 admin writes per hour per admin user
-            return Limit::perHour(50)->by(request()->user()->id);
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('admin.write', function () use ($env) {
+            $limit = config('rate-limits.admin.write.' . $env);
+            return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
 
@@ -117,14 +129,16 @@ class RateLimitHelper
      */
     private static function configureUserDataRateLimits(): void
     {
-        RateLimiter::for('user.data.export', function () {
-            // Allow 2 data exports per day per user
-            return Limit::perDay(2)->by(request()->user()->id);
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('user.data.export', function () use ($env) {
+            $limit = config('rate-limits.user_data.export.' . $env);
+            return Limit::perDay($limit)->by(request()->user()->id);
         });
 
-        RateLimiter::for('user.data.delete', function () {
-            // Allow 1 deletion request per day per user (destructive action)
-            return Limit::perDay(1)->by(request()->user()->id);
+        RateLimiter::for('user.data.delete', function () use ($env) {
+            $limit = config('rate-limits.user_data.delete.' . $env);
+            return Limit::perDay($limit)->by(request()->user()->id);
         });
     }
 
@@ -133,9 +147,11 @@ class RateLimitHelper
      */
     private static function configureNotificationRateLimits(): void
     {
-        RateLimiter::for('notification.write', function () {
-            // Allow 10 preference updates per hour per user
-            return Limit::perHour(10)->by(request()->user()->id);
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('notification.write', function () use ($env) {
+            $limit = config('rate-limits.notification.write.' . $env);
+            return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
 
@@ -146,10 +162,11 @@ class RateLimitHelper
      */
     private static function configureWebhookRateLimits(): void
     {
-        RateLimiter::for('webhook.stripe', function () {
-            // Allow 100 webhook requests per minute per IP
-            // Stripe webhooks have their own signature verification
-            return Limit::perMinute(100)->by(request()->ip());
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('webhook.stripe', function () use ($env) {
+            $limit = config('rate-limits.webhook.stripe.' . $env);
+            return Limit::perMinute($limit)->by(request()->ip());
         });
     }
 }
