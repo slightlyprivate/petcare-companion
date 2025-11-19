@@ -129,33 +129,6 @@ services:
       - ./docker/entrypoints/scheduler-entrypoint.sh:/usr/local/bin/scheduler-entrypoint.sh:ro
     restart: unless-stopped
 
-  # Dev BFF server with live-reload and bind mounts
-  frontend:
-    container_name: petcare_frontend
-    image: node:20-alpine
-    working_dir: /app
-    environment:
-      NODE_ENV: development
-      SERVER_PORT: 3000
-      BACKEND_URL: http://web
-      SESSION_SECRET: ${FRONTEND_SESSION_SECRET:-change_me}
-      LARAVEL_API_KEY: ${LARAVEL_API_KEY:-}
-      COOKIE_SECURE: 'false'
-      COOKIE_SAMESITE: lax
-      LOG_LEVEL: debug
-    command: sh -lc "cd src/server && npm install && npm run dev"
-    ports:
-      - '5174:3000'
-    depends_on:
-      - web
-    volumes:
-      - ./src/server:/app/src/server
-      - ./src/ui:/app/src/ui
-      - ./src/shared:/app/src/shared
-      # keep node_modules inside container
-      - /app/src/server/node_modules
-      - /app/src/ui/node_modules
-
   # Dev Vite server for the UI with HMR
   frontend-ui:
     container_name: petcare_frontend_ui
@@ -163,15 +136,14 @@ services:
     working_dir: /app/src/ui
     environment:
       NODE_ENV: development
-      VITE_API_PROXY_TARGET: http://frontend:3000
+      VITE_API_PROXY_TARGET: http://web
     command: sh -lc "npm install && npm run dev -- --host"
     ports:
       - '5173:5173'
     depends_on:
-      - frontend
+      - web
     volumes:
       - ./src/ui:/app/src/ui
-      - ./src/shared:/app/src/shared
       - /app/src/ui/node_modules
 
 volumes:

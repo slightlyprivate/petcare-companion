@@ -1,11 +1,10 @@
 # PetCare Companion — Monorepo
 
-A lightweight, educational monorepo demonstrating a Laravel API, a React UI, and a Node-based BFF
-(Backend for Frontend), containerized with Docker Compose.
+A lightweight, educational monorepo demonstrating a Laravel API with a React UI, containerized with Docker Compose.
 
 ## Overview
 
-- Purpose: Showcase clean API design, a simple BFF layer, and a modern UI.
+- Purpose: Showcase clean API design and a modern UI with Laravel Sanctum authentication.
 - Audience: Developers exploring Laravel + Vite/React with Docker.
 - Scope: Non-production, minimal footprint, no secrets committed.
 
@@ -13,7 +12,7 @@ A lightweight, educational monorepo demonstrating a Laravel API, a React UI, and
 
 - api: Laravel 12 application (path: `src/`), served behind Nginx.
 - web: Nginx reverse proxy for the Laravel API (port 8080 → 80 in container).
-- frontend: Node Express BFF serving the built React UI and proxying `/api/*` to `web`.
+- frontend-ui: Vite dev server with HMR for the React UI (development only).
 - db: MySQL 8.0 with persistent volume.
 - redis: Redis 7 for cache/queue experimentation.
 
@@ -26,7 +25,7 @@ graph LR
   end
 
   subgraph Frontend
-    F[frontend<br/>Node BFF + React UI]
+    F[frontend-ui<br/>Vite + React UI]
   end
 
   subgraph API
@@ -37,8 +36,8 @@ graph LR
   D[(db<br/>MySQL 8.0)]
   R[(redis<br/>Redis 7)]
 
-  A -->|HTTP :5174| F
-  F -->|/api/* proxy| W
+  A -->|HTTP :5173| F
+  F -->|/api/* /sanctum/*| W
   W --> P
   P --> D
   P --> R
@@ -55,14 +54,13 @@ graph LR
 ## Ports
 
 - API: `http://localhost:8080`
-- Frontend: `http://localhost:5174`
+- UI (Vite dev server): `http://localhost:5173`
 - MySQL: `localhost:3307`
 - Redis: `localhost:6379`
 
 ## Dev Notes
 
 - Laravel commands: `docker-compose exec app php artisan <cmd>`
-- BFF env: `SERVER_PORT`, `BACKEND_URL`, `SESSION_SECRET`, `COOKIE_SECURE`, `COOKIE_SAMESITE`
 
 ### Queue/Cache with Redis (Dev)
 
@@ -93,15 +91,9 @@ graph LR
   - Install deps (first run): `cd src/ui && npm install`
   - Format: `npm run format`
   - Check: `npm run format:check`
-- BFF Server:
-  - Install deps (first run): `cd src/server && npm install`
-  - Format: `npm run format`
-  - Check: `npm run format:check`
 - In containers:
   - UI (frontend-ui):
     `docker compose -f docker-compose.dev.yml exec frontend-ui sh -lc "npm run format"`
-  - BFF (frontend):
-    `docker compose -f docker-compose.dev.yml exec frontend sh -lc "cd src/server && npm run format"`
 
 ### Pre-commit Hook (Husky)
 
@@ -112,50 +104,39 @@ graph LR
 ### Dev Compose (Single Stack)
 
 - Use `docker-compose.dev.yml` for development. It includes: Laravel (app), Nginx (web), MySQL (db),
-  Redis (redis), Queue worker, Scheduler, BFF (frontend), and Vite UI (frontend-ui) with live
-  reload.
-- BFF (Express): <http://localhost:5174>
+  Redis (redis), Queue worker, Scheduler, and Vite UI (frontend-ui) with live reload.
 - UI (Vite HMR): <http://localhost:5173>
 - API (Nginx → PHP-FPM): <http://localhost:8080>
 
 ## Auth & Cookies
 
-- Flow: The BFF completes OTP login with Laravel, stores the returned Sanctum token in a server-side
-  session, and injects `Authorization: Bearer <token>` on proxied API requests. The browser never
-  sees the token.
-- CSRF: The BFF issues a CSRF token and requires it for mutating `/api/*` requests. Laravel API
-  routes use stateless token auth; no double-CSRF required.
-- Logout: `POST /auth/logout` clears the session/cookies and revokes the current Sanctum token in
+- Flow: The React UI authenticates with Laravel using OTP login. Laravel Sanctum manages session-based
+  authentication using cookies. The UI makes direct API calls to Laravel endpoints.
+- CSRF: Laravel Sanctum provides CSRF protection via `/sanctum/csrf-cookie`. The UI fetches this
+  endpoint to get the XSRF-TOKEN cookie, which is then sent as the `X-XSRF-TOKEN` header on mutating
+  requests.
+- Logout: `POST /api/auth/logout` clears the session/cookies and revokes the current Sanctum token in
   Laravel.
-- Cookies: In production set `COOKIE_SECURE=true` and choose `COOKIE_SAMESITE=lax` (or `strict`) in
-  `src/server/.env`.
+- Cookies: In production, ensure `SESSION_SECURE_COOKIE=true` in Laravel's `.env` and configure CORS
+  appropriately for cross-origin requests.
 
 ## Production Compose (Reference)
 
 - `docker-compose.yml` is production-oriented and references prebuilt images (no bind mounts).
   DB/Redis are expected to be external; set connection variables in `.env`.
 - Not used during development; build/publish images before using it.
+- The UI should be built and served as static files via a web server (e.g., Nginx) or CDN.
+- Configure CORS in Laravel to allow requests from your UI domain.
 
-- Expose only the `frontend` service (Node BFF + static UI). Laravel (`web` + `app`) remains
-  internal. The BFF proxies `/api/*` to Laravel via the Docker network.
-
-Environment wiring (UI + BFF)
+Environment wiring (UI)
 
 - UI build-time vars (Vite):
-  - `VITE_API_BASE` (default `/api`): required in production builds.
-  - `VITE_PROXY_BASE`: required in production builds (absolute origin of the BFF). Can be empty in
-    dev.
-  - `VITE_API_PROXY_TARGET`: dev-only, points Vite’s proxy at the BFF (e.g.,
-    `http://frontend:3000`).
-- BFF routes:
-  - `GET /auth/csrf` issues CSRF tokens (used by the UI’s `ensureCsrf()` via the proxy client).
-  - Mutations under `/api/*` and BFF JSON endpoints (`/user/*`, `/pets/*`, `/appointments/*`,
-    `/credits/*`, `/gifts/*`) require `X-CSRF-Token`.
+  - `VITE_API_BASE` (default `/api`): required in production builds. Set to your Laravel API base URL.
+  - `VITE_API_PROXY_TARGET`: dev-only, points Vite's dev proxy at the Laravel backend (e.g., `http://web`).
 
 ## Documentation
 
 - API (Laravel): `src/README.md`
-- BFF Server: `src/server/README.md`
 - UI (Vite + React): `src/ui/README.md`
 - Architecture: `docs/architecture.md`
 - Postman: `src/storage/app/private/scribe/collection.json`
