@@ -71,14 +71,13 @@ class AuthApiTest extends TestCase
             'expires_at' => now()->addMinutes(5),
         ]);
 
-        $response = $this->postJson('/api/auth/verify', [
+        $response = $this->withSession([])->postJson('/api/auth/verify', [
             'email' => $email,
             'code' => $code,
         ]);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'token',
                 'user' => [
                     'id',
                     'email',
@@ -90,10 +89,8 @@ class AuthApiTest extends TestCase
             'email' => $email,
         ]);
 
-        // Verify token was created
-        $user = User::where('email', $email)->first();
-        $this->assertNotNull($user);
-        $this->assertCount(1, $user->tokens);
+        // Verify user is authenticated via session
+        $this->assertAuthenticated();
     }
 
     #[Test]

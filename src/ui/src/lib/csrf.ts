@@ -9,8 +9,8 @@ export async function ensureCsrf(): Promise<string> {
   try {
     // Call Laravel Sanctum's csrf-cookie endpoint
     // This sets the XSRF-TOKEN cookie that Laravel expects
-    // Use the API base URL to ensure correct domain/path in all environments
-    await request('/sanctum/csrf-cookie');
+    // Use empty base ('') to call /sanctum directly without /api prefix
+    await request('/sanctum/csrf-cookie', { base: '' });
 
     // Laravel sets the token in a cookie named XSRF-TOKEN
     // We need to read it from the cookie
