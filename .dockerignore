@@ -9,4 +9,7 @@ src/storage
 src/vendor
 src/public/storage
 cookies.txt
+.env
+.env.*
+!.env.example
 
