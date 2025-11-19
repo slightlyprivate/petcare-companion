@@ -6,7 +6,6 @@ on:
     paths:
       - "docker/ui.Dockerfile"
       - "src/ui/**"
-      - "src/server/**"
       - ".github/workflows/ui.yml"
   workflow_dispatch: {}
 

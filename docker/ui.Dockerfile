@@ -1,4 +1,4 @@
-# Multi-stage build: build React UI, run Express BFF, serve UI statically
+# Multi-stage build: build React UI and serve statically with nginx
 
 FROM node:20-alpine AS ui_builder
 WORKDIR /app
@@ -10,30 +10,18 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Copy UI sources and build
 COPY src/ui ./src/ui
-COPY src/shared ./src/shared
 RUN cd src/ui && npm run build
 
 
-FROM node:20-alpine AS runner
-ENV NODE_ENV=production
-WORKDIR /app
-
-# Install server production deps only
-COPY src/server/package.json ./src/server/package.json
-RUN --mount=type=cache,target=/root/.npm \
-    cd src/server && npm install --omit=dev
-
-# Copy server sources
-COPY src/server/src ./src/server/src
+FROM nginx:stable-alpine AS runner
+WORKDIR /usr/share/nginx/html
 
 # Copy built UI
-COPY --from=ui_builder /app/src/ui/dist ./ui
+COPY --from=ui_builder /app/src/ui/dist .
 
-# Default environment (can override in compose)
-ENV SERVER_PORT=3000 \
-    BACKEND_URL=http://web:80 \
-    FRONTEND_DIR=/app/ui
+# Copy nginx configuration for SPA routing
+COPY docker/nginx-spa.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 3000
-CMD ["node", "./src/server/src/index.js"]
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 

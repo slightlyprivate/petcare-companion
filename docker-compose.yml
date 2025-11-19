@@ -1,6 +1,7 @@
 services:
   # Production-oriented stack (images expected to be built/published)
   # Note: DB/Redis are external in production; inject hosts via env.
+  # Note: Configure CORS in Laravel to allow requests from the UI domain.
 
   app:
     container_name: petcare_app
@@ -41,19 +42,17 @@ services:
     tmpfs:
       - /tmp
 
-  frontend:
-    container_name: petcare_frontend
-    image: ghcr.io/yourorg/petcare-frontend:prod
-    environment:
-      SERVER_PORT: 3000
-      BACKEND_URL: http://web
-    depends_on:
-      - web
+  ui:
+    container_name: petcare_ui
+    image: ghcr.io/yourorg/petcare-ui:prod
     ports:
-      - "5174:3000"
+      - "8081:80"
     read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost/health >/dev/null 2>&1 || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
