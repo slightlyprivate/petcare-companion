@@ -1,7 +1,7 @@
 ---
 name: security-audit
 description: Perform a security audit on the PetCare Companion codebase.
-tools: ['search', 'fetch']
+tools: ['search', 'runCommands', 'usages', 'problems', 'changes', 'fetch', 'githubRepo']
 handoffs:
   - label: Send Output to Agent
     agent: petcare-companion
