@@ -81,4 +81,11 @@ return [
             'development' => 500,
         ],
     ],
+
+    'pet-care' => [
+        'default' => [
+            'production' => 120, // per hour for activities, routines, etc
+            'development' => 500,
+        ],
+    ],
 ];

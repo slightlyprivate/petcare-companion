@@ -29,6 +29,7 @@ class RateLimitHelper
         self::configureUserDataRateLimits();
         self::configureNotificationRateLimits();
         self::configureWebhookRateLimits();
+        self::configurePetCareRateLimits();
     }
 
     /**
@@ -167,6 +168,21 @@ class RateLimitHelper
         RateLimiter::for('webhook.stripe', function () use ($env) {
             $limit = config('rate-limits.webhook.stripe.' . $env);
             return Limit::perMinute($limit)->by(request()->ip());
+        });
+    }
+
+    /**
+     * Configure pet-care rate limiters.
+     *
+     * For future pivot endpoints like activities, routines, caregiver operations.
+     */
+    private static function configurePetCareRateLimits(): void
+    {
+        $env = app()->environment(['local', 'testing']) ? 'development' : 'production';
+
+        RateLimiter::for('pet-care', function () use ($env) {
+            $limit = config('rate-limits.pet-care.default.' . $env);
+            return Limit::perHour($limit)->by(request()->user()->id);
         });
     }
 }
