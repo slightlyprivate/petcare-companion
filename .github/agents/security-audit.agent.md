@@ -1,3 +1,14 @@
+---
+name: security-audit
+description: Perform a security audit on the PetCare Companion codebase.
+tools: ['search', 'fetch']
+handoffs:
+  - label: Send Output to Agent
+    agent: petcare-companion
+    prompt: Address the following security audit findings in the PetCare Companion codebase.
+    send: true
+---
+
 # Security Audit Agent
 
 ## Role
@@ -114,8 +125,6 @@ Caregiver invitations: token security, expiry, anti-enumeration safeguards
 Activity logs: media/file upload constraints
 
 Routines: time/task safety and permissions
-
-BFF: gateway validation + rate limiting
 
 React: session hardening, error-surfacing restrictions
 
