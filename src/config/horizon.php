@@ -7,7 +7,7 @@ return [
     'path' => 'horizon',
 
     // Redis connection Horizon should use (must be a key in database.redis)
-    'use' => env('HORIZON_REDIS_CONNECTION', 'default'),
+    'use' => env('HORIZON_REDIS_CONNECTION', 'horizon'),
 
     // Redis connection name for Horizon metrics
     'prefix' => env('HORIZON_PREFIX', 'horizon-'),

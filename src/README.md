@@ -95,11 +95,18 @@ Notification preference endpoints include:
 
 ## Authentication Endpoints
 
-| Method | Endpoint            | Description                 |
-| ------ | ------------------- | --------------------------- |
-| POST   | `/api/auth/request` | Request OTP                 |
-| POST   | `/api/auth/verify`  | Verify OTP and get token    |
-| GET    | `/api/auth/me`      | Get authenticated user info |
+Laravel Sanctum session-based authentication (SPA mode) is used for frontend integration.
+
+| Method | Endpoint            | Description                   |
+| ------ | ------------------- | ----------------------------- |
+| POST   | `/api/auth/request` | Request OTP                   |
+| POST   | `/api/auth/verify`  | Verify OTP and create session |
+| GET    | `/api/auth/me`      | Get authenticated user info   |
+| GET    | `/api/auth/status`  | Check auth status (204/401)   |
+| POST   | `/api/auth/logout`  | Logout and invalidate session |
+
+CSRF protection is required for all unsafe methods (POST, PUT, PATCH, DELETE). The UI fetches a CSRF
+token from `/sanctum/csrf-cookie` before making authenticated requests.
 
 ## Example Entities
 
