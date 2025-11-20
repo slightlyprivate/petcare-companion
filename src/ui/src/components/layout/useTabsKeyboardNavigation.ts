@@ -5,6 +5,7 @@ interface Params {
   setActiveIndex: (i: number) => void;
   enabledLength: number;
   focusTab: (i: number) => void;
+  orientation?: 'horizontal' | 'vertical';
 }
 
 /**
@@ -18,6 +19,7 @@ export function useTabsKeyboardNavigation({
   setActiveIndex,
   enabledLength,
   focusTab,
+  orientation = 'horizontal',
 }: Params) {
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const lastIndex = enabledLength - 1;
@@ -25,10 +27,24 @@ export function useTabsKeyboardNavigation({
 
     switch (e.key) {
       case 'ArrowRight':
-        nextIndex = activeIndex === lastIndex ? 0 : activeIndex + 1;
+        if (orientation === 'horizontal') {
+          nextIndex = activeIndex === lastIndex ? 0 : activeIndex + 1;
+        }
         break;
       case 'ArrowLeft':
-        nextIndex = activeIndex === 0 ? lastIndex : activeIndex - 1;
+        if (orientation === 'horizontal') {
+          nextIndex = activeIndex === 0 ? lastIndex : activeIndex - 1;
+        }
+        break;
+      case 'ArrowDown':
+        if (orientation === 'vertical') {
+          nextIndex = activeIndex === lastIndex ? 0 : activeIndex + 1;
+        }
+        break;
+      case 'ArrowUp':
+        if (orientation === 'vertical') {
+          nextIndex = activeIndex === 0 ? lastIndex : activeIndex - 1;
+        }
         break;
       case 'Home':
         nextIndex = 0;

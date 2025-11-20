@@ -1,7 +1,7 @@
 import { useTodayTasks, useCompleteRoutineOccurrence } from '../../api/routines/hooks';
 import { useRoutineModal } from '../../hooks/useRoutineModal';
 import ErrorMessage from '../ErrorMessage';
-import Spinner from '../Spinner';
+import { Skeleton } from '../ui/Loader';
 import Button from '../Button';
 import Modal from '../modals/Modal';
 import ConfirmDialog from '../modals/ConfirmDialog';
@@ -38,8 +38,15 @@ export default function RoutineChecklist({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Spinner />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-6 w-32" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
       </div>
     );
   }

@@ -8,7 +8,7 @@ import {
 } from '../../api/caregivers/hooks';
 import Button from '../Button';
 import ErrorMessage from '../ErrorMessage';
-import Spinner from '../Spinner';
+import { Skeleton } from '../ui/Loader';
 import EmptyState from '../EmptyState';
 import ConfirmDialog from '../modals/ConfirmDialog';
 import InviteCaregiverModal from './InviteCaregiverModal';
@@ -76,8 +76,13 @@ export default function CaregiverList({ petId, isOwner = false }: CaregiverListP
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Spinner />
+      <div className="space-y-3" aria-label="Caregivers loading">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-8 w-28" />
+        </div>
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
       </div>
     );
   }

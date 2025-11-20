@@ -1,5 +1,6 @@
 import React, { useRef, useState, useId } from 'react';
 import { useTabsKeyboardNavigation } from './useTabsKeyboardNavigation';
+import { tabButtonStyles } from './tabStyles';
 
 export interface TabDefinition {
   id: string;
@@ -15,6 +16,7 @@ interface TabsProps {
   listClassName?: string;
   tabClassName?: string;
   panelClassName?: string;
+  orientation?: 'horizontal' | 'vertical';
 }
 
 // Accessible tabs component with keyboard navigation (arrow left/right, home/end)
@@ -25,6 +27,7 @@ export default function Tabs({
   listClassName,
   tabClassName,
   panelClassName,
+  orientation = 'horizontal',
 }: TabsProps) {
   const enabledTabs = tabs.filter((t) => !t.disabled);
   const initialIndex = initialTabId ? enabledTabs.findIndex((t) => t.id === initialTabId) : 0;
@@ -46,6 +49,7 @@ export default function Tabs({
     setActiveIndex: setActiveIndex,
     enabledLength: enabledTabs.length,
     focusTab,
+    orientation,
   });
 
   return (
@@ -53,7 +57,13 @@ export default function Tabs({
       <div
         role="tablist"
         aria-label="Sections"
-        className={listClassName || 'flex gap-2 border-b mb-4'}
+        aria-orientation={orientation}
+        className={
+          listClassName ||
+          (orientation === 'horizontal'
+            ? 'flex gap-2 border-b mb-4 overflow-x-auto scrollbar-thin'
+            : 'flex flex-col gap-2 border-r pr-4')
+        }
         onKeyDown={onKeyDown}
       >
         {enabledTabs.map((tab, i) => {
@@ -67,13 +77,7 @@ export default function Tabs({
               aria-selected={selected}
               aria-controls={`${baseId}-panel-${tab.id}`}
               tabIndex={selected ? 0 : -1}
-              className={
-                tabClassName ||
-                `px-3 py-2 text-sm rounded-t border transition-colors font-medium ` +
-                  (selected
-                    ? 'bg-white border-gray-300 border-b-transparent -mb-px'
-                    : 'bg-gray-100 border-transparent hover:bg-gray-200')
-              }
+              className={tabClassName || tabButtonStyles({ selected, orientation })}
               onClick={() => activateTab(i)}
               type="button"
             >

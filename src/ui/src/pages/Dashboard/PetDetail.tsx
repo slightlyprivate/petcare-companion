@@ -6,6 +6,14 @@ import CaregiverList from '../../components/caregivers/CaregiverList';
 import ActivityTimeline from '../../components/activities/ActivityTimeline';
 import RoutineChecklist from '../../components/routines/RoutineChecklist';
 import Tabs from '../../components/layout/Tabs';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '../../components/ui/Card';
+import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 
 /**
  * Pet detail page displaying information about a specific pet.
@@ -22,17 +30,29 @@ export default function PetDetail() {
         {
           id: 'routines',
           label: 'Routines',
-          content: <RoutineChecklist petId={pet.id} canComplete={true} />,
+          content: (
+            <ErrorBoundary>
+              <RoutineChecklist petId={pet.id} canComplete={true} />
+            </ErrorBoundary>
+          ),
         },
         {
           id: 'caregivers',
           label: 'Caregivers',
-          content: <CaregiverList petId={pet.id} isOwner={isOwner} />,
+          content: (
+            <ErrorBoundary>
+              <CaregiverList petId={pet.id} isOwner={isOwner} />
+            </ErrorBoundary>
+          ),
         },
         {
           id: 'activities',
           label: 'Activities',
-          content: <ActivityTimeline petId={pet.id} canCreate={true} canDelete={isOwner} />,
+          content: (
+            <ErrorBoundary>
+              <ActivityTimeline petId={pet.id} canCreate={true} canDelete={isOwner} />
+            </ErrorBoundary>
+          ),
         },
       ]
     : [];
@@ -43,14 +63,18 @@ export default function PetDetail() {
       <QueryBoundary loading={isLoading} error={error}>
         {pet ? (
           <div className="space-y-6">
-            <div className="border rounded p-4 bg-white">
-              <div className="font-medium">{pet.name}</div>
-              <div className="text-sm text-gray-600">{pet.species}</div>
-              {pet.breed && <div className="text-sm text-gray-500">{pet.breed}</div>}
-              {pet.age !== undefined && pet.age !== null && (
-                <div className="text-sm text-gray-500">{pet.age} years old</div>
-              )}
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>{pet.name}</CardTitle>
+                <CardDescription className="flex flex-col gap-0.5">
+                  <span className="capitalize">{pet.species}</span>
+                  {pet.breed && <span className="text-gray-500">{pet.breed}</span>}
+                  {pet.age !== undefined && pet.age !== null && (
+                    <span className="text-gray-500">{pet.age} years old</span>
+                  )}
+                </CardDescription>
+              </CardHeader>
+            </Card>
             <Tabs tabs={tabs} />
           </div>
         ) : (

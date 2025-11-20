@@ -29,8 +29,39 @@ export function useCompleteRoutineOccurrence() {
   const qc = useQueryClient();
   return useAppMutation({
     mutationFn: completeRoutineOccurrence,
+    onMutate: async (occurrenceId: number | string) => {
+      // Optimistically mark occurrence as completed in today's tasks cache
+      const keys = qc
+        .getQueryCache()
+        .findAll({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'routines' });
+      const previousSnapshots: any[] = [];
+      for (const entry of keys) {
+        const qKey = entry.queryKey;
+        const prev = qc.getQueryData(qKey);
+        previousSnapshots.push([qKey, prev]);
+        if (prev && (prev as any).data) {
+          const cloned = { ...(prev as any), data: [...(prev as any).data] };
+          cloned.data = cloned.data.map((t: any) => {
+            if (t.id === occurrenceId || t.occurrence_id === occurrenceId) {
+              return { ...t, completed_at: new Date().toISOString() };
+            }
+            return t;
+          });
+          qc.setQueryData(qKey, cloned);
+        }
+      }
+      return { previousSnapshots };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback optimistic updates
+      context?.previousSnapshots?.forEach(([qKey, data]: any) => qc.setQueryData(qKey, data));
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: qk.routines.all });
+    },
+    onSettled: (_data, _error, _vars) => {
+      // Revalidate today's tasks explicitly to ensure accuracy
+      // Could narrow to specific pet if variable shape known
     },
   });
 }
@@ -69,6 +100,28 @@ export function useDeletePetRoutine() {
   const qc = useQueryClient();
   return useAppMutation({
     mutationFn: deletePetRoutine,
+    onMutate: async (routineId: number | string) => {
+      const keys = qc
+        .getQueryCache()
+        .findAll({ predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'routines' });
+      const previousSnapshots: any[] = [];
+      for (const entry of keys) {
+        const qKey = entry.queryKey;
+        const prev = qc.getQueryData(qKey);
+        previousSnapshots.push([qKey, prev]);
+        if (prev && (prev as any).data) {
+          const cloned = { ...(prev as any), data: [...(prev as any).data] };
+          cloned.data = cloned.data.filter(
+            (t: any) => t.routine_id !== routineId && t.id !== routineId,
+          );
+          qc.setQueryData(qKey, cloned);
+        }
+      }
+      return { previousSnapshots };
+    },
+    onError: (_err, _vars, context) => {
+      context?.previousSnapshots?.forEach(([qKey, data]: any) => qc.setQueryData(qKey, data));
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: qk.routines.all });
     },

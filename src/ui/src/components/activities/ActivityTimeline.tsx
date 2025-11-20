@@ -5,6 +5,7 @@ import { useImageLoadError } from '../../hooks/useImageLoadError';
 import { useActivityFilters } from '../../hooks/useActivityFilters';
 import { usePagination } from '../../hooks/usePagination';
 import { useDeleteConfirmation } from '../../hooks/useDeleteConfirmation';
+import { useToast } from '../../lib/notifications';
 import { buildActivityQueryParams, getActivityPaginationInfo } from '../../utils/activityHelpers';
 import ActivityForm from './ActivityForm';
 import ActivityCard from './ActivityCard';
@@ -14,7 +15,8 @@ import LoadMoreButton from './LoadMoreButton';
 import Button from '../Button';
 import ConfirmDialog from '../modals/ConfirmDialog';
 import ErrorMessage from '../ErrorMessage';
-import Spinner from '../Spinner';
+import Spinner from '../Spinner'; // keep legacy spinner fallback
+import { Skeleton } from '../ui/Loader';
 
 interface ActivityTimelineProps {
   petId: string | number;
@@ -50,6 +52,7 @@ export default function ActivityTimeline({
     isFetching,
   } = usePetActivities(petId, queryParams);
   const deleteActivity = useDeletePetActivity();
+  const toast = useToast();
 
   const {
     showAddForm,
@@ -89,7 +92,12 @@ export default function ActivityTimeline({
   };
 
   const confirmDelete = async () => {
-    await deleteConfirm.executeDelete((id) => deleteActivity.mutateAsync(id));
+    try {
+      await deleteConfirm.executeDelete((id) => deleteActivity.mutateAsync(id));
+      toast.success('Activity deleted');
+    } catch (err) {
+      toast.error((err as Error).message || 'Failed to delete activity');
+    }
   };
 
   const handleClearFilters = () => {
@@ -118,8 +126,16 @@ export default function ActivityTimeline({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Spinner />
+      <div className="space-y-4" aria-label="Activities loading">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-8 w-24" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
       </div>
     );
   }
