@@ -36,6 +36,7 @@ class Pet extends Model
         'owner_name',
         'user_id',
         'is_public',
+        'avatar_path',
     ];
 
     /**
@@ -236,5 +237,20 @@ class Pet extends Model
         static::deleting(function ($pet) {
             $pet->appointments()->delete();
         });
+    }
+
+    /**
+     * Get the full public URL for the pet's avatar image.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (! $this->avatar_path) {
+            return null;
+        }
+
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        return $disk->url($this->avatar_path);
     }
 }

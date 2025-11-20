@@ -13,6 +13,7 @@ use App\Http\Controllers\GiftType\GiftTypeController;
 use App\Http\Controllers\Media\MediaUploadController;
 use App\Http\Controllers\Pet\PetActivityController;
 use App\Http\Controllers\Pet\PetAppointmentController;
+use App\Http\Controllers\Pet\PetAvatarController;
 use App\Http\Controllers\Pet\PetCaregiverController;
 use App\Http\Controllers\Pet\PetCaregiverInvitationController;
 use App\Http\Controllers\Pet\PetController;
@@ -121,6 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/pets/{pet}', [PetController::class, 'update'])->name('pets.update');
         Route::delete('/pets/{pet}', [PetController::class, 'destroy'])->name('pets.destroy');
         Route::post('/pets/{pet}/restore', [PetRestoreController::class, 'restore'])->name('pets.restore');
+        Route::post('/pets/{pet}/avatar', [PetAvatarController::class, 'store'])->name('pets.avatar.store');
         Route::post('/pets/{pet}/caregiver-invitations', [PetCaregiverInvitationController::class, 'store'])->name('pets.caregiver-invitations.store');
         Route::post('/caregiver-invitations/{token}/accept', [PetCaregiverInvitationController::class, 'accept'])->name('caregiver-invitations.accept');
         Route::delete('/caregiver-invitations/{invitation}', [PetCaregiverInvitationController::class, 'destroy'])->name('caregiver-invitations.destroy');

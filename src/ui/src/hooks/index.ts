@@ -1,3 +1,4 @@
 export { useActivityForm } from './useActivityForm';
-export { useMediaUpload } from './useMediaUpload';
+export { useAvatarUpload } from './useAvatarUpload';
 export { useImageLoadError } from './useImageLoadError';
+export { useMediaUpload } from './useMediaUpload';
