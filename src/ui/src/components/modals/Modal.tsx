@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { cn } from '../../lib/cn';
+import { Icon } from '../icons';
 
 interface ModalProps {
   isOpen: boolean;
@@ -78,14 +79,7 @@ export default function Modal({
             className="text-brand-fg transition-colors hover:text-brand-primary"
             aria-label="Close modal"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <Icon name="close" size={20} />
           </button>
         </div>
 

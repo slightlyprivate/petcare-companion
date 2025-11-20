@@ -1,28 +1,32 @@
 import { useTodayTasks, useCompleteRoutineOccurrence } from '../../api/routines/hooks';
+import { useRoutineModal } from '../../hooks/useRoutineModal';
 import ErrorMessage from '../ErrorMessage';
 import Spinner from '../Spinner';
-import { cn } from '../../lib/cn';
+import Button from '../Button';
+import Modal from '../modals/Modal';
+import ConfirmDialog from '../modals/ConfirmDialog';
+import RoutineForm from './RoutineForm';
+import RoutineEmptyState from './RoutineEmptyState';
+import RoutineProgress from './RoutineProgress';
+import RoutineTaskCard from './RoutineTaskCard';
 
 interface RoutineChecklistProps {
   petId: string | number;
   canComplete?: boolean;
+  canManage?: boolean; // owner can create/edit/delete
 }
-
-const TIME_OF_DAY_LABELS: Record<string, string> = {
-  morning: '🌅 Morning',
-  afternoon: '☀️ Afternoon',
-  evening: '🌇 Evening',
-  night: '🌙 Night',
-};
-
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /**
  * Daily routine checklist component showing today's tasks with completion tracking.
  */
-export default function RoutineChecklist({ petId, canComplete = false }: RoutineChecklistProps) {
+export default function RoutineChecklist({
+  petId,
+  canComplete = false,
+  canManage = false,
+}: RoutineChecklistProps) {
   const { data: tasksData, isLoading, error } = useTodayTasks(petId);
   const completeTask = useCompleteRoutineOccurrence();
+  const modal = useRoutineModal(petId);
 
   const handleComplete = async (occurrenceId: string | number) => {
     try {
@@ -30,19 +34,6 @@ export default function RoutineChecklist({ petId, canComplete = false }: Routine
     } catch (err) {
       console.error('Failed to complete task:', err);
     }
-  };
-
-  const formatTimeOfDay = (timeOfDay: string) => {
-    return TIME_OF_DAY_LABELS[timeOfDay] || timeOfDay;
-  };
-
-  const formatDaysOfWeek = (days: number[]) => {
-    if (days.length === 7) return 'Every day';
-    if (days.length === 0) return 'No days';
-    return days
-      .sort()
-      .map((d) => DAY_NAMES[d])
-      .join(', ');
   };
 
   if (isLoading) {
@@ -72,122 +63,38 @@ export default function RoutineChecklist({ petId, canComplete = false }: Routine
             </p>
           )}
         </div>
-        {totalCount > 0 && (
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200">
-              <div
-                className="h-full bg-brand-accent transition-all duration-300"
-                style={{ width: `${(completedCount / totalCount) * 100}%` }}
-              />
-            </div>
-            <span className="text-sm font-medium text-brand-fg">
-              {Math.round((completedCount / totalCount) * 100)}%
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <RoutineProgress completed={completedCount} total={totalCount} />
+          {canManage && (
+            <Button variant="secondary" size="sm" onClick={modal.openCreate}>
+              Create Routine
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
         {tasks.length === 0 ? (
-          <div className="rounded-lg border border-brand-muted bg-brand-secondary/20 p-6 text-center">
-            <p className="text-sm text-brand-fg/60">No routines scheduled for today</p>
-            <p className="mt-1 text-xs text-brand-fg/40">
-              Create routines to track daily tasks for your pet
-            </p>
-          </div>
+          canManage ? (
+            <RoutineEmptyState canCreate={canManage} onCreateClick={modal.openCreate} />
+          ) : (
+            <div className="rounded-lg border border-brand-muted bg-brand-secondary/20 p-6 text-center">
+              <p className="text-sm text-brand-fg/60">No routines scheduled for today</p>
+            </div>
+          )
         ) : (
-          tasks.map((task) => {
-            const isCompleted = !!task.completed_at;
-            const routine = task.routine;
-
-            return (
-              <div
-                key={task.id}
-                className={cn(
-                  'rounded-lg border bg-white p-4 shadow-sm transition-all',
-                  isCompleted
-                    ? 'border-green-200 bg-green-50/50 opacity-75'
-                    : 'border-brand-muted hover:border-brand-accent',
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  {canComplete && !isCompleted ? (
-                    <button
-                      onClick={() => handleComplete(task.id)}
-                      disabled={completeTask.isPending}
-                      className={cn(
-                        'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all',
-                        'border-brand-accent hover:bg-brand-accent hover:text-white',
-                        'disabled:opacity-50 disabled:cursor-not-allowed',
-                      )}
-                      aria-label="Mark as complete"
-                    >
-                      {completeTask.isPending ? (
-                        <div className="h-3 w-3 animate-spin rounded-full border-2 border-brand-accent border-t-transparent" />
-                      ) : null}
-                    </button>
-                  ) : (
-                    <div
-                      className={cn(
-                        'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
-                        isCompleted
-                          ? 'border-green-500 bg-green-500 text-white'
-                          : 'border-gray-300 bg-gray-100',
-                      )}
-                    >
-                      {isCompleted && (
-                        <svg
-                          className="h-4 w-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={3}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <h3
-                          className={cn(
-                            'font-medium',
-                            isCompleted ? 'text-brand-fg/60 line-through' : 'text-brand-fg',
-                          )}
-                        >
-                          {routine.name}
-                        </h3>
-                        {routine.description && (
-                          <p className="mt-1 text-sm text-brand-fg/60">{routine.description}</p>
-                        )}
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="whitespace-nowrap rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
-                          {formatTimeOfDay(routine.time_of_day)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="mt-2 flex items-center gap-3 text-xs text-brand-fg/40">
-                      <span>📅 {formatDaysOfWeek(routine.days_of_week)}</span>
-                      {isCompleted && task.completed_at && (
-                        <span>
-                          ✓ Completed at {new Date(task.completed_at).toLocaleTimeString()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })
+          tasks.map((task) => (
+            <RoutineTaskCard
+              key={task.id}
+              task={task}
+              canComplete={canComplete}
+              canManage={canManage}
+              isCompleting={completeTask.isPending}
+              onComplete={handleComplete}
+              onEdit={modal.openEdit}
+              onDelete={modal.deleteState.confirmDelete}
+            />
+          ))
         )}
       </div>
 
@@ -196,6 +103,42 @@ export default function RoutineChecklist({ petId, canComplete = false }: Routine
           <p className="text-sm font-medium text-green-800">🎉 All tasks completed for today!</p>
         </div>
       )}
+
+      {/* Create/Edit Modal */}
+      <Modal
+        isOpen={modal.isOpen}
+        onClose={modal.close}
+        title={modal.isEditMode ? 'Edit Routine' : 'Create Routine'}
+      >
+        <RoutineForm
+          name={modal.formState.name}
+          description={modal.formState.description}
+          timeOfDay={modal.formState.timeOfDay}
+          daysOfWeek={modal.formState.daysOfWeek}
+          formError={modal.formState.error}
+          isSubmitting={modal.isSubmitting}
+          onNameChange={modal.setName}
+          onDescriptionChange={modal.setDescription}
+          onTimeOfDayChange={modal.setTimeOfDay}
+          onDaysOfWeekChange={modal.setDaysOfWeek}
+          onToggleDayOfWeek={modal.toggleDayOfWeek}
+          onSubmit={modal.handleSubmit}
+          onCancel={modal.close}
+          submitLabel={modal.isEditMode ? 'Update Routine' : 'Create Routine'}
+        />
+      </Modal>
+
+      {/* Delete Confirmation */}
+      <ConfirmDialog
+        isOpen={modal.deleteState.isConfirmOpen}
+        title="Delete Routine"
+        message="Are you sure you want to delete this routine? This will delete all scheduled tasks for this routine."
+        confirmText="Delete"
+        onConfirm={modal.deleteState.executeDelete}
+        onClose={modal.deleteState.cancelDelete}
+        variant="danger"
+        isLoading={modal.deleteState.isDeleting}
+      />
     </div>
   );
 }
