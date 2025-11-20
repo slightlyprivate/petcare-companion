@@ -23,7 +23,9 @@ class PetActivityService
     {
         $perPage = (int) ($filters['per_page'] ?? 15);
 
-        $query = PetActivity::query()->where('pet_id', $pet->getKey());
+        $query = PetActivity::query()
+            ->where('pet_id', $pet->getKey())
+            ->with(['user:id,email']);
 
         if (! empty($filters['type'])) {
             $query->where('type', $filters['type']);

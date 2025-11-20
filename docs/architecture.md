@@ -850,6 +850,392 @@ PublicPetReportResource::toArray()
 - Email receipts for gift purchases
 - Weekly digest of received gifts
 
+## Shared Caregiving & Pet Routines
+
+**Overview**: The caregiver and routine system enables multiple users to share responsibility for a
+pet's care. Owners can invite caregivers who gain view access and the ability to log activities and
+complete daily routines, transforming PetCare Companion from a simple CRUD demo into a collaborative
+care platform.
+
+### Core Components
+
+#### 1. Pet-User Pivot Model (`App\Models\PetUser`)
+
+**Purpose**: Represents the relationship between a pet and a user with role information.
+
+**Key Attributes**:
+
+- `pet_id` (FK): Pet identifier
+- `user_id` (FK): User identifier
+- `role` (enum): 'owner' or 'caregiver'
+- `created_at`, `updated_at` (timestamps)
+
+**Constraints**:
+
+- Unique constraint on (pet_id, user_id)
+- Cascade delete when pet or user is removed
+
+**Traits**:
+
+- `LogsActivity`: Audit logging via Spatie Activity Log
+
+#### 2. Caregiver Invitation Model (`App\Models\PetCaregiverInvitation`)
+
+**Purpose**: Token-based invitation system for adding caregivers to pets.
+
+**Key Attributes**:
+
+- `pet_id` (FK): Pet being shared
+- `inviter_id` (FK): User sending invitation (must be owner)
+- `invitee_email` (string): Email address of invited user
+- `invitee_id` (FK, nullable): User who accepted (set on acceptance)
+- `token` (string, unique): Secure invitation token (auto-generated)
+- `status` (enum): 'pending', 'accepted', 'expired', 'revoked'
+- `expires_at` (timestamp): Expiration datetime (7 days from creation)
+- `accepted_at` (timestamp, nullable): Acceptance timestamp
+
+**Methods**:
+
+- `markAsAccepted(user_id)`: Updates status and records acceptance
+- `isExpired()`: Checks if invitation has expired
+
+**Traits**:
+
+- `LogsActivity`: Tracks invitation lifecycle events
+
+#### 3. Pet Activity Model (`App\Models\PetActivity`)
+
+**Purpose**: Logs day-to-day events and memories for pets.
+
+**Key Attributes**:
+
+- `pet_id` (FK): Associated pet
+- `user_id` (FK): User who logged the activity
+- `type` (string): Activity category (feeding, walk, vet, play, etc.)
+- `description` (text): Activity details
+- `media_url` (string, nullable): Optional photo/video URL
+
+**Authorization**:
+
+- Owners and caregivers can create activities
+- Only owners can delete activities
+
+**Traits**:
+
+- `LogsActivity`: Audit trail for compliance
+
+#### 4. Pet Routine Model (`App\Models\PetRoutine`)
+
+**Purpose**: Configured recurring tasks for pet care.
+
+**Key Attributes**:
+
+- `pet_id` (FK): Associated pet
+- `name` (string): Routine name (e.g., "Morning walk")
+- `description` (text, nullable): Instructions or notes
+- `time_of_day` (string): Expected time (e.g., "08:00")
+- `days_of_week` (JSON array): Active weekdays (0=Sunday, 6=Saturday)
+
+**Relationships**:
+
+- `hasMany(PetRoutineOccurrence)`: Daily task instances
+- `belongsTo(Pet)`: Parent pet (with eager loading)
+
+**Traits**:
+
+- `LogsActivity`: Tracks routine configuration changes
+
+#### 5. Pet Routine Occurrence Model (`App\Models\PetRoutineOccurrence`)
+
+**Purpose**: Individual dated instances of routines for tracking completion.
+
+**Key Attributes**:
+
+- `pet_routine_id` (FK): Parent routine configuration
+- `date` (date): Scheduled date for this occurrence
+- `completed_at` (timestamp, nullable): When marked complete
+- `completed_by` (FK, nullable): User who completed the task
+
+**Generation**:
+
+- Auto-generated 7 days ahead when routines are created/updated
+- Lazily created on "today's tasks" retrieval if missing
+- Artisan command available for batch generation
+
+**Relationships**:
+
+- Eager loads `routine` relationship by default to prevent N+1 queries
+
+### Authorization Model
+
+**Roles**:
+
+- **Owner**: Original pet creator or user with 'owner' role in pet_user pivot
+- **Caregiver**: User with 'caregiver' role in pet_user pivot
+
+**Permissions**:
+
+- **View Pet**: Owners and caregivers
+- **Update/Delete Pet**: Owners only
+- **Send Invitations**: Owners only
+- **Revoke Invitations**: Invitation sender only
+- **Create Activities**: Owners and caregivers
+- **Delete Activities**: Owners only
+- **Manage Routines**: Owners only (create, update, delete)
+- **Complete Routines**: Owners and caregivers
+
+**Policy Implementation**:
+
+- `PetPolicy`: Updated `view()` method to allow caregiver access
+- `PetActivityPolicy`: Separate create/delete authorization
+- `PetRoutinePolicy`: Owner-only management, shared completion
+- `PetCaregiverInvitationPolicy`: Inviter-only revocation
+
+### Caregiver Invitation Flow
+
+```mermaid
+sequenceDiagram
+    participant Owner
+    participant API
+    participant Mail
+    participant Invitee
+
+    Owner->>API: POST /api/pets/{pet}/caregiver-invitations
+    API->>API: Create invitation with token & 7-day expiry
+    API->>Mail: Queue invitation email
+    API-->>Owner: 201 Created (invitation details)
+
+    Mail->>Invitee: Email with acceptance link + token
+
+    Invitee->>API: POST /api/caregiver-invitations/{token}/accept
+    API->>API: Validate token, email, expiry
+    API->>API: Create PetUser record (role: caregiver)
+    API->>API: Mark invitation accepted
+    API-->>Invitee: 200 OK (caregiver access granted)
+```
+
+**Security Considerations**:
+
+- Tokens are URL-safe, 64-character random strings
+- Email must match invited address (prevents token hijacking)
+- Expired invitations cannot be accepted
+- Invitations can be revoked by owner before acceptance
+- Duplicate relationships prevented by unique constraint
+
+### Activity Logging Flow
+
+**Purpose**: Capture day-to-day events (feeding, walks, vet visits, play sessions) for care
+continuity and memory keeping.
+
+**API Endpoints**:
+
+- `GET /api/pets/{pet}/activities`: List with pagination & filters (type, date_from, date_to)
+- `POST /api/pets/{pet}/activities`: Create new activity
+- `DELETE /api/activities/{id}`: Delete activity (owner-only)
+
+**Query Optimization**:
+
+- Eager loads `user` relationship in list queries
+- Indexed on (pet_id, created_at) for efficient retrieval
+- Pagination default: 15 items per page
+
+### Daily Routine Management
+
+**Purpose**: Structured recurring tasks ensure consistent pet care across multiple caregivers.
+
+**API Endpoints**:
+
+- `GET /api/pets/{pet}/routines`: List all routines
+- `POST /api/pets/{pet}/routines`: Create routine (owner-only)
+- `PATCH /api/routines/{id}`: Update routine (owner-only)
+- `DELETE /api/routines/{id}`: Delete routine (owner-only)
+- `GET /api/pets/{pet}/routines/today`: Today's pending/completed tasks
+- `POST /api/routine-occurrences/{id}/complete`: Mark task complete
+
+**Occurrence Generation**:
+
+- Created 7 days ahead on routine save
+- Lazily generated when accessing "today's tasks"
+- Artisan command: `php artisan routines:generate-occurrences {days?}`
+
+**Example Routine Configuration**:
+
+```json
+{
+  "name": "Morning walk",
+  "description": "30 minute walk around the block",
+  "time_of_day": "08:00",
+  "days_of_week": [1, 2, 3, 4, 5] // Monday-Friday
+}
+```
+
+### Data Model Relationships
+
+**Entity Relationship Diagram**:
+
+```mermaid
+erDiagram
+    User ||--o{ Pet : "creates (owner)"
+    User ||--o{ PetUser : "has role"
+    Pet ||--o{ PetUser : "shared with"
+    User ||--o{ PetCaregiverInvitation : "sends invitation"
+    Pet ||--o{ PetCaregiverInvitation : "receives caregivers"
+    User ||--o{ PetActivity : "logs activity"
+    Pet ||--o{ PetActivity : "has activities"
+    Pet ||--o{ PetRoutine : "has routines"
+    PetRoutine ||--o{ PetRoutineOccurrence : "generates occurrences"
+    User ||--o{ PetRoutineOccurrence : "completes task"
+
+    User {
+        uuid id PK
+        string email
+        enum role
+    }
+
+    Pet {
+        uuid id PK
+        uuid user_id FK
+        string name
+        string species
+    }
+
+    PetUser {
+        uuid pet_id FK
+        uuid user_id FK
+        enum role
+    }
+
+    PetCaregiverInvitation {
+        int id PK
+        uuid pet_id FK
+        uuid inviter_id FK
+        string invitee_email
+        string token
+        enum status
+        datetime expires_at
+    }
+
+    PetActivity {
+        int id PK
+        uuid pet_id FK
+        uuid user_id FK
+        string type
+        text description
+    }
+
+    PetRoutine {
+        int id PK
+        uuid pet_id FK
+        string name
+        string time_of_day
+        json days_of_week
+    }
+
+    PetRoutineOccurrence {
+        int id PK
+        int pet_routine_id FK
+        date date
+        datetime completed_at
+        uuid completed_by FK
+    }
+```
+
+**Textual Representation**:
+
+```
+User
+ ├── hasMany(Pet) - Original pets created
+ ├── belongsToMany(Pet) via pet_user - All accessible pets (owner + caregiver)
+ ├── hasMany(PetCaregiverInvitation) - Invitations sent
+ └── hasMany(PetActivity) - Activities logged
+
+Pet
+ ├── belongsTo(User) - Original creator
+ ├── hasMany(PetUser) - Owner/caregiver relationships
+ ├── belongsToMany(User) via pet_user - All accessible users
+ ├── hasMany(PetCaregiverInvitation) - Pending invitations
+ ├── hasMany(PetActivity) - Activity log
+ └── hasMany(PetRoutine) - Configured routines
+
+PetRoutine
+ ├── belongsTo(Pet)
+ └── hasMany(PetRoutineOccurrence) - Daily instances
+
+PetRoutineOccurrence
+ ├── belongsTo(PetRoutine) - [eager loaded by default]
+ └── belongsTo(User) as completedBy - Who completed the task
+```
+
+### Spatie Activity Log Integration
+
+**Tracked Events**:
+
+- `caregiver_invitation_sent`: Invitation created and emailed
+- `caregiver_invitation_accepted`: User accepted invitation
+- `caregiver_invitation_revoked`: Owner revoked invitation
+- `caregiver_removed`: Caregiver access removed
+- `pet_activity_created`: New activity logged
+- `pet_activity_deleted`: Activity removed
+- `pet_routine_created`: Routine configured
+- `pet_routine_updated`: Routine modified
+- `pet_routine_deleted`: Routine removed
+- `pet_routine_occurrence_generated`: Daily task created
+- `pet_routine_occurrence_completed`: Task marked done
+
+**Audit Trail Benefits**:
+
+- Full accountability for access changes
+- Activity authorship preserved
+- Routine completion history tracked
+- Compliance with care recordkeeping requirements
+
+### Performance Optimizations
+
+**Eager Loading**:
+
+- `PetRoutineOccurrence` always loads `routine` relationship
+- `PetRoutine` loads `pet` for policy checks
+- Activity list queries load `user` for attribution
+- Invitation lists load `pet` and `inviter`/`invitee` selectively
+
+**Indexes**:
+
+- `pet_user (pet_id, user_id)`: Unique constraint + lookup performance
+- `pet_caregiver_invitations (token)`: Fast invitation lookups
+- `pet_activities (pet_id, created_at)`: Efficient activity retrieval
+- `pet_routines (pet_id)`: Routine filtering by pet
+- `pet_routine_occurrences (pet_routine_id, date)`: Unique + query optimization
+
+**Query Patterns**:
+
+- Policy helpers check `petUsers` table once per request
+- Service layer uses explicit `->with()` for controlled eager loading
+- Pagination prevents memory issues on large datasets
+
+### Future Extensibility
+
+**Caregiver Features**:
+
+- Permissions granularity (read-only vs. full caregiver)
+- Temporary caregiver access (date-limited)
+- Caregiver groups for multiple pets
+- Notification preferences per caregiver
+
+**Routine Enhancements**:
+
+- Reminder notifications (email, SMS)
+- Routine templates library
+- Photo attachments on completion
+- Completion streaks and gamification
+- Custom recurrence patterns (every N days)
+
+**Activity Features**:
+
+- Photo galleries per activity
+- Activity templates for common tasks
+- Export to PDF for vet visits
+- Integration with wearables/IoT devices
+
 ## References
 
 - Laravel Documentation (Routing, Eloquent, Validation, Resources, Testing)

@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Model representing a single dated occurrence of a pet routine.
@@ -23,7 +25,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class PetRoutineOccurrence extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    /**
+     * Eager load routine by default since occurrences are almost always displayed with parent routine context.
+     *
+     * @var list<string>
+     */
+    protected $with = ['routine'];
 
     /**
      * The attributes that are mass assignable.
@@ -50,6 +59,17 @@ class PetRoutineOccurrence extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Configure Spatie activity log options for this model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['pet_routine_id', 'date', 'completed_at', 'completed_by'])
+            ->useLogName('pet_routine_occurrence')
+            ->dontSubmitEmptyLogs();
     }
 
     /**

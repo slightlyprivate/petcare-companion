@@ -29,7 +29,15 @@ class PetPolicy
             return true;
         }
 
-        return $user->id === $pet->user_id;
+        // Owner can view
+        if ($user->id === $pet->user_id) {
+            return true;
+        }
+
+        // Caregivers can also view
+        return $pet->petUsers()
+            ->where('user_id', $user->id)
+            ->exists();
     }
 
     /**

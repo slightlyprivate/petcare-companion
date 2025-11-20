@@ -36,7 +36,7 @@ class PetRoutineOccurrenceController extends Controller
         $occurrences = $this->service->todayForPet($pet);
 
         return response()->json([
-            'data' => $occurrences->map(fn(PetRoutineOccurrence $o) => $this->transform($o)),
+            'data' => $occurrences->map(fn (PetRoutineOccurrence $o) => $this->transform($o)),
         ]);
     }
 

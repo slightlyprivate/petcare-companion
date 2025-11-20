@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * Model representing a configured routine for a pet.
@@ -25,7 +27,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class PetRoutine extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    /**
+     * Eager load pet relationship commonly accessed in policies.
+     *
+     * @var list<string>
+     */
+    protected $with = ['pet'];
 
     /**
      * The attributes that are mass assignable.
@@ -53,6 +62,17 @@ class PetRoutine extends Model
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Configure Spatie activity log options for this model.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['pet_id', 'name', 'description', 'time_of_day', 'days_of_week'])
+            ->useLogName('pet_routine')
+            ->dontSubmitEmptyLogs();
     }
 
     /**
