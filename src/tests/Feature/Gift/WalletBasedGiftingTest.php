@@ -70,6 +70,8 @@ class WalletBasedGiftingTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function user_can_gift_with_exact_balance(): void
     {
+        \Illuminate\Support\Facades\Notification::fake();
+
         /** @var Authenticatable $user */
         $user = User::factory()->create();
 
@@ -93,6 +95,7 @@ class WalletBasedGiftingTest extends TestCase
                 'gift_type_id' => (string) $giftType->id,
             ]);
 
+        $response->assertStatus(201);
         $this->assertDatabaseHas('gifts', ['user_id' => $user->id, 'cost_in_credits' => 100]);
     }
 

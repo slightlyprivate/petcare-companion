@@ -5,10 +5,13 @@ namespace Tests\Feature;
 use App\Models\Pet;
 use App\Models\PetActivity;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PetActivityLoggingTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_creating_activity_logs_system_event(): void
     {
         /** @var User $user */

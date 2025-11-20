@@ -16,10 +16,11 @@ return [
         'notifications' => [
             'otp' => true,
             'login' => true,
-            'gift' => false,
-            'pet_update' => false,
-            'pet_create' => false,
-            'pet_delete' => false,
+            'gift' => true,
+            'gift_send' => true,
+            'pet_update' => true,
+            'pet_create' => true,
+            'pet_delete' => true,
         ],
         'channels' => [
             'sms' => false,

@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\Fluent\AssertableJson;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -68,7 +69,7 @@ class PetApiTest extends TestCase
         $this->assertCount(2, $response->json('data'));
 
         $response->assertJson(
-            fn (AssertableJson $json) => $json->where('data.0.species', 'Dog')
+            fn(AssertableJson $json) => $json->where('data.0.species', 'Dog')
                 ->where('data.1.species', 'Dog')
                 ->etc()
         );
@@ -165,7 +166,7 @@ class PetApiTest extends TestCase
                 ],
             ])
             ->assertJson(
-                fn (AssertableJson $json) => $json->where('data.name', 'Buddy')
+                fn(AssertableJson $json) => $json->where('data.name', 'Buddy')
                     ->where('data.species', 'Dog')
                     ->where('data.breed', 'Golden Retriever')
                     ->where('data.birth_date', '2020-05-15')
@@ -340,6 +341,7 @@ class PetApiTest extends TestCase
     public function it_sends_notification_when_creating_a_pet()
     {
         Notification::fake();
+        Queue::fake();
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
@@ -386,6 +388,7 @@ class PetApiTest extends TestCase
     public function it_sends_notification_when_deleting_a_pet()
     {
         Notification::fake();
+        Queue::fake();
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
@@ -419,6 +422,7 @@ class PetApiTest extends TestCase
     public function it_sends_notification_when_updating_a_pet_with_changes()
     {
         Notification::fake();
+        Queue::fake();
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();

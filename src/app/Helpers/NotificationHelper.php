@@ -66,10 +66,11 @@ class NotificationHelper
             'otp_notifications' => 'otp',
             'login_notifications' => 'login',
             'gift_notifications' => 'gift',
+            'gift_send_notifications' => 'gift_send',
             'pet_update_notifications' => 'pet_update',
             'pet_create_notifications' => 'pet_create',
             'pet_delete_notifications' => 'pet_delete',
-            'otp', 'login', 'gift', 'pet_update', 'pet_create', 'pet_delete' => $notificationType,
+            'otp', 'login', 'gift', 'gift_send', 'pet_update', 'pet_create', 'pet_delete' => $notificationType,
             default => $notificationType,
         };
     }

@@ -123,7 +123,8 @@ class PetRoutineManagementTest extends TestCase
         ]);
 
         $routine->refresh();
-        $this->assertEquals('09:00:00', $routine->time_of_day);
+        // TIME columns may return with or without seconds depending on DB driver
+        $this->assertMatchesRegularExpression('/^09:00(:00)?$/', $routine->time_of_day);
 
         // Verify activity log
         $this->assertDatabaseHas('activity_log', [

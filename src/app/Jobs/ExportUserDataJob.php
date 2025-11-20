@@ -46,7 +46,7 @@ class ExportUserDataJob implements ShouldQueue
             // Create zip file in memory and store using Storage::disk
             $zipContent = $this->generateZipContent($userData);
             $fileName = 'user_data_'.$this->user->id.'_'.now()->timestamp.'.zip';
-            $filePath = "user-data/{$this->user->id}/{$fileName}";
+            $filePath = $fileName; // Store at root of exports disk
 
             // Store zip file using the exports disk
             $disk = Storage::disk('exports');

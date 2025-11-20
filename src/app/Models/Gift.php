@@ -101,10 +101,21 @@ class Gift extends Model
      */
     public function markAsPaid(): bool
     {
-        return $this->update([
+        $wasAlreadyPaid = $this->status === 'paid';
+
+        $updated = $this->update([
             'status' => 'paid',
             'completed_at' => now(),
         ]);
+
+        // Send notification if this is the first time marking as paid
+        if ($updated && ! $wasAlreadyPaid && $this->user) {
+            if (\App\Helpers\NotificationHelper::isNotificationEnabled($this->user, 'gift_send')) {
+                \Illuminate\Support\Facades\Notification::send($this->user, new \App\Notifications\Gift\GiftSuccessNotification($this));
+            }
+        }
+
+        return $updated;
     }
 
     /**
