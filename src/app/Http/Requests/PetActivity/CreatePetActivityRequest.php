@@ -29,7 +29,7 @@ class CreatePetActivityRequest extends FormRequest
         return [
             'type' => ['required', 'string', 'max:50'],
             'description' => ['required', 'string'],
-            'media_url' => ['nullable', 'string', 'max:255', 'url'],
+            'media_url' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -42,7 +42,7 @@ class CreatePetActivityRequest extends FormRequest
             'type.required' => __('activity.validation.type.required'),
             'type.max' => __('activity.validation.type.max'),
             'description.required' => __('activity.validation.description.required'),
-            'media_url.url' => __('activity.validation.media_url.url'),
+            'media_url.max' => __('activity.validation.media_url.max'),
         ];
     }
 
@@ -63,8 +63,8 @@ class CreatePetActivityRequest extends FormRequest
                 'example' => 'Fed 1 cup of dry food and fresh water.',
             ],
             'media_url' => [
-                'description' => 'Optional URL to an image or video documenting the activity.',
-                'example' => 'https://example.com/photos/feeding.jpg',
+                'description' => 'Optional media reference. Can be a full URL or a path returned from the upload endpoint.',
+                'example' => 'activities/media/feeding.jpg',
             ],
         ];
     }

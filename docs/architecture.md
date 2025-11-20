@@ -155,6 +155,19 @@ miscalculations.
 - Each container runs minimal and reproducible; rebuilds produce identical results.
 - Local volume mounts sync code for immediate development feedback.
 
+### Shared Storage
+
+- Uploads use Laravel's `public` disk with a shared `storage` volume mounted on the `app` (PHP-FPM)
+  and `web` (Nginx) containers.
+- Nginx serves files directly from `/storage/*` via an alias to `/var/www/html/storage/app/public`,
+  eliminating the need for a BFF proxy.
+- Upload endpoint: `POST /api/uploads` (authenticated) accepts images or short video clips
+  (MP4/WebM) up to 10MB and returns both the stored `path` and public `url`.
+- Storage directories: `activities/media` for timeline items, `pets/avatars` for pet profile images,
+  and `uploads` for general assets.
+- React resolves assets with `VITE_ASSET_BASE` (default `/storage`) and displays previews with a
+  graceful fallback when media fails to load.
+
 ## Security and Configuration
 
 - `.env` defines app, database, and Stripe configuration.
@@ -859,9 +872,7 @@ pet's care. Owners can invite caregivers who gain view access and the ability to
 complete daily routines, transforming PetCare Companion from a simple CRUD demo into a collaborative
 care platform.
 
-### Core Components
-
-#### 1. Pet-User Pivot Model (`App\Models\PetUser`)
+### 1. Pet-User Pivot Model (`App\Models\PetUser`)
 
 **Purpose**: Represents the relationship between a pet and a user with role information.
 
@@ -881,7 +892,7 @@ care platform.
 
 - `LogsActivity`: Audit logging via Spatie Activity Log
 
-#### 2. Caregiver Invitation Model (`App\Models\PetCaregiverInvitation`)
+### 2. Caregiver Invitation Model (`App\Models\PetCaregiverInvitation`)
 
 **Purpose**: Token-based invitation system for adding caregivers to pets.
 
@@ -905,7 +916,7 @@ care platform.
 
 - `LogsActivity`: Tracks invitation lifecycle events
 
-#### 3. Pet Activity Model (`App\Models\PetActivity`)
+### 3. Pet Activity Model (`App\Models\PetActivity`)
 
 **Purpose**: Logs day-to-day events and memories for pets.
 
@@ -926,7 +937,7 @@ care platform.
 
 - `LogsActivity`: Audit trail for compliance
 
-#### 4. Pet Routine Model (`App\Models\PetRoutine`)
+### 4. Pet Routine Model (`App\Models\PetRoutine`)
 
 **Purpose**: Configured recurring tasks for pet care.
 
@@ -947,7 +958,7 @@ care platform.
 
 - `LogsActivity`: Tracks routine configuration changes
 
-#### 5. Pet Routine Occurrence Model (`App\Models\PetRoutineOccurrence`)
+### 5. Pet Routine Occurrence Model (`App\Models\PetRoutineOccurrence`)
 
 **Purpose**: Individual dated instances of routines for tracking completion.
 
@@ -1144,7 +1155,7 @@ erDiagram
 
 **Textual Representation**:
 
-```
+```sh
 User
  ├── hasMany(Pet) - Original pets created
  ├── belongsToMany(Pet) via pet_user - All accessible pets (owner + caregiver)
@@ -1214,7 +1225,7 @@ PetRoutineOccurrence
 - Service layer uses explicit `->with()` for controlled eager loading
 - Pagination prevents memory issues on large datasets
 
-### Future Extensibility
+### Future Extensibility (Cont)
 
 **Caregiver Features**:
 

@@ -6,6 +6,8 @@ use App\Models\Pet;
 use App\Models\PetActivity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class PetActivityLoggingTest extends TestCase
@@ -74,5 +76,37 @@ class PetActivityLoggingTest extends TestCase
             'subject_type' => PetActivity::class,
             'subject_id' => $activity->getKey(),
         ]);
+    }
+
+    public function test_deleting_activity_removes_local_media_file(): void
+    {
+        Storage::fake('public');
+        /** @var User $user */
+        $user = User::factory()->create();
+        /** @var Pet $pet */
+        $pet = Pet::factory()->for($user)->create();
+
+        \App\Models\PetUser::create([
+            'pet_id' => $pet->getKey(),
+            'user_id' => $user->getKey(),
+            'role' => 'owner',
+        ]);
+
+        $path = UploadedFile::fake()->image('walk.jpg')->store('activities/media', 'public');
+
+        $activity = PetActivity::create([
+            'pet_id' => $pet->getKey(),
+            'user_id' => $user->getKey(),
+            'type' => 'walk',
+            'description' => 'Evening walk',
+            'media_url' => $path,
+        ]);
+
+        $response = $this->actingAs($user)->deleteJson('/api/activities/'.$activity->getKey());
+        $response->assertStatus(200);
+
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('public');
+        $disk->assertMissing($path);
     }
 }

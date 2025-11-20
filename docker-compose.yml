@@ -1,80 +1,151 @@
 services:
-  # Production-oriented stack (images expected to be built/published)
-  # Note: DB/Redis are external in production; inject hosts via env.
-  # Note: Ensure CORS is configured in Laravel to allow requests from the UI domain.
-  # For Laravel 11+, use the built-in CORS middleware or the fruitcake/laravel-cors package.
-  # Set SANCTUM_STATEFUL_DOMAINS=localhost:8081 and SESSION_DOMAIN=localhost in .env
-  # Add FRONTEND_URL=http://localhost:8081 to .env for local Docker; adjust for production domains.
-
+  # Development stack (bind mounts & build contexts)
   app:
     container_name: petcare_app
-    image: ghcr.io/yourorg/petcare-app:prod
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     env_file: .env
-    read_only: true
-    user: www-data
-    tmpfs:
-      - /tmp
-    healthcheck:
-      test: ['CMD-SHELL', 'php -v >/dev/null 2>&1 || exit 1']
-      interval: 30s
-      timeout: 5s
-      retries: 3
-    networks:
-      - backend
+    volumes:
+      - ./src:/var/www/html
+      - storage:/var/www/html/storage/app/public
+    depends_on:
+      - db
+      - redis
 
   web:
     container_name: petcare_web
-    image: ghcr.io/yourorg/petcare-web:prod
+    image: nginx:stable
+    volumes:
+      - ./src/public:/var/www/html/public
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./src:/var/www/html
+      - storage:/var/www/html/storage/app/public
+    ports:
+      - '8080:80'
     depends_on:
       - app
+
+  db:
+    container_name: petcare_db
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: petcare
+      MYSQL_USER: petuser
+      MYSQL_PASSWORD: petpass
+      MYSQL_ROOT_PASSWORD: rootpass
     ports:
-      - '127.0.0.1:8080:80'
-    read_only: true
-    user: www-data
-    tmpfs:
-      - /var/cache/nginx
-      - /var/run
+      - '127.0.0.1:3307:3306'
+    volumes:
+      - dbdata:/var/lib/mysql
     healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://localhost/health || exit 1']
-      interval: 30s
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -prootpass || exit 1']
+      interval: 10s
       timeout: 5s
-      retries: 3
-    networks:
-      - frontend
-      - backend
+      retries: 12
+
+  redis:
+    container_name: petcare_redis
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - redisdata:/data
 
   worker:
     container_name: petcare_worker
-    image: ghcr.io/yourorg/petcare-app:prod
-    command: php artisan queue:work --sleep=3 --tries=3 --memory=256
-    env_file: .env
-    read_only: true
-    user: www-data
-    tmpfs:
-      - /tmp
-    networks:
-      - backend
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /var/www/html
+    entrypoint: ['sh', '/usr/local/bin/worker-entrypoint.sh']
+    environment:
+      WAIT_FOR_DB: 'true'
+    depends_on:
+      app:
+        condition: service_started
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/entrypoints/worker-entrypoint.sh:/usr/local/bin/worker-entrypoint.sh:ro
+      - storage:/var/www/html/storage/app/public
+    restart: unless-stopped
+
+  scheduler:
+    container_name: petcare_scheduler
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /var/www/html
+    entrypoint: ['sh', '/usr/local/bin/scheduler-entrypoint.sh']
+    environment:
+      WAIT_FOR_DB: 'true'
+    depends_on:
+      app:
+        condition: service_started
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/entrypoints/scheduler-entrypoint.sh:/usr/local/bin/scheduler-entrypoint.sh:ro
+      - storage:/var/www/html/storage/app/public
+    restart: unless-stopped
+
+  horizon:
+    container_name: petcare_horizon
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: /var/www/html
+    entrypoint: ['sh', '/usr/local/bin/horizon-entrypoint.sh']
+    environment:
+      ENABLE_HORIZON: 'true'
+    depends_on:
+      redis:
+        condition: service_started
+      app:
+        condition: service_started
+    volumes:
+      - ./src:/var/www/html
+      - ./docker/entrypoints/horizon-entrypoint.sh:/usr/local/bin/horizon-entrypoint.sh:ro
+      - storage:/var/www/html/storage/app/public
+    restart: unless-stopped
 
   ui:
     container_name: petcare_ui
-    image: ghcr.io/yourorg/petcare-ui:prod
+    image: node:20-alpine
+    working_dir: /app/src/ui
+    environment:
+      NODE_ENV: development
+      VITE_API_PROXY_TARGET: http://web
+    command: sh -lc "npm install && npm run dev -- --host"
     ports:
-      - '127.0.0.1:8081:80'
-    read_only: true
-    user: www-data
-    tmpfs:
-      - /var/cache/nginx
-      - /var/run
-    healthcheck:
-      test: ['CMD-SHELL', 'wget -qO- http://localhost/health >/dev/null 2>&1 || exit 1']
-      interval: 30s
-      timeout: 5s
-      retries: 3
-    networks:
-      - frontend
+      - '5173:5173'
+    depends_on:
+      - web
+    volumes:
+      - ./src/ui:/app/src/ui
+      - /app/src/ui/node_modules
 
-networks:
-  frontend:
-    driver: bridge
-  backend:
-    driver: bridge
+volumes:
+  dbdata:
+  redisdata:
+  storage:

@@ -17,3 +17,6 @@ export * as creditHooks from './credits/hooks';
 
 export * as user from './user/client';
 export * as userHooks from './user/hooks';
+
+export * as uploads from './uploads/client';
+export * as uploadHooks from './uploads/hooks';

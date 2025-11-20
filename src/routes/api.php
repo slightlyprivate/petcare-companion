@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\User\UserExportDownloadController;
 use App\Http\Controllers\Credit\CreditPurchaseController;
 use App\Http\Controllers\Gift\GiftController;
 use App\Http\Controllers\GiftType\GiftTypeController;
+use App\Http\Controllers\Media\MediaUploadController;
 use App\Http\Controllers\Pet\PetActivityController;
 use App\Http\Controllers\Pet\PetAppointmentController;
 use App\Http\Controllers\Pet\PetCaregiverController;
@@ -65,6 +66,10 @@ Route::get('/user/data/exports/{export}/download', [UserExportDownloadController
 
 // Authenticated endpoints
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/uploads', [MediaUploadController::class, 'store'])
+        ->middleware('throttle:pet.write')
+        ->name('uploads.store');
+
     // Read operations (no rate limiting)
     Route::prefix('appointments')->group(function () {
         Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');

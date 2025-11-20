@@ -1,4 +1,4 @@
-DEV_COMPOSE = docker-compose.dev.yml
+DEV_COMPOSE = docker-compose.yml
 
 .PHONY: up upd down seed migrate logs ps env bash pint stan restart test
 
