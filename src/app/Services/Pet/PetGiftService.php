@@ -72,6 +72,11 @@ class PetGiftService
             // Mark gift as paid/completed since wallet credits cover the cost
             $gift->markAsPaid();
 
+            // Send notification after gift is successfully paid
+            if (\App\Helpers\NotificationHelper::isNotificationEnabled($user, 'gift_send')) {
+                \Illuminate\Support\Facades\Notification::send($user, new \App\Notifications\Gift\GiftSuccessNotification($gift));
+            }
+
             return [
                 'gift_id' => $gift->id,
                 'status' => $gift->status,

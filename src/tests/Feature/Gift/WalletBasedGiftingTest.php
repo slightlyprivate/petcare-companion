@@ -81,7 +81,7 @@ class WalletBasedGiftingTest extends TestCase
             'balance_credits' => 100,
         ]);
 
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->create(['user_id' => $user->id]);
 
         // Use fake Stripe keys to avoid real API calls
         config([
