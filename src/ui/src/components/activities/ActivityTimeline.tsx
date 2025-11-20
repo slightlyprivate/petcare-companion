@@ -2,10 +2,17 @@ import { usePetActivities, useDeletePetActivity } from '../../api/activities/hoo
 import { useActivityForm } from '../../hooks/useActivityForm';
 import { useMediaUpload } from '../../hooks/useMediaUpload';
 import { useImageLoadError } from '../../hooks/useImageLoadError';
+import { useActivityFilters } from '../../hooks/useActivityFilters';
+import { usePagination } from '../../hooks/usePagination';
+import { useDeleteConfirmation } from '../../hooks/useDeleteConfirmation';
+import { buildActivityQueryParams, getActivityPaginationInfo } from '../../utils/activityHelpers';
 import ActivityForm from './ActivityForm';
 import ActivityCard from './ActivityCard';
 import ActivityEmptyState from './ActivityEmptyState';
+import ActivityFilterBar from './ActivityFilterBar';
+import LoadMoreButton from './LoadMoreButton';
 import Button from '../Button';
+import ConfirmDialog from '../modals/ConfirmDialog';
 import ErrorMessage from '../ErrorMessage';
 import Spinner from '../Spinner';
 
@@ -23,7 +30,25 @@ export default function ActivityTimeline({
   canCreate = false,
   canDelete = false,
 }: ActivityTimelineProps) {
-  const { data: activitiesData, isLoading, error } = usePetActivities(petId);
+  // Custom hooks for state management
+  const filters = useActivityFilters();
+  const pagination = usePagination();
+  const deleteConfirm = useDeleteConfirmation<string | number>();
+
+  // Build query params
+  const queryParams = buildActivityQueryParams(
+    pagination.currentPage,
+    filters.selectedType,
+    filters.dateFrom,
+    filters.dateTo,
+  );
+
+  const {
+    data: activitiesData,
+    isLoading,
+    error,
+    isFetching,
+  } = usePetActivities(petId, queryParams);
   const deleteActivity = useDeletePetActivity();
 
   const {
@@ -60,16 +85,36 @@ export default function ActivityTimeline({
   };
 
   const handleDelete = async (activityId: string | number) => {
-    if (!window.confirm('Are you sure you want to delete this activity?')) {
-      return;
-    }
-
-    try {
-      await deleteActivity.mutateAsync(activityId);
-    } catch (err) {
-      console.error('Failed to delete activity:', err);
-    }
+    deleteConfirm.confirmDelete(activityId);
   };
+
+  const confirmDelete = async () => {
+    await deleteConfirm.executeDelete((id) => deleteActivity.mutateAsync(id));
+  };
+
+  const handleClearFilters = () => {
+    filters.clearFilters();
+    pagination.resetPage();
+  };
+
+  const handleTypeChange = (type: string) => {
+    filters.setSelectedType(type);
+    pagination.resetPage();
+  };
+
+  const handleDateFromChange = (date: string) => {
+    filters.setDateFrom(date);
+    pagination.resetPage();
+  };
+
+  const handleDateToChange = (date: string) => {
+    filters.setDateTo(date);
+    pagination.resetPage();
+  };
+
+  // Derived state
+  const activities = activitiesData?.data || [];
+  const { hasMore, totalCount } = getActivityPaginationInfo(activitiesData?.meta);
 
   if (isLoading) {
     return (
@@ -82,8 +127,6 @@ export default function ActivityTimeline({
   if (error) {
     return <ErrorMessage message="Failed to load activities" />;
   }
-
-  const activities = activitiesData?.data || [];
 
   return (
     <div className="space-y-4">
@@ -115,9 +158,32 @@ export default function ActivityTimeline({
         />
       )}
 
+      <ActivityFilterBar
+        selectedType={filters.selectedType}
+        dateFrom={filters.dateFrom}
+        dateTo={filters.dateTo}
+        onTypeChange={handleTypeChange}
+        onDateFromChange={handleDateFromChange}
+        onDateToChange={handleDateToChange}
+        onClearFilters={handleClearFilters}
+        activeFilterCount={filters.activeFilterCount}
+      />
+
       <div className="space-y-3">
         {activities.length === 0 ? (
-          <ActivityEmptyState canCreate={canCreate} />
+          filters.hasActiveFilters ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-brand-fg/60 mb-2">No activities match your filters</p>
+              <button
+                onClick={handleClearFilters}
+                className="text-sm text-brand-accent hover:underline"
+              >
+                Clear filters
+              </button>
+            </div>
+          ) : (
+            <ActivityEmptyState canCreate={canCreate} />
+          )
         ) : (
           activities.map((activity) => (
             <ActivityCard
@@ -132,13 +198,26 @@ export default function ActivityTimeline({
         )}
       </div>
 
-      {activitiesData?.meta && activitiesData.meta.total > activities.length && (
-        <div className="text-center">
-          <p className="text-xs text-brand-fg/60">
-            Showing {activities.length} of {activitiesData.meta.total} activities
-          </p>
-        </div>
+      {activities.length > 0 && (
+        <LoadMoreButton
+          isLoading={isFetching && pagination.currentPage > 1}
+          hasMore={hasMore}
+          onLoadMore={pagination.nextPage}
+          currentCount={activities.length}
+          totalCount={totalCount}
+        />
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isConfirmOpen}
+        title="Delete Activity"
+        message="Are you sure you want to delete this activity? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={confirmDelete}
+        onClose={deleteConfirm.cancelDelete}
+        variant="danger"
+        isLoading={deleteActivity.isPending}
+      />
     </div>
   );
 }
