@@ -51,4 +51,6 @@ return [
         'phone_number' => env('TWILIO_PHONE_NUMBER'),
     ],
 
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+
 ];

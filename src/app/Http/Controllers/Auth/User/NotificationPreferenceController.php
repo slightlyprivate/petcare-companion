@@ -34,7 +34,12 @@ class NotificationPreferenceController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $this->authorize('view', $user);
+
+        $userId = $user->id;
         $preferences = $this->notificationPreferencesService
             ->getUserPreferences($userId)
             ->toArray();
@@ -49,7 +54,12 @@ class NotificationPreferenceController extends Controller
      */
     public function update(UpdateNotificationPreferenceRequest $request): JsonResponse
     {
-        $userId = $request->user()->id;
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $this->authorize('update', $user);
+
+        $userId = $user->id;
         $type = $request->input('type');
         $enabled = $request->input('enabled');
 
@@ -78,7 +88,12 @@ class NotificationPreferenceController extends Controller
      */
     public function disableAll(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $this->authorize('update', $user);
+
+        $userId = $user->id;
         $preferences = $this->notificationPreferencesService
             ->getUserPreferences($userId);
 
@@ -94,7 +109,12 @@ class NotificationPreferenceController extends Controller
      */
     public function enableAll(Request $request): JsonResponse
     {
-        $userId = $request->user()->id;
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $this->authorize('update', $user);
+
+        $userId = $user->id;
         $preferences = $this->notificationPreferencesService
             ->getUserPreferences($userId);
 

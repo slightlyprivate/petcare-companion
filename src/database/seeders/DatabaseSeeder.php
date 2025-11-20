@@ -70,6 +70,12 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         });
+
+        // Seed pet-user relationships and caregiver invitations
+        $this->call([
+            PetUserSeeder::class,
+            PetCaregiverInvitationSeeder::class,
+        ]);
     }
 
     /**

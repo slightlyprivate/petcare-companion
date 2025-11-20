@@ -16,6 +16,13 @@ export interface Pet {
   id: string;
   name: string;
   species: string;
+  user_id?: string;
+  breed?: string | null;
+  birth_date?: string | null;
+  owner_name?: string;
+  age?: number | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 /**

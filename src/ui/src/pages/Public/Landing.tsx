@@ -25,7 +25,7 @@ export default function Landing() {
           to={PATHS.AUTH.SIGNIN}
           className="px-4 py-2 rounded border border-brand-accent text-brand-accent"
         >
-          Sign In / Get Started
+          Get Started
         </Link>
       </div>
     </section>

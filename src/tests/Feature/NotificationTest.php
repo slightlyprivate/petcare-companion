@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Gift;
+use App\Models\NotificationPreference;
 use App\Models\Pet;
 use App\Models\User;
 use App\Notifications\Auth\LoginSuccessNotification;
@@ -11,6 +12,7 @@ use App\Notifications\Gift\GiftSuccessNotification;
 use App\Notifications\Pet\PetUpdatedNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 /**
@@ -126,6 +128,7 @@ class NotificationTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->enableAllNotificationToggles($user);
         $pet = Pet::factory()->create([
             'user_id' => $user->id,
             'name' => 'Fluffy',
@@ -149,6 +152,7 @@ class NotificationTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->enableAllNotificationToggles($user);
         $pet = Pet::factory()->create([
             'user_id' => $user->id,
             'name' => 'Fluffy',
@@ -186,6 +190,67 @@ class NotificationTest extends TestCase
         Notification::assertSentTo(
             $user,
             OtpSentNotification::class
+        );
+    }
+
+    public function it_rate_limits_outbound_notifications(): void
+    {
+        $originalLimitConfig = config('rate-limits.notification.outbound.development');
+        config(['rate-limits.notification.outbound.development' => ['limit' => 1, 'decay_seconds' => 3600]]);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $user->notificationPreference()->create([
+            'otp_notifications' => true,
+            'login_notifications' => true,
+            'gift_notifications' => false,
+            'pet_update_notifications' => false,
+            'pet_create_notifications' => false,
+            'pet_delete_notifications' => false,
+            'sms_enabled' => false,
+            'email_enabled' => true,
+        ]);
+
+        $key = sprintf('notification-outbound:%s', $user->id);
+        RateLimiter::clear($key);
+
+        $notificationFactory = fn () => new class extends \Illuminate\Notifications\Notification
+        {
+            public function via(object $notifiable): array
+            {
+                return ['database'];
+            }
+
+            public function toArray(object $notifiable): array
+            {
+                return ['type' => 'rate-limit-test'];
+            }
+        };
+
+        try {
+            Notification::send($user, $notificationFactory());
+            Notification::send($user, $notificationFactory());
+
+            $this->assertEquals(1, $user->notifications()->count());
+        } finally {
+            config(['rate-limits.notification.outbound.development' => $originalLimitConfig]);
+        }
+    }
+
+    private function enableAllNotificationToggles(User $user): void
+    {
+        NotificationPreference::updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'otp_notifications' => true,
+                'login_notifications' => true,
+                'gift_notifications' => true,
+                'pet_update_notifications' => true,
+                'pet_create_notifications' => true,
+                'pet_delete_notifications' => true,
+                'sms_enabled' => false,
+                'email_enabled' => true,
+            ]
         );
     }
 
@@ -266,6 +331,7 @@ class NotificationTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->enableAllNotificationToggles($user);
         $pet = Pet::factory()->create([
             'user_id' => $user->id,
             'name' => 'Fluffy',
@@ -402,6 +468,7 @@ class NotificationTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->enableAllNotificationToggles($user);
         $pet = Pet::factory()->create([
             'user_id' => $user->id,
             'name' => 'Fluffy',
@@ -424,6 +491,7 @@ class NotificationTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->enableAllNotificationToggles($user);
         $pet = Pet::factory()->create([
             'user_id' => $user->id,
             'name' => 'Fluffy',
@@ -482,6 +550,7 @@ class NotificationTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->enableAllNotificationToggles($user);
         $pet = Pet::factory()->create([
             'user_id' => $user->id,
             'name' => 'Fluffy',
@@ -512,6 +581,7 @@ class NotificationTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->enableAllNotificationToggles($user);
         $pet = Pet::factory()->create([
             'user_id' => $user->id,
             'name' => 'Fluffy',
@@ -539,6 +609,7 @@ class NotificationTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->enableAllNotificationToggles($user);
         $pet = Pet::factory()->create([
             'user_id' => $user->id,
             'name' => 'Fluffy',

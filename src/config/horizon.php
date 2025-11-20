@@ -12,7 +12,7 @@ return [
     // Redis connection name for Horizon metrics
     'prefix' => env('HORIZON_PREFIX', 'horizon-'),
 
-    'middleware' => ['web'],
+    'middleware' => ['web', 'auth'],
 
     'waits' => [
         'redis:default' => 60,

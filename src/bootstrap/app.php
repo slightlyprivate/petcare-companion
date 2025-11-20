@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         \App\Providers\HorizonServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->use([\App\Http\Middleware\LogRequests::class]);
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {

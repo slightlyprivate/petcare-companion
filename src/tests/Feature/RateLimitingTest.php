@@ -22,6 +22,10 @@ class RateLimitingTest extends TestCase
         /** @var Authenticatable $user */
         $user = User::factory()->create();
 
+        // Force production rate limits for this test
+        config(['rate-limits.pet.write.development' => 20]);
+        \App\Helpers\RateLimitHelper::configure();
+
         // Configure Stripe for testing
         config([
             'services.stripe.key' => 'pk_test_fake_key',
@@ -59,6 +63,10 @@ class RateLimitingTest extends TestCase
         $user = User::factory()->create();
         $pet = Pet::factory()->create();
 
+        // Force production rate limits for this test
+        config(['rate-limits.gift.write.development' => 5]);
+        \App\Helpers\RateLimitHelper::configure();
+
         // Configure Stripe for testing
         config([
             'services.stripe.key' => 'pk_test_fake_key',
@@ -88,6 +96,10 @@ class RateLimitingTest extends TestCase
     #[Test]
     public function it_throttles_stripe_webhook()
     {
+        // Force production rate limits for this test
+        config(['rate-limits.webhook.stripe.development' => 100]);
+        \App\Helpers\RateLimitHelper::configure();
+
         // Configure Stripe for testing
         config([
             'services.stripe.key' => 'pk_test_fake_key',

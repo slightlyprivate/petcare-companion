@@ -36,6 +36,8 @@ class PetController extends Controller
      */
     public function store(StorePetRequest $request): PetResource
     {
+        $this->authorize('create', Pet::class);
+
         $pet = $this->petService->create($request->validated());
 
         return new PetResource($pet);
@@ -70,6 +72,8 @@ class PetController extends Controller
      */
     public function index(ListPetRequest $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
     {
+        $this->authorize('viewAny', Pet::class);
+
         $helper = new PetPaginationHelper($request);
 
         $pets = $this->petService->list($helper);

@@ -71,6 +71,7 @@ class QuickFeatureTest extends TestCase
         $user = User::factory()->create();
         // Arrange: Create a pet to add appointment to
         $pet = Pet::factory()->create([
+            'user_id' => $user->id,
             'name' => 'Buddy',
             'species' => 'Dog',
             'owner_name' => 'John Smith',

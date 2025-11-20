@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -88,6 +89,66 @@ class User extends Authenticatable
     public function notificationPreference()
     {
         return $this->hasOne(NotificationPreference::class);
+    }
+
+    /**
+     * Get all pet-user relationships.
+     */
+    public function petUsers(): HasMany
+    {
+        return $this->hasMany(PetUser::class);
+    }
+
+    /**
+     * Get all pets associated with this user (owned and caregiving).
+     */
+    public function allPets(): BelongsToMany
+    {
+        return $this->belongsToMany(Pet::class, 'pet_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get only the pets this user owns.
+     */
+    public function ownedPets(): BelongsToMany
+    {
+        return $this->allPets()->wherePivot('role', 'owner');
+    }
+
+    /**
+     * Get only the pets this user is a caregiver for.
+     */
+    public function caregivingPets(): BelongsToMany
+    {
+        return $this->allPets()->wherePivot('role', 'caregiver');
+    }
+
+    /**
+     * Get caregiver invitations sent by this user.
+     */
+    public function sentCaregiverInvitations(): HasMany
+    {
+        return $this->hasMany(PetCaregiverInvitation::class, 'inviter_id');
+    }
+
+    /**
+     * Get caregiver invitations received by this user.
+     */
+    public function receivedCaregiverInvitations(): HasMany
+    {
+        return $this->hasMany(PetCaregiverInvitation::class, 'invitee_id');
+    }
+
+    /**
+     * Get pending caregiver invitations for this user's email.
+     */
+    public function pendingCaregiverInvitations()
+    {
+        return PetCaregiverInvitation::where('invitee_email', $this->email)
+            ->where('status', 'pending')
+            ->where('expires_at', '>', now());
     }
 
     /**

@@ -144,7 +144,7 @@ class ApiResponseShapeVerificationTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::first();
+        $pet = Pet::factory()->for($user)->create();
 
         // Create test appointment
         $pet->appointments()->create([
@@ -183,7 +183,7 @@ class ApiResponseShapeVerificationTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::first();
+        $pet = Pet::factory()->for($user)->create();
 
         $appointmentData = [
             'title' => 'New Appointment',
@@ -216,7 +216,7 @@ class ApiResponseShapeVerificationTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::first();
+        $pet = Pet::factory()->for($user)->create();
 
         $response = $this->actingAs($user, 'sanctum')->postJson("/api/pets/{$pet->id}/appointments", [
             'scheduled_at' => 'invalid-date',

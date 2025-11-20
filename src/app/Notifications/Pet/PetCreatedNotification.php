@@ -52,7 +52,6 @@ class PetCreatedNotification extends Notification implements ShouldQueue
                 'petName' => $this->pet->name,
                 'species' => $this->pet->species,
                 'breed' => $this->pet->breed ?? 'Not specified',
-                'ownerName' => $this->pet->owner_name,
             ])
             ->subject(__('pets.created.email.subject', ['pet_name' => $this->pet->name]));
     }

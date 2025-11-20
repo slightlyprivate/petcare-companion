@@ -11,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\Fluent\AssertableJson;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -340,6 +341,7 @@ class PetApiTest extends TestCase
     public function it_sends_notification_when_creating_a_pet()
     {
         Notification::fake();
+        Queue::fake();
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
@@ -386,6 +388,7 @@ class PetApiTest extends TestCase
     public function it_sends_notification_when_deleting_a_pet()
     {
         Notification::fake();
+        Queue::fake();
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
@@ -419,6 +422,7 @@ class PetApiTest extends TestCase
     public function it_sends_notification_when_updating_a_pet_with_changes()
     {
         Notification::fake();
+        Queue::fake();
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();

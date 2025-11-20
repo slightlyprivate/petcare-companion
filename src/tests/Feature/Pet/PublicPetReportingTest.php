@@ -11,8 +11,6 @@ use Tests\TestCase;
 
 /**
  * Tests for public pet reporting endpoints.
- *
- * @group Pets
  */
 class PublicPetReportingTest extends TestCase
 {

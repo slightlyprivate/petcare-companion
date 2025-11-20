@@ -10,7 +10,6 @@ use App\Models\Gift;
 use App\Models\Pet;
 use App\Services\Gift\GiftService;
 use App\Services\Pet\PetGiftService;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
@@ -38,6 +37,8 @@ class GiftController extends Controller
         /** @var Pet $pet */
         $pet = Pet::findOrFail($data['pet_id']);
 
+        $this->authorize('view', $pet);
+
         $result = $this->petGiftService->createGift($data, $user, $pet);
 
         return response()->json($result, 201);
@@ -52,10 +53,7 @@ class GiftController extends Controller
      */
     public function exportReceipt(ExportGiftReceiptRequest $request, Gift $gift)
     {
-        // Check if user owns this gift
-        if ($gift->user_id !== $request->user()->id) {
-            throw new AuthorizationException;
-        }
+        $this->authorize('view', $gift);
 
         try {
             $pdfContent = $this->giftService->exportReceiptAsFile($gift);

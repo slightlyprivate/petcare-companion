@@ -51,7 +51,6 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->markdown('emails.login_success', [
-                'email' => $this->user->email,
                 'time' => now()->format('M d, Y H:i:s'),
             ])
             ->subject(__('auth.login.email.subject'));

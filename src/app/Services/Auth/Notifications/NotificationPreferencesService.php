@@ -27,17 +27,19 @@ class NotificationPreferencesService
         $preferences = $user->notificationPreference;
 
         if (! $preferences) {
-            // Create default preferences if they don't exist
+            $notificationDefaults = config('notifications.defaults.notifications', []);
+            $channelDefaults = config('notifications.defaults.channels', []);
+
             $preferences = NotificationPreference::create([
                 'user_id' => $user->id,
-                'otp_notifications' => true,
-                'login_notifications' => true,
-                'gift_notifications' => true,
-                'pet_update_notifications' => true,
-                'pet_create_notifications' => true,
-                'pet_delete_notifications' => true,
-                'sms_enabled' => true,
-                'email_enabled' => true,
+                'otp_notifications' => $notificationDefaults['otp'] ?? true,
+                'login_notifications' => $notificationDefaults['login'] ?? true,
+                'gift_notifications' => $notificationDefaults['gift'] ?? true,
+                'pet_update_notifications' => $notificationDefaults['pet_update'] ?? true,
+                'pet_create_notifications' => $notificationDefaults['pet_create'] ?? true,
+                'pet_delete_notifications' => $notificationDefaults['pet_delete'] ?? true,
+                'sms_enabled' => $channelDefaults['sms'] ?? true,
+                'email_enabled' => $channelDefaults['email'] ?? true,
             ]);
         }
 

@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "scripts": {
     "prepare": "husky install",
-    "format:check": "npm --prefix src/ui run format:check && npm --prefix src/server run format:check",
-    "format": "npm --prefix src/ui run format && npm --prefix src/server run format"
+    "format:check": "npm --prefix src/ui run format:check",
+    "format": "npm --prefix src/ui run format"
   },
   "devDependencies": {
     "husky": "^9.0.0",

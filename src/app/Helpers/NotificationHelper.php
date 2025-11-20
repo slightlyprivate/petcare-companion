@@ -20,15 +20,18 @@ class NotificationHelper
             return false;
         }
 
+        $key = self::normalizeNotificationKey($notificationType);
+
         // Get preferences if they exist, otherwise default to true
         $preferences = $user->notificationPreference;
 
         if (! $preferences) {
-            // Default to enabled for all notification types if no preference exists yet
-            return true;
+            $defaults = config('notifications.defaults.notifications', []);
+
+            return (bool) ($defaults[$key] ?? false);
         }
 
-        return $preferences->isNotificationEnabled($notificationType);
+        return $preferences->isNotificationEnabled($key);
     }
 
     /**
@@ -46,10 +49,29 @@ class NotificationHelper
         $preferences = $user->notificationPreference;
 
         if (! $preferences) {
-            // Default to enabled for all channels if no preference exists yet
-            return true;
+            $channelDefaults = config('notifications.defaults.channels', []);
+
+            return (bool) ($channelDefaults[$channel] ?? false);
         }
 
         return $preferences->isChannelEnabled($channel);
+    }
+
+    /**
+     * Normalize friendly notification keys to their base identifiers.
+     */
+    private static function normalizeNotificationKey(string $notificationType): string
+    {
+        return match ($notificationType) {
+            'otp_notifications' => 'otp',
+            'login_notifications' => 'login',
+            'gift_notifications' => 'gift',
+            'gift_send_notifications' => 'gift_send',
+            'pet_update_notifications' => 'pet_update',
+            'pet_create_notifications' => 'pet_create',
+            'pet_delete_notifications' => 'pet_delete',
+            'otp', 'login', 'gift', 'gift_send', 'pet_update', 'pet_create', 'pet_delete' => $notificationType,
+            default => $notificationType,
+        };
     }
 }

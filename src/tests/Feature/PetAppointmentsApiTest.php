@@ -20,8 +20,8 @@ class PetAppointmentsApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet1 = Pet::factory()->create();
-        $pet2 = Pet::factory()->create();
+        $pet1 = Pet::factory()->for($user)->create();
+        $pet2 = Pet::factory()->for($user)->create();
 
         // Create appointments for pet1
         $appointments1 = Appointment::factory(3)->create([
@@ -77,7 +77,7 @@ class PetAppointmentsApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         // Create upcoming appointment
         $upcomingAppointment = Appointment::factory()->create([
@@ -109,7 +109,7 @@ class PetAppointmentsApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         // Create today's appointment
         $todayAppointment = Appointment::factory()->create([
@@ -140,7 +140,7 @@ class PetAppointmentsApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         $startDate = Carbon::now()->addDays(1);
         $endDate = Carbon::now()->addDays(7);
@@ -175,7 +175,7 @@ class PetAppointmentsApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         $appointment1 = Appointment::factory()->create([
             'pet_id' => $pet->id,
@@ -212,7 +212,7 @@ class PetAppointmentsApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         $appointment1 = Appointment::factory()->create([
             'pet_id' => $pet->id,
@@ -250,7 +250,7 @@ class PetAppointmentsApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         Appointment::factory(25)->create([
             'pet_id' => $pet->id,
@@ -269,7 +269,7 @@ class PetAppointmentsApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments");
 
@@ -282,7 +282,7 @@ class PetAppointmentsApiTest extends TestCase
     {
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $pet = Pet::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
 
         // Create appointments with different combinations
         $targetAppointment = Appointment::factory()->create([
@@ -311,5 +311,71 @@ class PetAppointmentsApiTest extends TestCase
         $response->assertStatus(200);
         $this->assertCount(1, $response->json('data'));
         $this->assertEquals($targetAppointment->id, $response->json('data.0.id'));
+    }
+
+    #[Test]
+    public function it_blocks_listing_appointments_for_unowned_pet()
+    {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $otherOwner = User::factory()->create();
+        $pet = Pet::factory()->for($otherOwner)->create();
+
+        $response = $this->actingAs($user, 'sanctum')->getJson("/api/pets/{$pet->id}/appointments");
+
+        $response->assertStatus(403);
+    }
+
+    #[Test]
+    public function it_throttles_appointment_creation_per_user()
+    {
+        $originalLimit = config('rate-limits.appointment.write.development');
+        config(['rate-limits.appointment.write.development' => 1]);
+
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $pet = Pet::factory()->for($user)->create();
+
+        $payload = [
+            'title' => 'Annual Checkup',
+            'scheduled_at' => Carbon::now()->addDay()->toDateTimeString(),
+            'notes' => 'Initial attempt',
+        ];
+
+        try {
+            $this->actingAs($user, 'sanctum')->postJson("/api/pets/{$pet->id}/appointments", $payload)->assertStatus(201);
+
+            $secondPayload = [
+                'title' => 'Follow-up',
+                'scheduled_at' => Carbon::now()->addDays(2)->toDateTimeString(),
+                'notes' => 'Second attempt',
+            ];
+
+            $response = $this->actingAs($user, 'sanctum')->postJson("/api/pets/{$pet->id}/appointments", $secondPayload);
+
+            $response->assertStatus(429);
+        } finally {
+            config(['rate-limits.appointment.write.development' => $originalLimit]);
+        }
+    }
+
+    #[Test]
+    public function it_rejects_creating_appointments_for_unowned_pet()
+    {
+        /** @var Authenticatable $user */
+        $user = User::factory()->create();
+        $otherOwner = User::factory()->create();
+        $pet = Pet::factory()->for($otherOwner)->create();
+
+        $payload = [
+            'title' => 'Unauthorized Appointment',
+            'scheduled_at' => Carbon::now()->addDay()->toDateTimeString(),
+            'notes' => 'Should not succeed',
+        ];
+
+        $response = $this->actingAs($user, 'sanctum')->postJson("/api/pets/{$pet->id}/appointments", $payload);
+
+        $response->assertForbidden();
+        $this->assertDatabaseMissing('appointments', ['title' => 'Unauthorized Appointment']);
     }
 }

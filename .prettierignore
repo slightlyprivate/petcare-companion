@@ -5,7 +5,6 @@ build
 coverage
 storage
 public/build
-src/server/node_modules
 src/ui/node_modules
 src/ui/dist
 docs/**/*.png
