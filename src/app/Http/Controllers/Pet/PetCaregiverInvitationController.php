@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pet;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\AcceptPetCaregiverInvitationRequest;
 use App\Http\Requests\CreatePetCaregiverInvitationRequest;
 use App\Http\Requests\ListPetCaregiverInvitationsRequest;
