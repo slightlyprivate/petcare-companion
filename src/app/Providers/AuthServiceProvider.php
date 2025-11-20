@@ -7,12 +7,14 @@ use App\Models\CreditPurchase;
 use App\Models\Gift;
 use App\Models\GiftType;
 use App\Models\Pet;
+use App\Models\PetActivity;
 use App\Models\User;
 use App\Policies\AppointmentPolicy;
 use App\Policies\CreditPurchasePolicy;
 use App\Policies\GiftPolicy;
 use App\Policies\GiftTypePolicy;
 use App\Policies\PetPolicy;
+use App\Policies\PetActivityPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -35,6 +37,7 @@ class AuthServiceProvider extends ServiceProvider
         CreditPurchase::class => CreditPurchasePolicy::class,
         Appointment::class => AppointmentPolicy::class,
         Gift::class => GiftPolicy::class,
+        PetActivity::class => PetActivityPolicy::class,
     ];
 
     /**

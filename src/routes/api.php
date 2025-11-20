@@ -16,7 +16,8 @@ use App\Http\Controllers\Pet\PetGiftController;
 use App\Http\Controllers\Pet\PetRestoreController;
 use App\Http\Controllers\Pet\Public\PetDirectoryController;
 use App\Http\Controllers\Pet\Public\PetReportController;
-use App\Http\Controllers\PetCaregiverInvitationController;
+use App\Http\Controllers\Pet\PetCaregiverInvitationController;
+use App\Http\Controllers\Pet\PetActivityController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -72,7 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('credits')->group(function () {
         Route::get('/purchases', [CreditPurchaseController::class, 'index'])
-            ->middleware('can:viewAny,'.\App\Models\CreditPurchase::class)
+            ->middleware('can:viewAny,' . \App\Models\CreditPurchase::class)
             ->name('credits.purchases.index');
         Route::get('/{creditPurchase}', [CreditPurchaseController::class, 'show'])
             ->middleware('can:view,creditPurchase')
@@ -83,6 +84,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [PetController::class, 'index'])->name('pets.index');
         Route::get('/{pet}', [PetController::class, 'show'])->name('pets.show');
         Route::get('/{pet}/appointments', [PetAppointmentController::class, 'index'])->name('pets.appointments.index');
+        Route::get('/{pet}/activities', [PetActivityController::class, 'index'])->name('pets.activities.index');
     });
 
     Route::prefix('user')->group(function () {
@@ -110,6 +112,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pets/{pet}/caregiver-invitations', [PetCaregiverInvitationController::class, 'store'])->name('pets.caregiver-invitations.store');
         Route::post('/caregiver-invitations/{token}/accept', [PetCaregiverInvitationController::class, 'accept'])->name('caregiver-invitations.accept');
         Route::delete('/caregiver-invitations/{invitation}', [PetCaregiverInvitationController::class, 'destroy'])->name('caregiver-invitations.destroy');
+        Route::post('/pets/{pet}/activities', [PetActivityController::class, 'store'])->name('pets.activities.store');
+        Route::delete('/activities/{activity}', [PetActivityController::class, 'destroy'])->name('activities.destroy');
     });
 
     // Write operations - Gift endpoints (throttle:gift.write)
@@ -126,7 +130,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin endpoints - Gift Types (rate-limited and authorization via route middleware)
     Route::middleware('throttle:admin.write')->group(function () {
         Route::post('/gift-types', [GiftTypeController::class, 'store'])
-            ->middleware('can:create,'.\App\Models\GiftType::class)
+            ->middleware('can:create,' . \App\Models\GiftType::class)
             ->name('gift-types.store');
         Route::put('/gift-types/{giftType}', [GiftTypeController::class, 'update'])
             ->middleware('can:update,giftType')
