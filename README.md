@@ -8,6 +8,8 @@ Docker Compose.
 - Purpose: Showcase clean API design and a modern UI with Laravel Sanctum authentication.
 - Audience: Developers exploring Laravel + Vite/React with Docker.
 - Scope: Non-production, minimal footprint, no secrets committed.
+- Core workflows: Shared caregiving access, daily routine scheduling, activity timeline logging
+  (documented via Scribe; see `docs/demo-scenario.md` for a concise walkthrough).
 
 ## Services
 
@@ -122,6 +124,7 @@ graph LR
 
   **Laravel production config references:**
   - **CORS:** Edit `config/cors.php` to allow your UI domain:
+
     ```php
     // config/cors.php
     return [
@@ -130,16 +133,21 @@ graph LR
         'supports_credentials' => true,
     ];
     ```
+
   - **Sanctum domains:** Edit `SANCTUM_STATEFUL_DOMAINS` in `.env` to include your UI domain:
+
     ```env
     SANCTUM_STATEFUL_DOMAINS=your-ui-domain.com
     ```
+
   - **Session settings:** In `.env`, ensure cookies are secure and same-site is set for
     cross-origin:
+
     ```env
     SESSION_SECURE_COOKIE=true
     SESSION_SAME_SITE=lax
     ```
+
   - See also: `config/session.php` for session driver and cookie settings.
 
 ## Production Compose (Reference)
@@ -163,7 +171,7 @@ Environment wiring (UI)
 - API (Laravel): `src/README.md`
 - UI (Vite + React): `src/ui/README.md`
 - Architecture: `docs/architecture.md`
-- Postman: `src/storage/app/private/scribe/collection.json`
+- Postman: `src/storage/app/scribe/collection.json`
 
 ## CI
 

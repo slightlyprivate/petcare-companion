@@ -27,7 +27,7 @@ class PetCaregiverService
             'invitee_email' => $inviteeEmail,
         ]);
 
-        $acceptUrl = config('services.frontend_url', env('FRONTEND_URL')) . '/caregiver-invitations/accept?token=' . $invitation->token;
+        $acceptUrl = config('services.frontend_url', env('FRONTEND_URL')).'/caregiver-invitations/accept?token='.$invitation->token;
 
         Mail::to($invitation->invitee_email)->queue(
             new PetCaregiverInvitationMail(

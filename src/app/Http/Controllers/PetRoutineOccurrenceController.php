@@ -22,6 +22,10 @@ class PetRoutineOccurrenceController extends Controller
 
     /**
      * Get today's routine occurrences for a pet.
+     *
+     * Returns all routine tasks scheduled for today with their completion status.
+     *
+     * @urlParam pet string required The UUID of the pet. Example: 9d4e8c5a-1234-5678-9abc-def012345678
      */
     public function today(Request $request, Pet $pet): JsonResponse
     {
@@ -32,12 +36,16 @@ class PetRoutineOccurrenceController extends Controller
         $occurrences = $this->service->todayForPet($pet);
 
         return response()->json([
-            'data' => $occurrences->map(fn (PetRoutineOccurrence $o) => $this->transform($o)),
+            'data' => $occurrences->map(fn(PetRoutineOccurrence $o) => $this->transform($o)),
         ]);
     }
 
     /**
      * Complete a routine occurrence.
+     *
+     * Marks a routine task as completed by the authenticated user.
+     *
+     * @urlParam occurrence integer required The ID of the routine occurrence. Example: 123
      */
     public function complete(Request $request, PetRoutineOccurrence $occurrence): JsonResponse
     {
