@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pet;
 
+use App\Http\Controllers\Controller;
 use App\Models\Pet;
 use App\Models\PetRoutineOccurrence;
 use App\Policies\PetRoutinePolicy;

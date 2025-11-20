@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Pet\Public;
+namespace App\Http\Controllers\Public\PetDirectory;
 
 use App\Helpers\PetPaginationHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Pet\Directory\ListPetDirectoryRequest;
+use App\Http\Requests\PetDirectory\ListPetDirectoryRequest;
 use App\Http\Resources\Pet\Directory\DirectoryPetResource;
 use App\Services\Pet\PetService;
 use Illuminate\Http\Resources\Json\JsonResource;

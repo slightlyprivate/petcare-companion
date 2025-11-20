@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\PetCaregiver;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Request for updating a caregiver invitation (currently unused placeholder).
+ * Request for accepting a caregiver invitation.
  *
  * @group Pets
  */
-class UpdatePetCaregiverInvitationRequest extends FormRequest
+class AcceptPetCaregiverInvitationRequest extends FormRequest
 {
     public function authorize(): bool
     {

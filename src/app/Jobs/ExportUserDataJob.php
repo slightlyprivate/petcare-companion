@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Mail\UserDataExportNotification;
+use App\Mail\Auth\UserDataExportNotification;
 use App\Models\Appointment;
 use App\Models\User;
 use App\Models\UserExport;

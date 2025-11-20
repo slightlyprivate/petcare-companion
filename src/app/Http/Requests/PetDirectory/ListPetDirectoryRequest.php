@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Pet\Directory;
+namespace App\Http\Requests\PetDirectory;
 
 use Illuminate\Foundation\Http\FormRequest;
 

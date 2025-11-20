@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Pet\Public;
+namespace App\Http\Controllers\Public\PetReport;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Pet\Directory\PublicPetReportResource;

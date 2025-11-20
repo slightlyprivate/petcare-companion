@@ -5,7 +5,7 @@ namespace App\Http\Controllers\GiftType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GiftType\StoreGiftTypeRequest;
 use App\Http\Requests\GiftType\UpdateGiftTypeRequest;
-use App\Http\Resources\GiftTypeResource;
+use App\Http\Resources\GiftType\GiftTypeResource;
 use App\Models\GiftType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

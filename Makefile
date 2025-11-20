@@ -1,6 +1,6 @@
 DEV_COMPOSE = docker-compose.dev.yml
 
-.PHONY: up upd down seed migrate logs ps 
+.PHONY: up upd down seed migrate logs ps env bash pint stan restart test
 
 up:
 	docker compose -f $(DEV_COMPOSE) up
@@ -23,6 +23,12 @@ seed:
 
 pint:
 	docker compose -f $(DEV_COMPOSE) exec app ./vendor/bin/pint
+
+stan:
+	docker compose -f $(DEV_COMPOSE) exec app composer stan
+
+test:
+	docker compose -f $(DEV_COMPOSE) exec app composer test
 
 logs:
 	docker compose -f $(DEV_COMPOSE) logs -f --tail=100

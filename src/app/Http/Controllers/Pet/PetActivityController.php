@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Pet;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CreatePetActivityRequest;
-use App\Http\Requests\ListPetActivitiesRequest;
+use App\Http\Requests\PetActivity\CreatePetActivityRequest;
+use App\Http\Requests\PetActivity\ListPetActivitiesRequest;
 use App\Models\Pet;
 use App\Models\PetActivity;
 use App\Services\Pet\PetActivityService;

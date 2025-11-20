@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pet;
 
-use App\Http\Requests\CreatePetRoutineRequest;
-use App\Http\Requests\DeletePetRoutineRequest;
-use App\Http\Requests\ListPetRoutinesRequest;
-use App\Http\Requests\UpdatePetRoutineRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\PetRoutine\CreatePetRoutineRequest;
+use App\Http\Requests\PetRoutine\DeletePetRoutineRequest;
+use App\Http\Requests\PetRoutine\ListPetRoutinesRequest;
+use App\Http\Requests\PetRoutine\UpdatePetRoutineRequest;
 use App\Models\Pet;
 use App\Models\PetRoutine;
 use App\Services\Pet\PetRoutineService;
