@@ -1,13 +1,21 @@
 import { useState } from 'react';
 import {
   usePetCaregivers,
-  useSendCaregiverInvitation,
+  useCaregiverInvitations,
   useRemovePetCaregiver,
+  useRevokeCaregiverInvitation,
 } from '../../api/caregivers/hooks';
 import Button from '../Button';
 import ErrorMessage from '../ErrorMessage';
 import Spinner from '../Spinner';
-import { cn } from '../../lib/cn';
+import EmptyState from '../EmptyState';
+import ConfirmDialog from '../modals/ConfirmDialog';
+import InviteCaregiverModal from './InviteCaregiverModal';
+import CaregiverCard from './CaregiverCard';
+import PendingInvitationCard from './PendingInvitationCard';
+import { useToast } from '../../lib/notifications';
+import { copyInvitationLink } from '../../utils/invitationHelpers';
+import type { CaregiverInvitation } from '../../api/caregivers/types';
 
 interface CaregiverListProps {
   petId: string | number;
@@ -18,43 +26,50 @@ interface CaregiverListProps {
  * Component displaying the list of caregivers for a pet with the ability to invite new caregivers.
  */
 export default function CaregiverList({ petId, isOwner = false }: CaregiverListProps) {
-  const [showInviteForm, setShowInviteForm] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [emailError, setEmailError] = useState('');
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState<string | number | null>(null);
+  const [confirmRevoke, setConfirmRevoke] = useState<number | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  const toast = useToast();
   const { data: caregivers, isLoading, error } = usePetCaregivers(petId);
-  const sendInvitation = useSendCaregiverInvitation();
+  const { data: invitations } = useCaregiverInvitations();
   const removeCaregiver = useRemovePetCaregiver();
+  const revokeInvitation = useRevokeCaregiverInvitation();
 
-  const handleInviteSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmailError('');
+  // Filter pending invitations for this pet
+  const pendingInvitations = (invitations?.sent || []).filter(
+    (inv: CaregiverInvitation) => inv.pet_id === String(petId) && inv.status === 'pending',
+  );
 
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(inviteEmail)) {
-      setEmailError('Please enter a valid email address');
-      return;
-    }
-
+  const handleRemoveCaregiver = async (userId: string | number) => {
     try {
-      await sendInvitation.mutateAsync({ petId, invitee_email: inviteEmail });
-      setInviteEmail('');
-      setShowInviteForm(false);
+      await removeCaregiver.mutateAsync({ petId, userId });
+      toast.success('Caregiver removed');
+      setConfirmRemove(null);
     } catch (err) {
-      setEmailError((err as Error).message || 'Failed to send invitation');
+      toast.error((err as Error).message || 'Failed to remove caregiver');
     }
   };
 
-  const handleRemoveCaregiver = async (userId: string | number) => {
-    if (!window.confirm('Are you sure you want to remove this caregiver?')) {
-      return;
-    }
-
+  const handleRevokeInvitation = async (invitationId: number) => {
     try {
-      await removeCaregiver.mutateAsync({ petId, userId });
+      await revokeInvitation.mutateAsync(invitationId);
+      toast.success('Invitation revoked');
+      setConfirmRevoke(null);
     } catch (err) {
-      console.error('Failed to remove caregiver:', err);
+      toast.error((err as Error).message || 'Failed to revoke invitation');
+    }
+  };
+
+  const handleCopyInvitationLink = async (token: string, invitationId: string) => {
+    try {
+      await copyInvitationLink(token);
+      setCopiedId(invitationId);
+      toast.success('Invitation link copied to clipboard');
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      toast.error('Failed to copy link');
     }
   };
 
@@ -70,111 +85,104 @@ export default function CaregiverList({ petId, isOwner = false }: CaregiverListP
     return <ErrorMessage message="Failed to load caregivers" />;
   }
 
+  const hasCaregivers = caregivers && caregivers.length > 0;
+  const hasPendingInvitations = pendingInvitations.length > 0;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-brand-fg">Caregivers</h2>
         {isOwner && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setShowInviteForm(!showInviteForm)}
-            disabled={sendInvitation.isPending}
-          >
-            {showInviteForm ? 'Cancel' : 'Invite Caregiver'}
+          <Button variant="secondary" size="sm" onClick={() => setShowInviteModal(true)}>
+            Invite Caregiver
           </Button>
         )}
       </div>
 
-      {showInviteForm && (
-        <form
-          onSubmit={handleInviteSubmit}
-          className="rounded-lg border border-brand-muted bg-brand-secondary/30 p-4"
-        >
-          <label htmlFor="invitee-email" className="mb-2 block text-sm font-medium text-brand-fg">
-            Email Address
-          </label>
-          <div className="flex gap-2">
-            <input
-              id="invitee-email"
-              type="email"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-              placeholder="caregiver@example.com"
-              className={cn(
-                'flex-1 rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2',
-                emailError
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-brand-muted focus:ring-brand-accent',
-              )}
-              disabled={sendInvitation.isPending}
-              required
-            />
-            <Button type="submit" size="sm" isLoading={sendInvitation.isPending}>
-              Send Invite
-            </Button>
-          </div>
-          {emailError && <p className="mt-1 text-sm text-red-600">{emailError}</p>}
-          {sendInvitation.isSuccess && (
-            <p className="mt-2 text-sm text-green-600">Invitation sent successfully!</p>
-          )}
-        </form>
-      )}
-
+      {/* Caregivers List */}
       <div className="space-y-2">
-        {!caregivers || caregivers.length === 0 ? (
-          <div className="rounded-lg border border-brand-muted bg-brand-secondary/20 p-6 text-center">
-            <p className="text-sm text-brand-fg/60">No caregivers yet</p>
-            {isOwner && (
-              <p className="mt-1 text-xs text-brand-fg/40">
-                Invite someone to help care for your pet
-              </p>
-            )}
-          </div>
+        {!hasCaregivers ? (
+          <EmptyState
+            title="No caregivers yet"
+            description={isOwner ? 'Invite someone to help care for your pet' : undefined}
+          />
         ) : (
           caregivers.map((caregiver) => (
-            <div
+            <CaregiverCard
               key={caregiver.id}
-              className="flex items-center justify-between rounded-lg border border-brand-muted bg-white p-3 shadow-sm"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-brand-fg">{caregiver.name || caregiver.email}</p>
-                  <span
-                    className={cn(
-                      'rounded-full px-2 py-0.5 text-xs font-medium',
-                      caregiver.role === 'owner'
-                        ? 'bg-brand-accent/10 text-brand-accent'
-                        : 'bg-blue-50 text-blue-700',
-                    )}
-                  >
-                    {caregiver.role}
-                  </span>
-                </div>
-                {caregiver.email && caregiver.name && (
-                  <p className="text-sm text-brand-fg/60">{caregiver.email}</p>
-                )}
-                {caregiver.joined_at && (
-                  <p className="text-xs text-brand-fg/40">
-                    Joined {new Date(caregiver.joined_at).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-              {isOwner && caregiver.role === 'caregiver' && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveCaregiver(caregiver.id)}
-                  disabled={removeCaregiver.isPending}
-                  className="text-red-600 hover:bg-red-50"
-                >
-                  Remove
-                </Button>
-              )}
-            </div>
+              caregiver={caregiver}
+              isOwner={isOwner}
+              onRemove={setConfirmRemove}
+              isRemoving={removeCaregiver.isPending}
+            />
           ))
         )}
       </div>
+
+      {/* Pending Invitations */}
+      {isOwner && hasPendingInvitations && (
+        <div className="mt-6 space-y-2">
+          <h3 className="text-sm font-medium text-brand-fg">Pending Invitations</h3>
+          {pendingInvitations.map((inv) => (
+            <PendingInvitationCard
+              key={inv.id}
+              invitation={inv}
+              onCopyLink={handleCopyInvitationLink}
+              onRevoke={setConfirmRevoke}
+              isCopied={copiedId === inv.id}
+              isRevoking={revokeInvitation.isPending}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Empty state for owners with no caregivers and no invitations */}
+      {isOwner && !hasCaregivers && !hasPendingInvitations && (
+        <EmptyState
+          variant="dashed"
+          icon={
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+          }
+          title="No caregivers or invitations"
+          description="Invite friends or family to help care for your pet"
+        />
+      )}
+
+      {/* Modals */}
+      <InviteCaregiverModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        petId={petId}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmRemove !== null}
+        onClose={() => setConfirmRemove(null)}
+        onConfirm={() => confirmRemove && handleRemoveCaregiver(confirmRemove)}
+        title="Remove Caregiver?"
+        message="Are you sure you want to remove this caregiver? They will no longer have access to this pet."
+        confirmText="Remove"
+        variant="danger"
+        isLoading={removeCaregiver.isPending}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmRevoke !== null}
+        onClose={() => setConfirmRevoke(null)}
+        onConfirm={() => confirmRevoke && handleRevokeInvitation(confirmRevoke)}
+        title="Revoke Invitation?"
+        message="This will cancel the pending invitation. The recipient will no longer be able to accept it."
+        confirmText="Revoke"
+        variant="danger"
+        isLoading={revokeInvitation.isPending}
+      />
     </div>
   );
 }

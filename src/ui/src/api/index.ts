@@ -6,6 +6,15 @@ export * as authHooks from './auth/hooks';
 export * as pets from './pets/client';
 export * as petHooks from './pets/hooks';
 
+export * as caregivers from './caregivers/client';
+export * as caregiverHooks from './caregivers/hooks';
+
+export * as activities from './activities/client';
+export * as activityHooks from './activities/hooks';
+
+export * as routines from './routines/client';
+export * as routineHooks from './routines/hooks';
+
 export * as appointments from './appointments/client';
 export * as appointmentHooks from './appointments/hooks';
 
