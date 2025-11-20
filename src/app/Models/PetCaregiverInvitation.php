@@ -12,6 +12,21 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * Model representing a caregiver invitation for a pet.
  *
  * @group Pets
+ *
+ * @property int $id
+ * @property string $pet_id
+ * @property string $inviter_id
+ * @property string|null $invitee_id
+ * @property string $invitee_email
+ * @property string $token
+ * @property string $status
+ * @property \Carbon\Carbon $expires_at
+ * @property \Carbon\Carbon|null $accepted_at
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property-read Pet $pet
+ * @property-read User $inviter
+ * @property-read User|null $invitee
  */
 class PetCaregiverInvitation extends Model
 {
@@ -61,6 +76,11 @@ class PetCaregiverInvitation extends Model
             }
             if (empty($invitation->expires_at)) {
                 $invitation->expires_at = now()->addDays(7);
+            }
+            // Ensure status defaults to pending if not explicitly set so that
+            // the in-memory model reflects the DB default immediately.
+            if (empty($invitation->status)) {
+                $invitation->status = 'pending';
             }
         });
     }

@@ -16,6 +16,7 @@ use App\Http\Controllers\Pet\PetGiftController;
 use App\Http\Controllers\Pet\PetRestoreController;
 use App\Http\Controllers\Pet\Public\PetDirectoryController;
 use App\Http\Controllers\Pet\Public\PetReportController;
+use App\Http\Controllers\PetCaregiverInvitationController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -88,6 +89,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/notification-preferences', [NotificationPreferenceController::class, 'index'])->name('user.notification-preferences.index');
     });
 
+    Route::prefix('caregiver-invitations')->group(function () {
+        Route::get('/', [PetCaregiverInvitationController::class, 'index'])->name('caregiver-invitations.index');
+    });
+
     // Write operations - Appointment endpoints (throttle:appointment.write)
     Route::middleware('throttle:appointment.write')->group(function () {
         Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
@@ -102,6 +107,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/pets/{pet}', [PetController::class, 'update'])->name('pets.update');
         Route::delete('/pets/{pet}', [PetController::class, 'destroy'])->name('pets.destroy');
         Route::post('/pets/{pet}/restore', [PetRestoreController::class, 'restore'])->name('pets.restore');
+        Route::post('/pets/{pet}/caregiver-invitations', [PetCaregiverInvitationController::class, 'store'])->name('pets.caregiver-invitations.store');
+        Route::post('/caregiver-invitations/{token}/accept', [PetCaregiverInvitationController::class, 'accept'])->name('caregiver-invitations.accept');
+        Route::delete('/caregiver-invitations/{invitation}', [PetCaregiverInvitationController::class, 'destroy'])->name('caregiver-invitations.destroy');
     });
 
     // Write operations - Gift endpoints (throttle:gift.write)
