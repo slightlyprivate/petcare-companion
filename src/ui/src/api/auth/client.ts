@@ -1,9 +1,10 @@
 import { api } from '../../lib/http';
+import type { User } from '../types';
 
 /**
  * Fetch the currently authenticated user's information.
  */
-export async function getMe() {
+export async function getMe(): Promise<User> {
   return api('/auth/me');
 }
 

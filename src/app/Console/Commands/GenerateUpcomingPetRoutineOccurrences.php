@@ -35,6 +35,7 @@ class GenerateUpcomingPetRoutineOccurrences extends Command
             $count += $created->count();
         }
         $this->info("Generated {$count} upcoming occurrences (next {$days} days).");
+
         return self::SUCCESS;
     }
 }

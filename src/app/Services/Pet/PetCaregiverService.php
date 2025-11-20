@@ -27,7 +27,7 @@ class PetCaregiverService
             'invitee_email' => $inviteeEmail,
         ]);
 
-        $acceptUrl = config('services.frontend_url', env('FRONTEND_URL')).'/caregiver-invitations/accept?token='.$invitation->token;
+        $acceptUrl = config('services.frontend_url', env('FRONTEND_URL')) . '/caregiver-invitations/accept?token=' . $invitation->token;
 
         Mail::to($invitation->invitee_email)->queue(
             new PetCaregiverInvitationMail(
@@ -189,5 +189,55 @@ class PetCaregiverService
             ->log('caregiver_invitation_revoked');
 
         return ['status' => 200, 'body' => ['message' => __('caregiver_invitation.revoked.success')]];
+    }
+
+    /**
+     * List all caregivers for a specific pet.
+     */
+    public function listCaregivers(Pet $pet): array
+    {
+        return $pet->users()
+            ->withPivot('role', 'created_at')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->pivot->role,
+                    'joined_at' => $user->pivot->created_at?->toIso8601String(),
+                ];
+            })
+            ->toArray();
+    }
+
+    /**
+     * Remove a caregiver from a pet.
+     */
+    public function removeCaregiver(Pet $pet, string $userId, User $actor): array
+    {
+        $petUser = $pet->petUsers()->where('user_id', $userId)->first();
+
+        if (! $petUser) {
+            return ['status' => 404, 'body' => ['message' => __('caregiver.errors.not_found'), 'error' => 'caregiver_not_found']];
+        }
+
+        if ($petUser->role === 'owner') {
+            return ['status' => 403, 'body' => ['message' => __('caregiver.errors.cannot_remove_owner'), 'error' => 'cannot_remove_owner']];
+        }
+
+        $petUser->delete();
+
+        activity()
+            ->performedOn($pet)
+            ->causedBy($actor)
+            ->withProperties([
+                'pet_id' => $pet->getKey(),
+                'removed_user_id' => $userId,
+                'role' => $petUser->role,
+            ])
+            ->log('caregiver_removed');
+
+        return ['status' => 200, 'body' => ['message' => __('caregiver.removed.success')]];
     }
 }

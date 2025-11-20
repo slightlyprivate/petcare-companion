@@ -46,7 +46,7 @@ class PetRoutineCompletionTest extends TestCase
         $response = $this->actingAs($owner)->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
 
         $response->assertStatus(200)
-            ->assertJsonPath('data.completed_at', fn($value) => $value !== null)
+            ->assertJsonPath('data.completed_at', fn ($value) => $value !== null)
             ->assertJsonPath('data.completed_by', $owner->getKey());
 
         $this->assertDatabaseHas('pet_routine_occurrences', [

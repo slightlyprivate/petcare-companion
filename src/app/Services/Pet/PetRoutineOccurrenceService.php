@@ -71,7 +71,7 @@ class PetRoutineOccurrenceService
     {
         $created = collect();
         $today = Carbon::today();
-        $scheduleDays = collect($routine->days_of_week)->map(fn($d) => (int) $d)->all();
+        $scheduleDays = collect($routine->days_of_week)->map(fn ($d) => (int) $d)->all();
 
         DB::transaction(function () use ($routine, $days, $today, $scheduleDays, $created) {
             for ($offset = 0; $offset < $days; $offset++) {
