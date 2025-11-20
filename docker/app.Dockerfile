@@ -1,32 +1,103 @@
 # docker/app.Dockerfile
-FROM php:8.3-fpm
+# =============================================================================
+# Multi-stage build for optimized Laravel production image
+# =============================================================================
 
-RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev libonig-dev libicu-dev libpq-dev libxml2-dev \
-    && docker-php-ext-install pdo pdo_mysql intl bcmath zip pcntl posix \
-    && pecl install redis \
-    && docker-php-ext-enable redis \
-    && rm -rf /var/lib/apt/lists/* /tmp/pear
+# -----------------------------------------------------------------------------
+# Stage 1: Builder - Install dependencies and compile assets
+# -----------------------------------------------------------------------------
+FROM serversideup/php:8.3-fpm-alpine AS builder
 
-# Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Install build dependencies
+USER root
+RUN apk add --no-cache \
+    git \
+    unzip \
+    nodejs \
+    npm
 
 WORKDIR /var/www/html
 
-ARG UID=1000
-ARG GID=1000
+# Copy composer files first for layer caching
+COPY --chown=www-data:www-data composer.json composer.lock ./
 
-# create group/user matching host ids
-RUN groupadd -g $GID app || true \
- && useradd -m -u $UID -g $GID app || true
+# Install Composer dependencies (production only)
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --no-progress \
+    --no-scripts \
+    --optimize-autoloader \
+    --prefer-dist
 
-# make sure project dir exists and is owned
-RUN mkdir -p /var/www/html && chown -R app:app /var/www/html
+# Copy application source
+COPY --chown=www-data:www-data . .
 
-# run php-fpm as the same user to avoid perms mismatch
-RUN sed -ri 's/^user = .*/user = app/; s/^group = .*/group = app/; \
-             s/^;?listen.owner.*/listen.owner = app/; \
-             s/^;?listen.group.*/listen.group = app/' /usr/local/etc/php-fpm.d/www.conf
+# Copy frontend package files
+COPY --chown=www-data:www-data package*.json ./
 
-USER app
+# Install and build frontend assets
+RUN npm ci --quiet && npm run build
+
+# Run Laravel optimizations
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
+# Ensure proper permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
+
+# -----------------------------------------------------------------------------
+# Stage 2: Runner - Minimal production runtime
+# -----------------------------------------------------------------------------
+FROM serversideup/php:8.3-fpm-alpine AS runner
+
+# Set production PHP configuration
+ENV PHP_DISPLAY_ERRORS=Off \
+    PHP_MEMORY_LIMIT=256M \
+    PHP_MAX_EXECUTION_TIME=60 \
+    PHP_POST_MAX_SIZE=10M \
+    PHP_UPLOAD_MAX_FILE_SIZE=10M \
+    PHP_OPCACHE_ENABLE=1 \
+    PHP_OPCACHE_MEMORY_CONSUMPTION=128 \
+    PHP_OPCACHE_MAX_ACCELERATED_FILES=10000 \
+    PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
+
+USER root
+
+# Install only runtime dependencies (no build tools)
+RUN apk add --no-cache \
+    mysql-client \
+    && docker-php-serversideup-dep-install-alpine "redis"
+
 WORKDIR /var/www/html
+
+# Copy application from builder
+COPY --from=builder --chown=www-data:www-data /var/www/html /var/www/html
+
+# Create necessary directories and set permissions
+RUN mkdir -p \
+    storage/app/public \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/logs \
+    bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# Copy entrypoint scripts
+COPY --chown=www-data:www-data docker/entrypoints/*.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/*.sh
+
+# Healthcheck using Laravel's built-in status
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD php artisan inspire > /dev/null 2>&1 || exit 1
+
+USER www-data
+
+EXPOSE 9000
+
+CMD ["php-fpm"]

@@ -5,7 +5,7 @@ services:
 
   app:
     container_name: petcare_app
-    image: ghcr.io/yourorg/petcare-app:prod
+    image: ghcr.io/slightlyprivate/petcare-companion-app:prod
     env_file: .env
     read_only: true
     user: www-data
@@ -14,18 +14,20 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ['CMD-SHELL', 'php -v >/dev/null 2>&1 || exit 1']
+      test: ['CMD', 'php', 'artisan', 'inspire']
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 30s
     networks:
       - backend
 
   web:
     container_name: petcare_web
-    image: ghcr.io/yourorg/petcare-web:prod
+    image: ghcr.io/slightlyprivate/petcare-companion-web:prod
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     ports:
       - '127.0.0.1:8080:80'
     read_only: true
@@ -40,13 +42,14 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 10s
     networks:
       - frontend
       - backend
 
   worker:
     container_name: petcare_worker
-    image: ghcr.io/yourorg/petcare-app:prod
+    image: ghcr.io/slightlyprivate/petcare-companion-app:prod
     command: php artisan queue:work --sleep=3 --tries=3 --memory=256
     env_file: .env
     read_only: true
@@ -55,12 +58,21 @@ services:
       - storage:/var/www/html/storage/app/public:rw
     tmpfs:
       - /tmp
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'pgrep', '-f', 'artisan queue:work']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
     networks:
       - backend
 
   ui:
     container_name: petcare_ui
-    image: ghcr.io/yourorg/petcare-ui:prod
+    image: ghcr.io/slightlyprivate/petcare-companion-ui:prod
     ports:
       - '127.0.0.1:8081:80'
     read_only: true
@@ -73,6 +85,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 10s
     networks:
       - frontend
 

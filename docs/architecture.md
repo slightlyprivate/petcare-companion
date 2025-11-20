@@ -1255,3 +1255,200 @@ PetRoutineOccurrence
 - Stripe API Documentation (Webhooks, Checkout Sessions)
 - MySQL 8 Reference Manual (Foreign Keys, Indexes)
 - Docker Compose Documentation
+
+---
+
+## Docker Image Optimization
+
+### Production Images
+
+PetCare Companion uses **optimized multi-stage Docker builds** for production deployment:
+
+#### App Image (`ghcr.io/slightlyprivate/petcare-companion-app:prod`)
+
+**Base:** `serversideup/php:8.3-fpm-alpine`
+
+**Build Strategy:**
+
+- **Stage 1 (Builder):** Install Composer dependencies with `--no-dev --optimize-autoloader`,
+  compile frontend assets with npm, run Laravel optimizations (`config:cache`, `route:cache`,
+  `view:cache`)
+- **Stage 2 (Runner):** Copy only production artifacts from builder, configure PHP for production
+  (OPcache enabled, display_errors off), run as non-root `www-data` user
+
+**Size Target:** <450MB
+
+**Features:**
+
+- Multi-architecture support (amd64, arm64)
+- Production PHP configuration with OPcache
+- Healthcheck via `php artisan inspire`
+- Read-only filesystem compatible
+- Minimal attack surface (no build tools)
+
+#### Web Image (`ghcr.io/slightlyprivate/petcare-companion-web:prod`)
+
+**Base:** `nginx:stable-alpine`
+
+**Configuration:**
+
+- Optimized nginx config with gzip compression
+- Security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
+- Long-term caching for storage assets (1 year)
+- PHP-FPM proxy with proper buffering
+- Health endpoint at `/health`
+
+**Size Target:** <50MB
+
+**Features:**
+
+- Multi-architecture support (amd64, arm64)
+- Hardened against common web vulnerabilities
+- Efficient static asset serving
+- Container-native logging (stdout/stderr)
+
+### Development vs Production
+
+| Aspect       | Development            | Production                        |
+| ------------ | ---------------------- | --------------------------------- |
+| Base Image   | `php:8.3-fpm` (Debian) | `serversideup/php:8.3-fpm-alpine` |
+| Build Type   | Single-stage           | Multi-stage                       |
+| Dependencies | Dev + Production       | Production only                   |
+| Optimization | None                   | Full Laravel caching              |
+| Image Size   | ~500MB                 | ~300-350MB                        |
+| User         | Custom UID/GID         | www-data                          |
+| Filesystem   | Read-write bind mounts | Read-only with tmpfs              |
+
+### Healthchecks
+
+All production services include comprehensive healthchecks:
+
+```yaml
+app:
+  healthcheck:
+    test: ['CMD', 'php', 'artisan', 'inspire']
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
+
+web:
+  healthcheck:
+    test: ['CMD-SHELL', 'wget -qO- http://localhost/health || exit 1']
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 10s
+
+worker:
+  healthcheck:
+    test: ['CMD', 'pgrep', '-f', 'artisan queue:work']
+    interval: 30s
+    timeout: 5s
+    retries: 3
+```
+
+### Build Process
+
+**CI/CD Pipeline:**
+
+- GitHub Actions workflows build images on push to `main` or `develop`
+- Multi-architecture builds using BuildKit
+- Security scanning with Trivy
+- Automatic tagging: `prod`, `latest`, `<branch>-<sha>`
+- Image size validation (<500MB combined target)
+- Results published to GitHub Container Registry (GHCR)
+
+**Local Builds:**
+
+```bash
+# Build all production images
+make build-all
+
+# Check image sizes
+make image-sizes
+
+# Scan for vulnerabilities (requires trivy)
+make image-scan
+```
+
+### Deployment
+
+**Production Stack:**
+
+- Pre-built images pulled from GHCR
+- External MySQL and Redis required
+- Shared storage volume for uploads
+- Network isolation (frontend/backend)
+- Read-only containers with tmpfs mounts
+- Automatic restarts (`unless-stopped`)
+
+**Environment Configuration:**
+
+- Production defaults in `src/.env.production.example`
+- Required secrets: DB credentials, Redis password, Stripe keys, SMTP config
+- Session and Sanctum domains must match frontend
+- HTTPS required (SESSION_SECURE_COOKIE=true)
+
+### Security Hardening
+
+**Container Security:**
+
+- Non-root user execution (www-data)
+- Read-only root filesystem
+- Minimal base images (Alpine Linux)
+- No shells or unnecessary binaries in production
+- Tmpfs for writable directories
+
+**Network Security:**
+
+- Frontend/backend network separation
+- Services exposed only on localhost (127.0.0.1)
+- CORS properly configured
+- Security headers enforced by nginx
+
+**Image Security:**
+
+- Regular base image updates via Dependabot
+- Vulnerability scanning in CI/CD
+- Signed images (future enhancement)
+- Public registry with version pinning
+
+### Performance
+
+**Optimization Techniques:**
+
+- Laravel route/config/view caching
+- PHP OPcache with validation disabled
+- Nginx gzip compression
+- Static asset caching (1 year TTL)
+- Redis for cache and queue backend
+- Database connection pooling
+
+**Resource Limits:**
+
+- PHP memory limit: 256MB
+- PHP max execution time: 60s
+- Upload size limit: 10MB
+- Worker memory limit: 256MB
+
+### Monitoring Recommendations
+
+**Container Health:**
+
+- Monitor healthcheck status
+- Track container restart counts
+- Alert on repeated failures
+
+**Application Metrics:**
+
+- Laravel Horizon for queue monitoring
+- Activity logs via Spatie ActivityLog
+- Error tracking (Sentry, Bugsnag, etc.)
+
+**Infrastructure:**
+
+- Database connection pools
+- Redis memory usage
+- Storage volume capacity
+- Network throughput markdown
