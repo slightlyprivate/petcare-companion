@@ -21,6 +21,8 @@ focus on maintainability, clarity, and proper MVC separation in a Dockerized env
 - **Architecture Style:** MVC + REST, with clear validation, resources, service layer, and
   comprehensive test coverage.
 - **Environment:** Containerized PHP-FPM + Nginx + MySQL stack using Docker Compose.
+- **Frontend Integration:** React UI communicates directly with the Laravel API (via the `web` Nginx
+  service);
 - **Authorization:** Dual-role system (standard user vs. system admin) enforced through Laravel
   policies.
 - **Payment Processing:** Stripe Checkout for credit purchases; gifts use wallet credits.
