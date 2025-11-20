@@ -10,14 +10,15 @@ use App\Http\Controllers\Auth\User\UserExportDownloadController;
 use App\Http\Controllers\Credit\CreditPurchaseController;
 use App\Http\Controllers\Gift\GiftController;
 use App\Http\Controllers\GiftType\GiftTypeController;
+use App\Http\Controllers\Pet\PetActivityController;
 use App\Http\Controllers\Pet\PetAppointmentController;
+use App\Http\Controllers\Pet\PetCaregiverInvitationController;
 use App\Http\Controllers\Pet\PetController;
 use App\Http\Controllers\Pet\PetGiftController;
 use App\Http\Controllers\Pet\PetRestoreController;
 use App\Http\Controllers\Pet\Public\PetDirectoryController;
 use App\Http\Controllers\Pet\Public\PetReportController;
-use App\Http\Controllers\Pet\PetCaregiverInvitationController;
-use App\Http\Controllers\Pet\PetActivityController;
+use App\Http\Controllers\PetRoutineController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -85,6 +86,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{pet}', [PetController::class, 'show'])->name('pets.show');
         Route::get('/{pet}/appointments', [PetAppointmentController::class, 'index'])->name('pets.appointments.index');
         Route::get('/{pet}/activities', [PetActivityController::class, 'index'])->name('pets.activities.index');
+        Route::get('/{pet}/routines', [PetRoutineController::class, 'index'])->name('pets.routines.index');
+        // Today's routine tasks (auto-generates occurrences if missing)
+        Route::get('/{pet}/routines/today', [\App\Http\Controllers\PetRoutineOccurrenceController::class, 'today'])->name('pets.routines.today');
     });
 
     Route::prefix('user')->group(function () {
@@ -114,6 +118,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/caregiver-invitations/{invitation}', [PetCaregiverInvitationController::class, 'destroy'])->name('caregiver-invitations.destroy');
         Route::post('/pets/{pet}/activities', [PetActivityController::class, 'store'])->name('pets.activities.store');
         Route::delete('/activities/{activity}', [PetActivityController::class, 'destroy'])->name('activities.destroy');
+        Route::post('/pets/{pet}/routines', [PetRoutineController::class, 'store'])->name('pets.routines.store');
+        Route::patch('/routines/{routine}', [PetRoutineController::class, 'update'])->name('routines.update');
+        Route::delete('/routines/{routine}', [PetRoutineController::class, 'destroy'])->name('routines.destroy');
+        Route::post('/routine-occurrences/{occurrence}/complete', [\App\Http\Controllers\PetRoutineOccurrenceController::class, 'complete'])->name('routine-occurrences.complete');
     });
 
     // Write operations - Gift endpoints (throttle:gift.write)

@@ -11,4 +11,7 @@ Application::getInstance()->booted(function () {
 
     // Scan for stale pending credit purchases every 15 minutes
     $schedule->command('credits:scan-stale --minutes=30')->everyFifteenMinutes();
+
+    // Generate upcoming routine occurrences nightly (next 7 days)
+    $schedule->command('pet:routines:generate-upcoming --days=7')->dailyAt('01:30');
 });

@@ -33,7 +33,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
             'media_url' => null,
         ];
 
-        $response = $this->actingAs($owner)->postJson('/api/pets/' . $pet->getKey() . '/activities', $payload);
+        $response = $this->actingAs($owner)->postJson('/api/pets/'.$pet->getKey().'/activities', $payload);
 
         $response->assertStatus(201)
             ->assertJsonStructure(['message', 'data']);
@@ -67,7 +67,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
             'media_url' => 'https://example.com/walk.jpg',
         ];
 
-        $response = $this->actingAs($caregiver)->postJson('/api/pets/' . $pet->getKey() . '/activities', $payload);
+        $response = $this->actingAs($caregiver)->postJson('/api/pets/'.$pet->getKey().'/activities', $payload);
 
         $response->assertStatus(201)
             ->assertJsonStructure(['message', 'data']);
@@ -95,7 +95,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
             'description' => 'Unauthorized attempt',
         ];
 
-        $response = $this->actingAs($stranger)->postJson('/api/pets/' . $pet->getKey() . '/activities', $payload);
+        $response = $this->actingAs($stranger)->postJson('/api/pets/'.$pet->getKey().'/activities', $payload);
 
         $response->assertStatus(403);
 
@@ -126,7 +126,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
             'description' => 'Bath time',
         ]);
 
-        $response = $this->actingAs($owner)->deleteJson('/api/activities/' . $activity->getKey());
+        $response = $this->actingAs($owner)->deleteJson('/api/activities/'.$activity->getKey());
 
         $response->assertStatus(200)
             ->assertJsonStructure(['message']);
@@ -165,7 +165,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
             'description' => 'Evening walk',
         ]);
 
-        $response = $this->actingAs($caregiver)->deleteJson('/api/activities/' . $activity->getKey());
+        $response = $this->actingAs($caregiver)->deleteJson('/api/activities/'.$activity->getKey());
 
         $response->assertStatus(403);
 
@@ -190,7 +190,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
             'description' => 'Dinner',
         ]);
 
-        $response = $this->actingAs($stranger)->deleteJson('/api/activities/' . $activity->getKey());
+        $response = $this->actingAs($stranger)->deleteJson('/api/activities/'.$activity->getKey());
 
         $response->assertStatus(403);
 
@@ -206,7 +206,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
         /** @var Pet $pet */
         $pet = Pet::factory()->for($owner)->create();
 
-        $response = $this->getJson('/api/pets/' . $pet->getKey() . '/activities');
+        $response = $this->getJson('/api/pets/'.$pet->getKey().'/activities');
 
         $response->assertStatus(401);
     }
@@ -223,7 +223,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
             'description' => 'Unauthorized',
         ];
 
-        $response = $this->postJson('/api/pets/' . $pet->getKey() . '/activities', $payload);
+        $response = $this->postJson('/api/pets/'.$pet->getKey().'/activities', $payload);
 
         $response->assertStatus(401);
     }
@@ -242,7 +242,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
             'description' => 'Dinner',
         ]);
 
-        $response = $this->deleteJson('/api/activities/' . $activity->getKey());
+        $response = $this->deleteJson('/api/activities/'.$activity->getKey());
 
         $response->assertStatus(401);
     }

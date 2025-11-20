@@ -24,11 +24,11 @@ class PetActivityListingTest extends TestCase
                 'pet_id' => $pet->getKey(),
                 'user_id' => $user->getKey(),
                 'type' => 'feeding',
-                'description' => 'Activity ' . $i,
+                'description' => 'Activity '.$i,
             ]);
         }
 
-        $response = $this->actingAs($user)->getJson('/api/pets/' . $pet->getKey() . '/activities');
+        $response = $this->actingAs($user)->getJson('/api/pets/'.$pet->getKey().'/activities');
         $response->assertStatus(200)
             ->assertJsonPath('meta.total', 20)
             ->assertJsonPath('meta.per_page', 15)
@@ -45,7 +45,7 @@ class PetActivityListingTest extends TestCase
         PetActivity::create(['pet_id' => $pet->getKey(), 'user_id' => $user->getKey(), 'type' => 'walk', 'description' => 'Morning walk']);
         PetActivity::create(['pet_id' => $pet->getKey(), 'user_id' => $user->getKey(), 'type' => 'feeding', 'description' => 'Dinner']);
 
-        $response = $this->actingAs($user)->getJson('/api/pets/' . $pet->getKey() . '/activities?type=feeding');
+        $response = $this->actingAs($user)->getJson('/api/pets/'.$pet->getKey().'/activities?type=feeding');
         $response->assertStatus(200)
             ->assertJsonPath('meta.total', 2)
             ->assertJsonCount(2, 'data');
@@ -92,7 +92,7 @@ class PetActivityListingTest extends TestCase
         $from = now()->subDays(3)->format('Y-m-d');
         $to = now()->format('Y-m-d');
 
-        $response = $this->actingAs($user)->getJson('/api/pets/' . $pet->getKey() . '/activities?date_from=' . $from . '&date_to=' . $to);
+        $response = $this->actingAs($user)->getJson('/api/pets/'.$pet->getKey().'/activities?date_from='.$from.'&date_to='.$to);
         $response->assertStatus(200)
             ->assertJsonPath('meta.total', 2)
             ->assertJsonCount(2, 'data');

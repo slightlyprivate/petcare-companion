@@ -15,15 +15,18 @@ use Illuminate\Http\Request;
  * Controller for managing pet activities.
  *
  * @authenticated
+ *
  * @group Pets
  */
 class PetActivityController extends Controller
 {
     public function __construct(private PetActivityService $activityService) {}
+
     /**
      * List activities for a pet.
      *
      * @urlParam pet string required The UUID of the pet.
+     *
      * @queryParam per_page int Number of activities per page (1-100). Example: 15
      * @queryParam type string Filter by activity type. Example: feeding
      * @queryParam date_from date Filter activities created on or after this date (YYYY-MM-DD). Example: 2025-11-01
@@ -49,6 +52,7 @@ class PetActivityController extends Controller
      * Store a new activity for a pet.
      *
      * @urlParam pet string required The UUID of the pet.
+     *
      * @bodyParam type string required The activity type. Example: feeding
      * @bodyParam description string required A short description of the activity. Example: Morning feeding with new kibble
      * @bodyParam media_url string nullable Optional media URL associated with the activity. Example: https://example.com/image.jpg

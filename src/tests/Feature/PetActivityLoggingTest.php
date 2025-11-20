@@ -29,7 +29,7 @@ class PetActivityLoggingTest extends TestCase
             'media_url' => null,
         ];
 
-        $response = $this->actingAs($user)->postJson('/api/pets/' . $pet->getKey() . '/activities', $payload);
+        $response = $this->actingAs($user)->postJson('/api/pets/'.$pet->getKey().'/activities', $payload);
         $response->assertStatus(201);
 
         $activity = PetActivity::first();
@@ -63,7 +63,7 @@ class PetActivityLoggingTest extends TestCase
             'description' => 'Afternoon walk',
         ]);
 
-        $response = $this->actingAs($user)->deleteJson('/api/activities/' . $activity->getKey());
+        $response = $this->actingAs($user)->deleteJson('/api/activities/'.$activity->getKey());
         $response->assertStatus(200);
 
         $this->assertDatabaseHas('activity_log', [
