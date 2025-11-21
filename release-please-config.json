@@ -1,8 +1,11 @@
 {
   "release-type": "simple",
+  "include-v-in-tag": false,
   "packages": {
     ".": {
-      "version-file": "VERSION"
+      "release-type": "simple",
+      "version-file": "VERSION",
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }
