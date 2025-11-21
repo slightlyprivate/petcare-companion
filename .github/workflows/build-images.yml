@@ -40,6 +40,7 @@ jobs:
             ghcr.io/slightlyprivate/petcare-companion-app
             ghcr.io/slightlyprivate/petcare-companion-web
             ghcr.io/slightlyprivate/petcare-companion-ui
+          labels: false
 
       - name: Read version
         id: version
@@ -52,7 +53,6 @@ jobs:
           targets: all
           push: true
           set: |
-            *.labels=${{ steps.meta.outputs.labels }}
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
             app.tags=ghcr.io/slightlyprivate/petcare-companion-app:${{ steps.version.outputs.version }}${{ github.ref == 'refs/heads/main' && ',ghcr.io/slightlyprivate/petcare-companion-app:latest' || '' }}
