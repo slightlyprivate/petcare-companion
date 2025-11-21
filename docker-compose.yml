@@ -4,7 +4,7 @@ services:
     container_name: petcare_app
     build:
       context: .
-      dockerfile: docker/app.Dockerfile
+      dockerfile: docker/app/Dockerfile
       args:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
@@ -77,12 +77,12 @@ services:
     container_name: petcare_worker
     build:
       context: .
-      dockerfile: docker/app.Dockerfile
+      dockerfile: docker/app/Dockerfile
       args:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    entrypoint: ['sh', '/usr/local/bin/worker-entrypoint.sh']
+    entrypoint: ['sh', '/usr/local/bin/worker.sh']
     environment:
       WAIT_FOR_DB: 'true'
     depends_on:
@@ -94,7 +94,7 @@ services:
         condition: service_healthy
     volumes:
       - ./src:/var/www/html
-      - ./docker/entrypoints/worker-entrypoint.sh:/usr/local/bin/worker-entrypoint.sh:ro
+      - ./docker/app/entrypoints/worker.sh:/usr/local/bin/worker.sh:ro
       - storage:/var/www/html/storage/app/public
     restart: unless-stopped
     healthcheck:
@@ -107,12 +107,12 @@ services:
     container_name: petcare_scheduler
     build:
       context: .
-      dockerfile: docker/app.Dockerfile
+      dockerfile: docker/app/Dockerfile
       args:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    entrypoint: ['sh', '/usr/local/bin/scheduler-entrypoint.sh']
+    entrypoint: ['sh', '/usr/local/bin/scheduler.sh']
     environment:
       WAIT_FOR_DB: 'true'
     depends_on:
@@ -124,7 +124,7 @@ services:
         condition: service_healthy
     volumes:
       - ./src:/var/www/html
-      - ./docker/entrypoints/scheduler-entrypoint.sh:/usr/local/bin/scheduler-entrypoint.sh:ro
+      - ./docker/app/entrypoints/scheduler.sh:/usr/local/bin/scheduler.sh:ro
       - storage:/var/www/html/storage/app/public
     restart: unless-stopped
     healthcheck:
@@ -137,12 +137,12 @@ services:
     container_name: petcare_horizon
     build:
       context: .
-      dockerfile: docker/app.Dockerfile
+      dockerfile: docker/app/Dockerfile
       args:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     working_dir: /var/www/html
-    entrypoint: ['sh', '/usr/local/bin/horizon-entrypoint.sh']
+    entrypoint: ['sh', '/usr/local/bin/horizon.sh']
     environment:
       ENABLE_HORIZON: 'true'
     depends_on:
@@ -152,7 +152,7 @@ services:
         condition: service_healthy
     volumes:
       - ./src:/var/www/html
-      - ./docker/entrypoints/horizon-entrypoint.sh:/usr/local/bin/horizon-entrypoint.sh:ro
+      - ./docker/app/entrypoints/horizon.sh:/usr/local/bin/horizon.sh:ro
       - storage:/var/www/html/storage/app/public
     restart: unless-stopped
     healthcheck:

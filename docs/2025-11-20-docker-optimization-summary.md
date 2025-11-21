@@ -18,7 +18,7 @@ healthchecks, security hardening, and CI/CD automation.
 
 ### 1. Multi-Stage App Dockerfile
 
-**File:** `docker/app.Dockerfile`
+**File:** `docker/app/Dockerfile`
 
 **Changes:**
 
@@ -42,8 +42,8 @@ healthchecks, security hardening, and CI/CD automation.
 
 **Files:**
 
-- `docker/nginx.prod.Dockerfile` (new)
-- `docker/nginx.prod.conf` (new)
+- `docker/web/Dockerfile` (new)
+- `docker/web/nginx.prod.conf` (new)
 
 **Changes:**
 
@@ -247,9 +247,9 @@ healthchecks, security hardening, and CI/CD automation.
 ## Files Created
 
 ```sh
-docker/app.Dockerfile (replaced)
-docker/nginx.prod.Dockerfile (new)
-docker/nginx.prod.conf (new)
+docker/app/Dockerfile (replaced)
+docker/web/Dockerfile (new)
+docker/web/nginx.prod.conf (new)
 src/.env.production.example (new)
 .github/workflows/build-app-image.yml (new)
 .github/workflows/build-web-image.yml (new)

@@ -5,7 +5,8 @@
 - Root overview: `README.md`
 - API (Laravel): `src/README.md`
 - UI (Vite + React): `src/ui/README.md`
-- Compose and containers: `docker-compose.yml`, `docker/`
+- Compose and containers: `docker-compose.yml`, `docker/app`, `docker/web`, `docker/ui`,
+  `docker/shared`
 
 ## Context
 

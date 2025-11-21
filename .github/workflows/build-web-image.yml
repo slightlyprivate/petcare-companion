@@ -6,8 +6,8 @@ on:
       - main
       - develop
     paths:
-      - 'docker/nginx.prod.Dockerfile'
-      - 'docker/nginx.prod.conf'
+      - 'docker/web/Dockerfile'
+      - 'docker/web/nginx.prod.conf'
       - '.github/workflows/build-web-image.yml'
   workflow_dispatch:
 
@@ -56,7 +56,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./docker/nginx.prod.Dockerfile
+          file: ./docker/web/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}

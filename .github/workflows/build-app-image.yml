@@ -7,8 +7,8 @@ on:
       - develop
     paths:
       - 'src/**'
-      - 'docker/app.Dockerfile'
-      - 'docker/entrypoints/**'
+      - 'docker/app/Dockerfile'
+      - 'docker/app/entrypoints/**'
       - '.github/workflows/build-app-image.yml'
   workflow_dispatch:
 
@@ -61,13 +61,13 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./docker/app.Dockerfile
+          file: ./docker/app/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,scope=app-image
           target: runner
 
       - name: Run Trivy vulnerability scanner

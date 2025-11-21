@@ -70,7 +70,7 @@ graph LR
 
 - `.env` now defaults to Redis: `CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis` with
   `REDIS_HOST=redis`.
-- PHP image includes `phpredis` extension (installed via PECL in `docker/app.Dockerfile`).
+- PHP image includes `phpredis` extension (installed via PECL in `docker/app/Dockerfile`).
 - Workers still run as a separate service, but you can use Horizon for dashboarding.
 
 ### Horizon (Optional)
@@ -277,6 +277,7 @@ Environment wiring (UI)
 - API (Laravel): `src/README.md`
 - UI (Vite + React): `src/ui/README.md`
 - Architecture: `docs/architecture.md`
+- Docker & builds: `DOCKER.md`
 - Postman: `src/storage/app/scribe/collection.json`
 
 ## CI

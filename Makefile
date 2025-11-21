@@ -61,10 +61,10 @@ build-app:
 		--target runner \
 		--tag ghcr.io/slightlyprivate/petcare-companion-app:prod \
 		--tag ghcr.io/slightlyprivate/petcare-companion-app:latest \
-		--file docker/app.Dockerfile \
+		--file docker/app/Dockerfile \
 		--cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache \
 		--cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache,mode=max \
-		./src
+		.
 
 build-web:
 	@echo "Building production web image..."
@@ -72,7 +72,7 @@ build-web:
 		--platform linux/amd64,linux/arm64 \
 		--tag ghcr.io/slightlyprivate/petcare-companion-web:prod \
 		--tag ghcr.io/slightlyprivate/petcare-companion-web:latest \
-		--file docker/nginx.prod.Dockerfile \
+		--file docker/web/Dockerfile \
 		--cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-web:buildcache \
 		--cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-web:buildcache,mode=max \
 		.
