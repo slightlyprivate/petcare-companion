@@ -69,7 +69,7 @@ export default function CaregiverList({ petId, isOwner = false }: CaregiverListP
       setCopiedId(invitationId);
       toast.success('Invitation link copied to clipboard');
       setTimeout(() => setCopiedId(null), 2000);
-    } catch (err) {
+    } catch {
       toast.error('Failed to copy link');
     }
   };

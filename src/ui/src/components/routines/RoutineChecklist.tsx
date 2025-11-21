@@ -63,7 +63,7 @@ export default function RoutineChecklist({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-brand-fg">Today's Routines</h2>
+          <h2 className="text-lg font-semibold text-brand-fg">Today&apos;s Routines</h2>
           {totalCount > 0 && (
             <p className="text-sm text-brand-fg/60">
               {completedCount} of {totalCount} completed

@@ -73,7 +73,7 @@ export default function PetAvatarUploader({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-pet-id={petId}>
       <div className="text-sm font-medium">Pet Avatar</div>
 
       {displayUrl && (

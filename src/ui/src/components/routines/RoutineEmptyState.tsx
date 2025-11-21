@@ -18,7 +18,7 @@ export default function RoutineEmptyState({
       {canCreate ? (
         <>
           <p className="text-xs text-brand-fg/40 mb-4">
-            Create daily routines to help track your pet's schedule
+            Create daily routines to help track your pet&apos;s schedule
           </p>
           {onCreateClick && (
             <button

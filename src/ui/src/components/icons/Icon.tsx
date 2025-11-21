@@ -32,7 +32,7 @@ import { cn } from '../../lib/cn';
  * Centralized icon registry using lucide-react
  * All icons are React components with consistent sizing and styling
  */
-export const icons = {
+const icons = {
   check: Check,
   pencil: Pencil,
   trash: Trash2,

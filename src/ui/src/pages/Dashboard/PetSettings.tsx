@@ -37,7 +37,7 @@ export default function PetSettings() {
       });
       toast.success('Settings saved successfully');
       void refetch();
-    } catch (err) {
+    } catch {
       toast.error('Failed to save settings');
     }
   }

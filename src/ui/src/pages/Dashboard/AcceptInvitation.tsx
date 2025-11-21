@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAcceptCaregiverInvitation } from '../../api/caregivers/hooks';
 import { PATHS } from '../../routes/paths';
@@ -14,25 +14,38 @@ export default function AcceptInvitation() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
-  const [hasAttempted, setHasAttempted] = useState(false);
+  const attemptedRef = useRef(false);
 
   const acceptInvitation = useAcceptCaregiverInvitation();
 
   useEffect(() => {
-    if (token && !hasAttempted) {
-      setHasAttempted(true);
+    if (token && !attemptedRef.current) {
+      attemptedRef.current = true; // mark attempt without triggering re-render
       acceptInvitation.mutate(token);
     }
-  }, [token, hasAttempted, acceptInvitation]);
+  }, [token, acceptInvitation]);
 
-  const navigateToDashboard = () => navigate(PATHS.DASHBOARD.PETS);
-  const navigateToPet = (petId?: string) => {
-    if (petId) {
-      navigate(PATHS.DASHBOARD.PET_DETAIL(petId));
-    } else {
-      navigateToDashboard();
-    }
-  };
+  const navigateToDashboard = useCallback(() => navigate(PATHS.DASHBOARD.PETS), [navigate]);
+  const navigateToPet = useCallback(
+    (petId?: string) => {
+      if (petId) {
+        navigate(PATHS.DASHBOARD.PET_DETAIL(petId));
+      } else {
+        navigateToDashboard();
+      }
+    },
+    [navigate, navigateToDashboard],
+  );
+
+  // Extract pet info when successful for rendering and redirect logic
+  const pet = acceptInvitation.isSuccess ? extractPetInfo(acceptInvitation.data) : null;
+
+  // Auto-redirect after 2 seconds once invitation accepted
+  useEffect(() => {
+    if (!acceptInvitation.isSuccess) return; // Only set timer on success
+    const timer = setTimeout(() => navigateToPet(pet?.id), 2000);
+    return () => clearTimeout(timer);
+  }, [acceptInvitation.isSuccess, pet?.id, navigateToPet]);
 
   // No token provided
   if (!token) {
@@ -80,21 +93,13 @@ export default function AcceptInvitation() {
 
   // Success state
   if (acceptInvitation.isSuccess) {
-    const pet = extractPetInfo(acceptInvitation.data);
-
-    // Auto-redirect after 2 seconds
-    useEffect(() => {
-      const timer = setTimeout(() => navigateToPet(pet.id), 2000);
-      return () => clearTimeout(timer);
-    }, [pet.id]);
-
     return (
       <InvitationStatusCard
         type="success"
         title="Invitation Accepted!"
-        message={`You are now a caregiver${pet.name ? ` for ${pet.name}` : ''}.`}
+        message={`You are now a caregiver${pet?.name ? ` for ${pet.name}` : ''}.`}
         subMessage="Redirecting you to the pet dashboard..."
-        onPrimaryAction={() => navigateToPet(pet.id)}
+        onPrimaryAction={() => navigateToPet(pet?.id)}
         primaryLabel="Go Now"
       />
     );

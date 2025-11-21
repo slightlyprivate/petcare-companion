@@ -8,7 +8,6 @@ interface RoutineFormState {
 }
 
 interface UseRoutineFormProps {
-  petId: string | number;
   initialValues?: Partial<RoutineFormState>;
   onSuccess?: () => void;
 }
@@ -39,7 +38,6 @@ const defaultState: RoutineFormState = {
  * Hook to manage routine form state and submission
  */
 export function useRoutineForm({
-  petId,
   initialValues,
   onSuccess,
 }: UseRoutineFormProps): UseRoutineFormReturn {

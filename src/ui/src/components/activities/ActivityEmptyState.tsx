@@ -10,7 +10,9 @@ export default function ActivityEmptyState({ canCreate = false }: EmptyStateProp
     <div className="rounded-lg border border-brand-muted bg-brand-secondary/20 p-6 text-center">
       <p className="text-sm text-brand-fg/60">No activities logged yet</p>
       {canCreate && (
-        <p className="mt-1 text-xs text-brand-fg/40">Start tracking your pet's daily activities</p>
+        <p className="mt-1 text-xs text-brand-fg/40">
+          Start tracking your pet&apos;s daily activities
+        </p>
       )}
     </div>
   );

@@ -3,7 +3,8 @@ import { cn } from '../../lib/cn';
 import { resolveAssetUrl } from '../../lib/assets';
 import { formatRelativeTime } from '../../lib/dateUtils';
 import { getActivityTypeInfo } from '../../lib/activityTypes';
-import { getActivityIcon } from '../../lib/activityIcons';
+import { getActivityIconName } from '../../lib/activityIcons';
+import { Icon } from '../icons';
 
 interface Activity {
   id: string | number;
@@ -32,7 +33,7 @@ export default function ActivityCard({
   onImageError,
 }: ActivityCardProps) {
   const typeInfo = getActivityTypeInfo(activity.type);
-  const ActivityIcon = getActivityIcon(activity.type);
+  const iconName = getActivityIconName(activity.type);
   const mediaLink = resolveAssetUrl(activity.media_url);
 
   return (
@@ -41,7 +42,7 @@ export default function ActivityCard({
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <div className="flex items-center gap-1.5">
-              <ActivityIcon className="w-4 h-4" />
+              <Icon name={iconName} className="w-4 h-4" size={16} />
               <span className={cn('rounded-full px-2 py-0.5 text-xs font-medium', typeInfo.color)}>
                 {typeInfo.label}
               </span>

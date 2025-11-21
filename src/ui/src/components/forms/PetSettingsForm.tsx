@@ -1,4 +1,4 @@
-import { FormEvent, useState, useEffect } from 'react';
+import { FormEvent, useState } from 'react';
 import Button from '../Button';
 import TextInput from '../TextInput';
 
@@ -21,12 +21,6 @@ export default function PetSettingsForm({ initial, onSubmit, isSubmitting }: Pet
     allow_comments: false,
     ...initial,
   }));
-
-  useEffect(() => {
-    if (initial) {
-      setValues((v) => ({ ...v, ...initial }));
-    }
-  }, [initial]);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
