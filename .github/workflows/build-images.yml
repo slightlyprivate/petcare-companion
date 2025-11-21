@@ -4,29 +4,19 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docker/app/**'
-      - 'docker/web/**'
-      - 'docker/ui/**'
-      - 'docker/ui.Dockerfile'
+      - 'docker/**'
+      - 'src/**'
       - 'docker-bake.hcl'
+      - 'VERSION'
       - '.github/workflows/build-images.yml'
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/slightlyprivate/petcare-companion-
-
 jobs:
   build:
-    name: Build ${{ matrix.target }} image
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
-    strategy:
-      matrix:
-        target: [app, web, ui]
 
     steps:
       - name: Checkout repository
@@ -38,7 +28,7 @@ jobs:
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,21 +36,25 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_PREFIX }}${{ matrix.target }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=prod,enable={{is_default_branch}}
-            type=raw,value=latest,enable={{is_default_branch}}
+          images: |
+            ghcr.io/slightlyprivate/petcare-companion-app
+            ghcr.io/slightlyprivate/petcare-companion-web
+            ghcr.io/slightlyprivate/petcare-companion-ui
 
-      - name: Build and publish with Bake
+      - name: Read version
+        id: version
+        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Build and push images
         uses: docker/bake-action@v5
         with:
           files: ./docker-bake.hcl
-          targets: ${{ matrix.target }}
-          push: ${{ github.ref == 'refs/heads/main' }}
+          targets: all
+          push: true
           set: |
-            ${{ matrix.target }}.labels=${{ steps.meta.outputs.labels }}
-            ${{ matrix.target }}.tags=${{ steps.meta.outputs.tags }}
+            *.labels=${{ steps.meta.outputs.labels }}
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+            app.tags=ghcr.io/slightlyprivate/petcare-companion-app:${{ steps.version.outputs.version }}${{ github.ref == 'refs/heads/main' && ',ghcr.io/slightlyprivate/petcare-companion-app:latest' || '' }}
+            web.tags=ghcr.io/slightlyprivate/petcare-companion-web:${{ steps.version.outputs.version }}${{ github.ref == 'refs/heads/main' && ',ghcr.io/slightlyprivate/petcare-companion-web:latest' || '' }}
+            ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:${{ steps.version.outputs.version }}${{ github.ref == 'refs/heads/main' && ',ghcr.io/slightlyprivate/petcare-companion-ui:latest' || '' }}
