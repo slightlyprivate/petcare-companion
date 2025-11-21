@@ -6,20 +6,28 @@
 # -----------------------------------------------------------------------------
 # Stage 1: Builder - Install dependencies and compile assets
 # -----------------------------------------------------------------------------
-FROM serversideup/php:8.3-fpm-alpine AS builder
+FROM php:8.3-fpm-alpine AS builder
 
-# Install build dependencies
-USER root
+# Install build dependencies and PHP extensions
 RUN apk add --no-cache \
     git \
     unzip \
     nodejs \
-    npm
+    npm \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && docker-php-ext-install pcntl \
+    && apk del .phpize-deps
 
 WORKDIR /var/www/html
 
-# Copy composer files first for layer caching
-COPY --chown=www-data:www-data composer.json composer.lock ./
+# Copy application source
+COPY --chown=www-data:www-data src/ ./
+
+# Remove cached packages to regenerate without dev
+RUN rm -f bootstrap/cache/packages.php
 
 # Install Composer dependencies (production only)
 RUN composer install \
@@ -30,29 +38,38 @@ RUN composer install \
     --optimize-autoloader \
     --prefer-dist
 
-# Copy application source
-COPY --chown=www-data:www-data . .
-
 # Copy frontend package files
-COPY --chown=www-data:www-data package*.json ./
+COPY --chown=www-data:www-data src/package*.json ./
 
 # Install and build frontend assets
-RUN npm ci --quiet && npm run build
+RUN npm install --quiet && npm run build
+
+# Create necessary directories
+RUN mkdir -p \
+    storage/app/public \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    bootstrap/cache
 
 # Run Laravel optimizations
 RUN php artisan config:cache \
     && php artisan route:cache \
     && php artisan view:cache
 
-# Ensure proper permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
-
 # -----------------------------------------------------------------------------
 # Stage 2: Runner - Minimal production runtime
 # -----------------------------------------------------------------------------
-FROM serversideup/php:8.3-fpm-alpine AS runner
+FROM php:8.3-fpm-alpine AS runner
+
+# Install runtime dependencies and PHP extensions
+RUN apk add --no-cache \
+    mysql-client \
+    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && docker-php-ext-install pdo_mysql pcntl \
+    && apk del .phpize-deps
 
 # Set production PHP configuration
 ENV PHP_DISPLAY_ERRORS=Off \
@@ -64,13 +81,6 @@ ENV PHP_DISPLAY_ERRORS=Off \
     PHP_OPCACHE_MEMORY_CONSUMPTION=128 \
     PHP_OPCACHE_MAX_ACCELERATED_FILES=10000 \
     PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
-
-USER root
-
-# Install only runtime dependencies (no build tools)
-RUN apk add --no-cache \
-    mysql-client \
-    && docker-php-serversideup-dep-install-alpine "redis"
 
 WORKDIR /var/www/html
 
@@ -96,8 +106,4 @@ RUN chmod +x /usr/local/bin/*.sh
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD php artisan inspire > /dev/null 2>&1 || exit 1
 
-USER www-data
-
 EXPOSE 9000
-
-CMD ["php-fpm"]

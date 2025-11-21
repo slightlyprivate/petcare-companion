@@ -9,10 +9,6 @@ on:
       - 'docker/nginx.prod.Dockerfile'
       - 'docker/nginx.prod.conf'
       - '.github/workflows/build-web-image.yml'
-  pull_request:
-    paths:
-      - 'docker/nginx.prod.Dockerfile'
-      - 'docker/nginx.prod.conf'
   workflow_dispatch:
 
 env:

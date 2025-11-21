@@ -6,13 +6,7 @@ import CaregiverList from '../../components/caregivers/CaregiverList';
 import ActivityTimeline from '../../components/activities/ActivityTimeline';
 import RoutineChecklist from '../../components/routines/RoutineChecklist';
 import Tabs from '../../components/layout/Tabs';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from '../../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { ErrorBoundary } from '../../components/ui/ErrorBoundary';
 
 /**

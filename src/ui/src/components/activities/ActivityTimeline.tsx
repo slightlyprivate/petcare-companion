@@ -15,7 +15,6 @@ import LoadMoreButton from './LoadMoreButton';
 import Button from '../Button';
 import ConfirmDialog from '../modals/ConfirmDialog';
 import ErrorMessage from '../ErrorMessage';
-import Spinner from '../Spinner'; // keep legacy spinner fallback
 import { Skeleton } from '../ui/Loader';
 
 interface ActivityTimelineProps {
