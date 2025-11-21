@@ -21,6 +21,8 @@ export interface Pet {
   birth_date?: string | null;
   owner_name?: string;
   age?: number | null;
+  avatar_url?: string | null;
+  is_public?: boolean;
   created_at?: string;
   updated_at?: string;
 }

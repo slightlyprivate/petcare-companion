@@ -1,30 +1,27 @@
-import { useState } from 'react';
-import {
-  usePetActivities,
-  useCreatePetActivity,
-  useDeletePetActivity,
-} from '../../api/activities/hooks';
+import { usePetActivities, useDeletePetActivity } from '../../api/activities/hooks';
+import { useActivityForm } from '../../hooks/useActivityForm';
+import { useMediaUpload } from '../../hooks/useMediaUpload';
+import { useImageLoadError } from '../../hooks/useImageLoadError';
+import { useActivityFilters } from '../../hooks/useActivityFilters';
+import { usePagination } from '../../hooks/usePagination';
+import { useDeleteConfirmation } from '../../hooks/useDeleteConfirmation';
+import { useToast } from '../../lib/notifications';
+import { buildActivityQueryParams, getActivityPaginationInfo } from '../../utils/activityHelpers';
+import ActivityForm from './ActivityForm';
+import ActivityCard from './ActivityCard';
+import ActivityEmptyState from './ActivityEmptyState';
+import ActivityFilterBar from './ActivityFilterBar';
+import LoadMoreButton from './LoadMoreButton';
 import Button from '../Button';
+import ConfirmDialog from '../modals/ConfirmDialog';
 import ErrorMessage from '../ErrorMessage';
-import Spinner from '../Spinner';
-import { cn } from '../../lib/cn';
+import { Skeleton } from '../ui/Loader';
 
 interface ActivityTimelineProps {
   petId: string | number;
   canCreate?: boolean;
   canDelete?: boolean;
 }
-
-const ACTIVITY_TYPES = [
-  { value: 'feeding', label: '🍽️ Feeding', color: 'bg-orange-100 text-orange-700' },
-  { value: 'walk', label: '🚶 Walk', color: 'bg-green-100 text-green-700' },
-  { value: 'play', label: '🎾 Play', color: 'bg-purple-100 text-purple-700' },
-  { value: 'grooming', label: '✂️ Grooming', color: 'bg-blue-100 text-blue-700' },
-  { value: 'vet', label: '🏥 Vet Visit', color: 'bg-red-100 text-red-700' },
-  { value: 'medication', label: '💊 Medication', color: 'bg-pink-100 text-pink-700' },
-  { value: 'training', label: '🎓 Training', color: 'bg-indigo-100 text-indigo-700' },
-  { value: 'other', label: '📝 Other', color: 'bg-gray-100 text-gray-700' },
-];
 
 /**
  * Activity timeline component showing pet activities with ability to add new ones.
@@ -34,79 +31,110 @@ export default function ActivityTimeline({
   canCreate = false,
   canDelete = false,
 }: ActivityTimelineProps) {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [activityType, setActivityType] = useState('feeding');
-  const [description, setDescription] = useState('');
-  const [mediaUrl, setMediaUrl] = useState('');
-  const [formError, setFormError] = useState('');
+  // Custom hooks for state management
+  const filters = useActivityFilters();
+  const pagination = usePagination();
+  const deleteConfirm = useDeleteConfirmation<string | number>();
 
-  const { data: activitiesData, isLoading, error } = usePetActivities(petId);
-  const createActivity = useCreatePetActivity();
+  // Build query params
+  const queryParams = buildActivityQueryParams(
+    pagination.currentPage,
+    filters.selectedType,
+    filters.dateFrom,
+    filters.dateTo,
+  );
+
+  const {
+    data: activitiesData,
+    isLoading,
+    error,
+    isFetching,
+  } = usePetActivities(petId, queryParams);
   const deleteActivity = useDeletePetActivity();
+  const toast = useToast();
+
+  const {
+    showAddForm,
+    activityType,
+    description,
+    formError,
+    isSubmitting,
+    setActivityType,
+    setDescription,
+    handleSubmit: submitActivity,
+    toggleForm,
+  } = useActivityForm({ petId });
+
+  const {
+    mediaUrl,
+    mediaPreview,
+    uploadError,
+    isUploading,
+    handleMediaUrlChange,
+    handleFileChange,
+    clearMediaSelection,
+    resetMedia,
+  } = useMediaUpload({ context: 'activities' });
+
+  const { imageLoadErrors, handleImageError } = useImageLoadError();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError('');
-
-    if (!description.trim()) {
-      setFormError('Description is required');
-      return;
-    }
-
-    try {
-      await createActivity.mutateAsync({
-        petId,
-        type: activityType,
-        description: description.trim(),
-        media_url: mediaUrl.trim() || null,
-      });
-      setDescription('');
-      setMediaUrl('');
-      setActivityType('feeding');
-      setShowAddForm(false);
-    } catch (err) {
-      setFormError((err as Error).message || 'Failed to create activity');
+    const success = await submitActivity(mediaUrl);
+    if (success) {
+      resetMedia();
     }
   };
 
   const handleDelete = async (activityId: string | number) => {
-    if (!window.confirm('Are you sure you want to delete this activity?')) {
-      return;
-    }
+    deleteConfirm.confirmDelete(activityId);
+  };
 
+  const confirmDelete = async () => {
     try {
-      await deleteActivity.mutateAsync(activityId);
+      await deleteConfirm.executeDelete((id) => deleteActivity.mutateAsync(id));
+      toast.success('Activity deleted');
     } catch (err) {
-      console.error('Failed to delete activity:', err);
+      toast.error((err as Error).message || 'Failed to delete activity');
     }
   };
 
-  const getActivityTypeInfo = (type: string) => {
-    return (
-      ACTIVITY_TYPES.find((t) => t.value === type) || ACTIVITY_TYPES[ACTIVITY_TYPES.length - 1]
-    );
+  const handleClearFilters = () => {
+    filters.clearFilters();
+    pagination.resetPage();
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-
-    return date.toLocaleDateString();
+  const handleTypeChange = (type: string) => {
+    filters.setSelectedType(type);
+    pagination.resetPage();
   };
+
+  const handleDateFromChange = (date: string) => {
+    filters.setDateFrom(date);
+    pagination.resetPage();
+  };
+
+  const handleDateToChange = (date: string) => {
+    filters.setDateTo(date);
+    pagination.resetPage();
+  };
+
+  // Derived state
+  const activities = activitiesData?.data || [];
+  const { hasMore, totalCount } = getActivityPaginationInfo(activitiesData?.meta);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Spinner />
+      <div className="space-y-4" aria-label="Activities loading">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-8 w-24" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
       </div>
     );
   }
@@ -115,168 +143,96 @@ export default function ActivityTimeline({
     return <ErrorMessage message="Failed to load activities" />;
   }
 
-  const activities = activitiesData?.data || [];
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-brand-fg">Activity Timeline</h2>
         {canCreate && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setShowAddForm(!showAddForm)}
-            disabled={createActivity.isPending}
-          >
+          <Button variant="secondary" size="sm" onClick={toggleForm} disabled={isSubmitting}>
             {showAddForm ? 'Cancel' : 'Log Activity'}
           </Button>
         )}
       </div>
 
       {showAddForm && (
-        <form
+        <ActivityForm
+          activityType={activityType}
+          description={description}
+          mediaUrl={mediaUrl}
+          mediaPreview={mediaPreview}
+          formError={formError}
+          uploadError={uploadError}
+          isSubmitting={isSubmitting}
+          isUploading={isUploading}
+          onActivityTypeChange={setActivityType}
+          onDescriptionChange={setDescription}
+          onMediaUrlChange={handleMediaUrlChange}
+          onFileChange={handleFileChange}
+          onClearMedia={clearMediaSelection}
           onSubmit={handleSubmit}
-          className="rounded-lg border border-brand-muted bg-brand-secondary/30 p-4 space-y-3"
-        >
-          <div>
-            <label htmlFor="activity-type" className="mb-1 block text-sm font-medium text-brand-fg">
-              Activity Type
-            </label>
-            <select
-              id="activity-type"
-              value={activityType}
-              onChange={(e) => setActivityType(e.target.value)}
-              className="w-full rounded border border-brand-muted px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent"
-              disabled={createActivity.isPending}
-            >
-              {ACTIVITY_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label
-              htmlFor="activity-description"
-              className="mb-1 block text-sm font-medium text-brand-fg"
-            >
-              Description
-            </label>
-            <textarea
-              id="activity-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="What happened?"
-              rows={3}
-              className={cn(
-                'w-full rounded border px-3 py-2 text-sm focus:outline-none focus:ring-2',
-                formError
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-brand-muted focus:ring-brand-accent',
-              )}
-              disabled={createActivity.isPending}
-              required
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="activity-media"
-              className="mb-1 block text-sm font-medium text-brand-fg"
-            >
-              Media URL (optional)
-            </label>
-            <input
-              id="activity-media"
-              type="url"
-              value={mediaUrl}
-              onChange={(e) => setMediaUrl(e.target.value)}
-              placeholder="https://example.com/image.jpg"
-              className="w-full rounded border border-brand-muted px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent"
-              disabled={createActivity.isPending}
-            />
-          </div>
-
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
-
-          <Button type="submit" size="sm" isLoading={createActivity.isPending} className="w-full">
-            Log Activity
-          </Button>
-        </form>
+        />
       )}
+
+      <ActivityFilterBar
+        selectedType={filters.selectedType}
+        dateFrom={filters.dateFrom}
+        dateTo={filters.dateTo}
+        onTypeChange={handleTypeChange}
+        onDateFromChange={handleDateFromChange}
+        onDateToChange={handleDateToChange}
+        onClearFilters={handleClearFilters}
+        activeFilterCount={filters.activeFilterCount}
+      />
 
       <div className="space-y-3">
         {activities.length === 0 ? (
-          <div className="rounded-lg border border-brand-muted bg-brand-secondary/20 p-6 text-center">
-            <p className="text-sm text-brand-fg/60">No activities logged yet</p>
-            {canCreate && (
-              <p className="mt-1 text-xs text-brand-fg/40">
-                Start tracking your pet's daily activities
-              </p>
-            )}
-          </div>
-        ) : (
-          activities.map((activity) => {
-            const typeInfo = getActivityTypeInfo(activity.type);
-            return (
-              <div
-                key={activity.id}
-                className="relative rounded-lg border border-brand-muted bg-white p-4 shadow-sm"
+          filters.hasActiveFilters ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-brand-fg/60 mb-2">No activities match your filters</p>
+              <button
+                onClick={handleClearFilters}
+                className="text-sm text-brand-accent hover:underline"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className={cn(
-                          'rounded-full px-2 py-0.5 text-xs font-medium',
-                          typeInfo.color,
-                        )}
-                      >
-                        {typeInfo.label}
-                      </span>
-                      <span className="text-xs text-brand-fg/40">
-                        {formatDate(activity.created_at)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-brand-fg">{activity.description}</p>
-                    {activity.media_url && (
-                      <a
-                        href={activity.media_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 inline-block text-xs text-brand-accent hover:underline"
-                      >
-                        View Media →
-                      </a>
-                    )}
-                  </div>
-                  {canDelete && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(activity.id)}
-                      disabled={deleteActivity.isPending}
-                      className="text-red-600 hover:bg-red-50"
-                    >
-                      Delete
-                    </Button>
-                  )}
-                </div>
-              </div>
-            );
-          })
+                Clear filters
+              </button>
+            </div>
+          ) : (
+            <ActivityEmptyState canCreate={canCreate} />
+          )
+        ) : (
+          activities.map((activity) => (
+            <ActivityCard
+              key={activity.id}
+              activity={activity}
+              canDelete={canDelete}
+              imageLoadError={imageLoadErrors[activity.id]}
+              onDelete={handleDelete}
+              onImageError={handleImageError}
+            />
+          ))
         )}
       </div>
 
-      {activitiesData?.meta && activitiesData.meta.total > activities.length && (
-        <div className="text-center">
-          <p className="text-xs text-brand-fg/60">
-            Showing {activities.length} of {activitiesData.meta.total} activities
-          </p>
-        </div>
+      {activities.length > 0 && (
+        <LoadMoreButton
+          isLoading={isFetching && pagination.currentPage > 1}
+          hasMore={hasMore}
+          onLoadMore={pagination.nextPage}
+          currentCount={activities.length}
+          totalCount={totalCount}
+        />
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isConfirmOpen}
+        title="Delete Activity"
+        message="Are you sure you want to delete this activity? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={confirmDelete}
+        onClose={deleteConfirm.cancelDelete}
+        variant="danger"
+        isLoading={deleteActivity.isPending}
+      />
     </div>
   );
 }

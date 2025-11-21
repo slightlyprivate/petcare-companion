@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAppQuery, useAppMutation } from '../../lib/appQuery';
 import { qk } from '../queryKeys';
 import { listPetActivities, createPetActivity, deletePetActivity } from './client';
-import type { ListActivitiesParams, CreateActivityPayload } from './types';
+import type { ListActivitiesParams } from './types';
 
 /**
  * Hook to fetch activities for a specific pet

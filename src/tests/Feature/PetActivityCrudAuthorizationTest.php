@@ -30,7 +30,7 @@ class PetActivityCrudAuthorizationTest extends TestCase
         $payload = [
             'type' => 'feeding',
             'description' => 'Morning kibble',
-            'media_url' => null,
+            'media_url' => 'activities/media/morning-kibble.jpg',
         ];
 
         $response = $this->actingAs($owner)->postJson('/api/pets/'.$pet->getKey().'/activities', $payload);

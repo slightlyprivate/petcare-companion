@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Pet;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AcceptPetCaregiverInvitationRequest;
-use App\Http\Requests\CreatePetCaregiverInvitationRequest;
-use App\Http\Requests\ListPetCaregiverInvitationsRequest;
-use App\Http\Requests\RevokePetCaregiverInvitationRequest;
-use App\Http\Requests\ShowPetCaregiverInvitationRequest;
-use App\Http\Requests\UpdatePetCaregiverInvitationRequest;
+use App\Http\Requests\PetCaregiver\AcceptPetCaregiverInvitationRequest;
+use App\Http\Requests\PetCaregiver\CreatePetCaregiverInvitationRequest;
+use App\Http\Requests\PetCaregiver\ListPetCaregiverInvitationsRequest;
+use App\Http\Requests\PetCaregiver\RevokePetCaregiverInvitationRequest;
+use App\Http\Requests\PetCaregiver\ShowPetCaregiverInvitationRequest;
+use App\Http\Requests\PetCaregiver\UpdatePetCaregiverInvitationRequest;
 use App\Models\Pet;
 use App\Models\PetCaregiverInvitation;
 use App\Services\Pet\PetCaregiverService;

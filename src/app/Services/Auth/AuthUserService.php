@@ -2,7 +2,7 @@
 
 namespace App\Services\Auth;
 
-use App\Exceptions\OtpVerificationFailedException;
+use App\Exceptions\Auth\OtpVerificationFailedException;
 use App\Helpers\NotificationHelper;
 use App\Models\User;
 use App\Notifications\Auth\LoginSuccessNotification;

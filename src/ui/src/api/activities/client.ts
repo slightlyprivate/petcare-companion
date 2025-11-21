@@ -9,6 +9,7 @@ export const listPetActivities = async (
   params?: ListActivitiesParams,
 ): Promise<PetActivitiesResponse> => {
   const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', String(params.page));
   if (params?.per_page) queryParams.set('per_page', String(params.per_page));
   if (params?.type) queryParams.set('type', params.type);
   if (params?.date_from) queryParams.set('date_from', params.date_from);

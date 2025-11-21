@@ -5,7 +5,7 @@
 
 Dev
 
-- Prereq: Dev stack running via `docker compose -f docker-compose.dev.yml up`
+- Prereq: Dev stack running via `docker compose up`
 - Start UI dev server: `npm install && npm run dev` inside `src/ui`
 - API proxy: The dev server proxies application calls to Laravel at `http://localhost:8000` (or
   `VITE_API_PROXY_TARGET`):
@@ -75,8 +75,9 @@ Environment variables
 
 - `VITE_API_BASE`: Base URL for Laravel API (default `/api`). In production, set to your Laravel
   backend URL.
-- `VITE_API_PROXY_TARGET`: Dev-only proxy target for Vite (e.g., `http://web` from
-  docker-compose.dev.yml, or `http://localhost:8000` for local Laravel).
+- `VITE_API_PROXY_TARGET`: Dev-only proxy target for Vite (e.g., `http://web` from the compose
+  network, or `http://localhost:8000` for local Laravel).
+- `VITE_ASSET_BASE`: Public base path/URL for uploaded files (default `/storage` in Docker).
 - See `.env.example` in `src/ui` for typical values.
 
 CSRF protection

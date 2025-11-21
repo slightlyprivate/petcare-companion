@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -40,6 +43,31 @@ class PetActivity extends Model
         return [
             // No special casts yet; timestamps handled automatically.
         ];
+    }
+
+    /**
+     * Resolve media URLs to their public path when persisted locally.
+     */
+    protected function mediaUrl(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                if (! $value) {
+                    return null;
+                }
+
+                if (Str::startsWith($value, ['http://', 'https://', '//', 'data:'])) {
+                    return $value;
+                }
+
+                $relativePath = ltrim(Str::after($value, '/storage'), '/');
+
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                $disk = Storage::disk('public');
+
+                return $disk->url($relativePath);
+            },
+        );
     }
 
     /**

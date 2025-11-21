@@ -31,6 +31,7 @@ export interface CreateActivityPayload {
 }
 
 export interface ListActivitiesParams {
+  page?: number;
   per_page?: number;
   type?: string;
   date_from?: string;

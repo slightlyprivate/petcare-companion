@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Credit;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Credit\StoreCreditPurchaseRequest;
-use App\Http\Resources\CreditPurchaseResource;
+use App\Http\Resources\Credit\CreditPurchaseResource;
 use App\Models\CreditBundle;
 use App\Models\CreditPurchase;
 use App\Services\Credit\CreditPurchaseService;

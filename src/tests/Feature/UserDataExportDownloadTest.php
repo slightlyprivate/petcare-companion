@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Jobs\DeleteExpiredExportsJob;
 use App\Jobs\ExportUserDataJob;
-use App\Mail\UserDataExportNotification;
+use App\Mail\Auth\UserDataExportNotification;
 use App\Models\Gift;
 use App\Models\Pet;
 use App\Models\User;
@@ -72,7 +72,8 @@ class UserDataExportDownloadTest extends TestCase
         // Verify file exists in storage
         $export = UserExport::where('user_id', $user->id)->first();
         $this->assertNotNull($export);
-        Storage::disk('exports')->assertExists($export->file_path);
+        // Using explicit PHPUnit assertion for IDE/static analysis compatibility
+        $this->assertTrue(Storage::disk('exports')->exists($export->file_path));
 
         // Verify file is a valid zip
         $content = Storage::disk('exports')->get($export->file_path);

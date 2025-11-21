@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Pet;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CreatePetActivityRequest;
-use App\Http\Requests\ListPetActivitiesRequest;
+use App\Http\Requests\PetActivity\CreatePetActivityRequest;
+use App\Http\Requests\PetActivity\ListPetActivitiesRequest;
 use App\Models\Pet;
 use App\Models\PetActivity;
 use App\Services\Pet\PetActivityService;
@@ -55,7 +55,7 @@ class PetActivityController extends Controller
      *
      * @bodyParam type string required The activity type. Example: feeding
      * @bodyParam description string required A short description of the activity. Example: Morning feeding with new kibble
-     * @bodyParam media_url string nullable Optional media URL associated with the activity. Example: https://example.com/image.jpg
+     * @bodyParam media_url string nullable Optional media reference (full URL or storage path). Example: activities/media/walk.jpg
      */
     public function store(CreatePetActivityRequest $request, Pet $pet): JsonResponse
     {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Menu, X, LogOut, LogIn } from 'lucide-react';
 import { NAV_ITEMS } from '../layouts/nav';
 import { PATHS } from '../routes/paths';
@@ -18,12 +18,8 @@ export default function Navigation({ isAuthenticated, onLogout, isLoggingOut }: 
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
-  const loc = useLocation();
 
-  useEffect(() => {
-    // Close menu on route change
-    setOpen(false);
-  }, [loc.pathname, loc.search, loc.hash]);
+  // Removed route-change effect that set state directly; rely on link clicks/logout actions to close.
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {

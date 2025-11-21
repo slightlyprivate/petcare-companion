@@ -19,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\App\Exceptions\OtpVerificationFailedException $e) {
+        $exceptions->render(function (\App\Exceptions\Auth\OtpVerificationFailedException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], 422);

@@ -10,16 +10,19 @@ use App\Http\Controllers\Auth\User\UserExportDownloadController;
 use App\Http\Controllers\Credit\CreditPurchaseController;
 use App\Http\Controllers\Gift\GiftController;
 use App\Http\Controllers\GiftType\GiftTypeController;
+use App\Http\Controllers\Media\MediaUploadController;
 use App\Http\Controllers\Pet\PetActivityController;
 use App\Http\Controllers\Pet\PetAppointmentController;
+use App\Http\Controllers\Pet\PetAvatarController;
 use App\Http\Controllers\Pet\PetCaregiverController;
 use App\Http\Controllers\Pet\PetCaregiverInvitationController;
 use App\Http\Controllers\Pet\PetController;
 use App\Http\Controllers\Pet\PetGiftController;
 use App\Http\Controllers\Pet\PetRestoreController;
-use App\Http\Controllers\Pet\Public\PetDirectoryController;
-use App\Http\Controllers\Pet\Public\PetReportController;
-use App\Http\Controllers\PetRoutineController;
+use App\Http\Controllers\Pet\PetRoutineController;
+use App\Http\Controllers\Pet\PetRoutineOccurrenceController;
+use App\Http\Controllers\Public\PetDirectory\PetDirectoryController;
+use App\Http\Controllers\Public\PetReport\PetReportController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -64,6 +67,10 @@ Route::get('/user/data/exports/{export}/download', [UserExportDownloadController
 
 // Authenticated endpoints
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/uploads', [MediaUploadController::class, 'store'])
+        ->middleware('throttle:pet.write')
+        ->name('uploads.store');
+
     // Read operations (no rate limiting)
     Route::prefix('appointments')->group(function () {
         Route::get('/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
@@ -90,7 +97,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{pet}/routines', [PetRoutineController::class, 'index'])->name('pets.routines.index');
         Route::get('/{pet}/caregivers', [PetCaregiverController::class, 'index'])->name('pets.caregivers.index');
         // Today's routine tasks (auto-generates occurrences if missing)
-        Route::get('/{pet}/routines/today', [\App\Http\Controllers\PetRoutineOccurrenceController::class, 'today'])->name('pets.routines.today');
+        Route::get('/{pet}/routines/today', [PetRoutineOccurrenceController::class, 'today'])->name('pets.routines.today');
     });
 
     Route::prefix('user')->group(function () {
@@ -115,6 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/pets/{pet}', [PetController::class, 'update'])->name('pets.update');
         Route::delete('/pets/{pet}', [PetController::class, 'destroy'])->name('pets.destroy');
         Route::post('/pets/{pet}/restore', [PetRestoreController::class, 'restore'])->name('pets.restore');
+        Route::post('/pets/{pet}/avatar', [PetAvatarController::class, 'store'])->name('pets.avatar.store');
         Route::post('/pets/{pet}/caregiver-invitations', [PetCaregiverInvitationController::class, 'store'])->name('pets.caregiver-invitations.store');
         Route::post('/caregiver-invitations/{token}/accept', [PetCaregiverInvitationController::class, 'accept'])->name('caregiver-invitations.accept');
         Route::delete('/caregiver-invitations/{invitation}', [PetCaregiverInvitationController::class, 'destroy'])->name('caregiver-invitations.destroy');
@@ -124,7 +132,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pets/{pet}/routines', [PetRoutineController::class, 'store'])->name('pets.routines.store');
         Route::patch('/routines/{routine}', [PetRoutineController::class, 'update'])->name('routines.update');
         Route::delete('/routines/{routine}', [PetRoutineController::class, 'destroy'])->name('routines.destroy');
-        Route::post('/routine-occurrences/{occurrence}/complete', [\App\Http\Controllers\PetRoutineOccurrenceController::class, 'complete'])->name('routine-occurrences.complete');
+        Route::post('/routine-occurrences/{occurrence}/complete', [PetRoutineOccurrenceController::class, 'complete'])->name('routine-occurrences.complete');
     });
 
     // Write operations - Gift endpoints (throttle:gift.write)

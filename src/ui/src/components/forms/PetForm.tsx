@@ -1,4 +1,4 @@
-import { FormEvent, useState, useEffect } from 'react';
+import { FormEvent, useState } from 'react';
 import Button from '../Button';
 import TextInput from '../TextInput';
 
@@ -33,15 +33,6 @@ export default function PetForm({
     birth_date: '',
     ...initial,
   }));
-
-  useEffect(() => {
-    if (initial) {
-      setValues((prev) => ({
-        ...prev,
-        ...initial,
-      }));
-    }
-  }, [initial]);
 
   const canSubmit = !!values.name && !!values.species && !!values.owner_name;
 

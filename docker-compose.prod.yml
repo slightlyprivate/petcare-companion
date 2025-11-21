@@ -1,0 +1,102 @@
+services:
+  # Production-oriented stack (pre-built images expected)
+  # External services (DB/Redis/Object storage) should be provisioned outside Compose.
+  # Ensure proper CORS / Sanctum configuration in .env.
+
+  app:
+    container_name: petcare_app
+    image: ghcr.io/slightlyprivate/petcare-companion-app:prod
+    env_file: .env
+    read_only: true
+    user: www-data
+    volumes:
+      - storage:/var/www/html/storage/app/public:rw
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ['CMD', 'php', 'artisan', 'inspire']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - backend
+
+  web:
+    container_name: petcare_web
+    image: ghcr.io/slightlyprivate/petcare-companion-web:prod
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - '127.0.0.1:8080:80'
+    read_only: true
+    user: www-data
+    volumes:
+      - storage:/var/www/html/storage/app/public:ro
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/health || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - frontend
+      - backend
+
+  worker:
+    container_name: petcare_worker
+    image: ghcr.io/slightlyprivate/petcare-companion-app:prod
+    command: php artisan queue:work --sleep=3 --tries=3 --memory=256
+    env_file: .env
+    read_only: true
+    user: www-data
+    volumes:
+      - storage:/var/www/html/storage/app/public:rw
+    tmpfs:
+      - /tmp
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'pgrep', '-f', 'artisan queue:work']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - backend
+
+  ui:
+    container_name: petcare_ui
+    image: ghcr.io/slightlyprivate/petcare-companion-ui:prod
+    ports:
+      - '127.0.0.1:8081:80'
+    read_only: true
+    user: www-data
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/health >/dev/null 2>&1 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - frontend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  storage:
+    # For production use: pre-create as external or bind mount a host path.
+    # To convert to external volume run: docker volume create storage
+    # external: true

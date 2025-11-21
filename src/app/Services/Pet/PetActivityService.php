@@ -5,6 +5,7 @@ namespace App\Services\Pet;
 use App\Models\Pet;
 use App\Models\PetActivity;
 use App\Models\User;
+use App\Services\Media\MediaStorageService;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
@@ -14,6 +15,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class PetActivityService
 {
+    public function __construct(private MediaStorageService $mediaStorage) {}
+
     /**
      * List activities for a pet with optional filters.
      *
@@ -52,7 +55,7 @@ class PetActivityService
             'user_id' => $user?->getKey(),
             'type' => $data['type'],
             'description' => $data['description'],
-            'media_url' => $data['media_url'] ?? null,
+            'media_url' => $this->mediaStorage->normalizeReference($data['media_url'] ?? null),
         ]);
 
         // Log system-level activity (Spatie) for audit trail
@@ -74,6 +77,7 @@ class PetActivityService
     public function delete(PetActivity $activity, ?User $user): void
     {
         $petId = $activity->pet_id;
+        $this->mediaStorage->deleteIfLocal($activity->getRawOriginal('media_url'));
         $activity->delete();
 
         activity()
