@@ -2,7 +2,7 @@ DEV_COMPOSE = docker-compose.yml
 PROD_COMPOSE = docker-compose.prod.yml
 
 .PHONY: up upd down seed migrate logs ps env bash pint stan restart test
-.PHONY: build-app build-web build-all push-app push-web push-all prod-up prod-down
+.PHONY: build-app build-web build-ui build-all bake-all push-app push-web push-ui push-all prod-up prod-down
 
 # =============================================================================
 # Development Commands
@@ -55,44 +55,38 @@ bash:
 # =============================================================================
 
 build-app:
-	@echo "Building production app image..."
-	docker buildx build \
-    --platform linux/amd64,linux/arm64 \
-    --target runner \
-    --tag ghcr.io/slightlyprivate/petcare-companion-app:prod \
-    --tag ghcr.io/slightlyprivate/petcare-companion-app:latest \
-    --file docker/app/Dockerfile \
-    --cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache \
-    --cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache,mode=max \
-		--push \
-    .
+	@echo "Building production app image with Bake (no push)..."
+	docker buildx bake -f docker-bake.hcl app
 
 build-web:
-	@echo "Building production web image..."
-	docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--tag ghcr.io/slightlyprivate/petcare-companion-web:prod \
-		--tag ghcr.io/slightlyprivate/petcare-companion-web:latest \
-		--file docker/web/Dockerfile \
-		--cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-web:buildcache \
-		--cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-web:buildcache,mode=max \
-		--push \
-		.
+	@echo "Building production web image with Bake (no push)..."
+	docker buildx bake -f docker-bake.hcl web
 
 build-ui:
-	@echo "Building production UI image..."
-	docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--tag ghcr.io/slightlyprivate/petcare-companion-ui:prod \
-		--tag ghcr.io/slightlyprivate/petcare-companion-ui:latest \
-		--file docker/ui/Dockerfile \
-		--cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-ui:buildcache \
-		--cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-ui:buildcache,mode=max \
-		--push \
-		.
+	@echo "Building production UI image with Bake (no push)..."
+	docker buildx bake -f docker-bake.hcl ui
 
-build-all: build-app build-web build-ui
-	@echo "All production images built successfully"
+build-all: bake-all
+
+bake-all:
+	@echo "Building all production images with Bake (no push)..."
+	docker buildx bake -f docker-bake.hcl all
+
+push-app:
+	@echo "Building and pushing app image with Bake..."
+	docker buildx bake -f docker-bake.hcl --push app
+
+push-web:
+	@echo "Building and pushing web image with Bake..."
+	docker buildx bake -f docker-bake.hcl --push web
+
+push-ui:
+	@echo "Building and pushing UI image with Bake..."
+	docker buildx bake -f docker-bake.hcl --push ui
+
+push-all:
+	@echo "Building and pushing all images with Bake..."
+	docker buildx bake -f docker-bake.hcl --push all
 
 # =============================================================================
 # Production Deployment Commands
