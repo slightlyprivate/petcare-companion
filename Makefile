@@ -1,8 +1,26 @@
+VERSION := $(shell cat VERSION)
+DEFAULT_BRANCH ?= main
+CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
+IS_DEFAULT_BRANCH := $(if $(filter $(DEFAULT_BRANCH),$(CURRENT_BRANCH)),1,0)
+
+APP_TAGS := ghcr.io/slightlyprivate/petcare-companion-app:$(VERSION)
+WEB_TAGS := ghcr.io/slightlyprivate/petcare-companion-web:$(VERSION)
+UI_TAGS := ghcr.io/slightlyprivate/petcare-companion-ui:$(VERSION)
+
+ifeq ($(IS_DEFAULT_BRANCH),1)
+APP_TAGS := $(APP_TAGS),ghcr.io/slightlyprivate/petcare-companion-app:latest
+WEB_TAGS := $(WEB_TAGS),ghcr.io/slightlyprivate/petcare-companion-web:latest
+UI_TAGS := $(UI_TAGS),ghcr.io/slightlyprivate/petcare-companion-ui:latest
+endif
+
+BAKE_FILE := docker-bake.hcl
+BAKE_TAGS := --set app.tags=$(APP_TAGS) --set web.tags=$(WEB_TAGS) --set ui.tags=$(UI_TAGS)
+
 DEV_COMPOSE = docker-compose.yml
 PROD_COMPOSE = docker-compose.prod.yml
 
-.PHONY: up upd down seed migrate logs ps env bash pint stan restart test
-.PHONY: build-app build-web build-all push-app push-web push-all prod-up prod-down
+.PHONY: up upd down seed migrate logs ps env bash pint stan restart test bump-version
+.PHONY: build-app build-web build-ui build-all bake-all push-app push-web push-ui push-all prod-up prod-down
 
 # =============================================================================
 # Development Commands
@@ -55,44 +73,38 @@ bash:
 # =============================================================================
 
 build-app:
-	@echo "Building production app image..."
-	docker buildx build \
-    --platform linux/amd64,linux/arm64 \
-    --target runner \
-    --tag ghcr.io/slightlyprivate/petcare-companion-app:prod \
-    --tag ghcr.io/slightlyprivate/petcare-companion-app:latest \
-    --file docker/app/Dockerfile \
-    --cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache \
-    --cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache,mode=max \
-		--push \
-    .
+	@echo "Building production app image with Bake (no push)..."
+	docker buildx bake -f $(BAKE_FILE) --set app.tags=$(APP_TAGS) app
 
 build-web:
-	@echo "Building production web image..."
-	docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--tag ghcr.io/slightlyprivate/petcare-companion-web:prod \
-		--tag ghcr.io/slightlyprivate/petcare-companion-web:latest \
-		--file docker/web/Dockerfile \
-		--cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-web:buildcache \
-		--cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-web:buildcache,mode=max \
-		--push \
-		.
+	@echo "Building production web image with Bake (no push)..."
+	docker buildx bake -f $(BAKE_FILE) --set web.tags=$(WEB_TAGS) web
 
 build-ui:
-	@echo "Building production UI image..."
-	docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--tag ghcr.io/slightlyprivate/petcare-companion-ui:prod \
-		--tag ghcr.io/slightlyprivate/petcare-companion-ui:latest \
-		--file docker/ui/Dockerfile \
-		--cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-ui:buildcache \
-		--cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-ui:buildcache,mode=max \
-		--push \
-		.
+	@echo "Building production UI image with Bake (no push)..."
+	docker buildx bake -f $(BAKE_FILE) --set ui.tags=$(UI_TAGS) ui
 
-build-all: build-app build-web build-ui
-	@echo "All production images built successfully"
+build-all: bake-all
+
+bake-all:
+	@echo "Building all production images with Bake (no push)..."
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_TAGS) all
+
+push-app:
+	@echo "Building and pushing app image with Bake..."
+	docker buildx bake -f $(BAKE_FILE) --set app.tags=$(APP_TAGS) --push app
+
+push-web:
+	@echo "Building and pushing web image with Bake..."
+	docker buildx bake -f $(BAKE_FILE) --set web.tags=$(WEB_TAGS) --push web
+
+push-ui:
+	@echo "Building and pushing UI image with Bake..."
+	docker buildx bake -f $(BAKE_FILE) --set ui.tags=$(UI_TAGS) --push ui
+
+push-all:
+	@echo "Building and pushing all images with Bake..."
+	docker buildx bake -f $(BAKE_FILE) $(BAKE_TAGS) --push all
 
 # =============================================================================
 # Production Deployment Commands
@@ -131,4 +143,18 @@ image-scan:
 	trivy image ghcr.io/slightlyprivate/petcare-companion-app:prod
 	trivy image ghcr.io/slightlyprivate/petcare-companion-web:prod
 	trivy image ghcr.io/slightlyprivate/petcare-companion-ui:prod
+
+bump-version:
+	@echo "Usage: make bump-version PART=patch|minor|major"
+	@current=$$(cat VERSION); \
+	IFS=. read -r major minor patch <<<"$$current"; \
+	case "$(PART)" in \
+		major) major=$$((major+1)); minor=0; patch=0 ;; \
+		minor) minor=$$((minor+1)); patch=0 ;; \
+		patch) patch=$$((patch+1)) ;; \
+		*) echo "Invalid PART. Use patch, minor, or major."; exit 1 ;; \
+	esac; \
+	new="$$major.$$minor.$$patch"; \
+	echo $$new > VERSION; \
+	echo "Bumped version to $$new"
 
