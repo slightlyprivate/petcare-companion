@@ -55,16 +55,10 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
-
-            # --- App Tags ---
             app.tags=ghcr.io/slightlyprivate/petcare-companion-app:${{ steps.version.outputs.version }}
             app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:latest
-
-            # --- Web Tags ---
             web.tags=ghcr.io/slightlyprivate/petcare-companion-web:${{ steps.version.outputs.version }}
             web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:latest
-
-            # --- UI Tags ---
             ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:${{ steps.version.outputs.version }}
             ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:latest
 
