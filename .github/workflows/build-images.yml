@@ -55,9 +55,18 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
-            app.tags=ghcr.io/slightlyprivate/petcare-companion-app:${{ steps.version.outputs.version }}${{ github.ref == 'refs/heads/main' && ',ghcr.io/slightlyprivate/petcare-companion-app:latest' || '' }}
-            web.tags=ghcr.io/slightlyprivate/petcare-companion-web:${{ steps.version.outputs.version }}${{ github.ref == 'refs/heads/main' && ',ghcr.io/slightlyprivate/petcare-companion-web:latest' || '' }}
-            ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:${{ steps.version.outputs.version }}${{ github.ref == 'refs/heads/main' && ',ghcr.io/slightlyprivate/petcare-companion-ui:latest' || '' }}
+
+            # --- App Tags ---
+            app.tags=ghcr.io/slightlyprivate/petcare-companion-app:${{ steps.version.outputs.version }}
+            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:latest
+
+            # --- Web Tags ---
+            web.tags=ghcr.io/slightlyprivate/petcare-companion-web:${{ steps.version.outputs.version }}
+            web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:latest
+
+            # --- UI Tags ---
+            ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:${{ steps.version.outputs.version }}
+            ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:latest
 
       - name: Add build summary
         if: always()
@@ -65,20 +74,11 @@ jobs:
         with:
           script: |
             const images = [
-              {
-                name: "petcare-companion-app",
-                image: "ghcr.io/slightlyprivate/petcare-companion-app",
-              },
-              {
-                name: "petcare-companion-web",
-                image: "ghcr.io/slightlyprivate/petcare-companion-web",
-              },
-              {
-                name: "petcare-companion-ui",
-                image: "ghcr.io/slightlyprivate/petcare-companion-ui",
-              }
+              { name: "petcare-companion-app", image: "ghcr.io/slightlyprivate/petcare-companion-app" },
+              { name: "petcare-companion-web", image: "ghcr.io/slightlyprivate/petcare-companion-web" },
+              { name: "petcare-companion-ui", image: "ghcr.io/slightlyprivate/petcare-companion-ui" },
             ];
-            const version = process.env['VERSION'] || '${{ steps.version.outputs.version }}';
+            const version = '${{ steps.version.outputs.version }}';
             const isMain = '${{ github.ref }}' === 'refs/heads/main';
             const platforms = 'linux/amd64, linux/arm64';
             let summary = `## Docker Build Summary\n\n`;
@@ -86,7 +86,7 @@ jobs:
             summary += `**Platforms:** ${platforms}\n\n`;
             summary += `| Image | Tags |\n|-------|------|\n`;
             for (const img of images) {
-              let tags = [`${img.image}:${version}`];
+              const tags = [`${img.image}:${version}`];
               if (isMain) tags.push(`${img.image}:latest`);
               summary += `| \`${img.image}\` | ${tags.map(t => `\`${t}\``).join(', ')} |\n`;
             }
@@ -96,27 +96,26 @@ jobs:
       - name: Validate image sizes
         run: |
           set -e
-          # Define image names and size limits (in bytes)
           APP_IMAGE="ghcr.io/slightlyprivate/petcare-companion-app:${{ steps.version.outputs.version }}"
           WEB_IMAGE="ghcr.io/slightlyprivate/petcare-companion-web:${{ steps.version.outputs.version }}"
           UI_IMAGE="ghcr.io/slightlyprivate/petcare-companion-ui:${{ steps.version.outputs.version }}"
-          APP_LIMIT=$((450 * 1024 * 1024))   # 450MB
-          WEB_LIMIT=$((50 * 1024 * 1024))    # 50MB
-          # Get image sizes
+          APP_LIMIT=$((450 * 1024 * 1024))
+          WEB_LIMIT=$((50 * 1024 * 1024))
+
           APP_SIZE=$(docker image inspect $APP_IMAGE --format='{{.Size}}' || echo 0)
           WEB_SIZE=$(docker image inspect $WEB_IMAGE --format='{{.Size}}' || echo 0)
           UI_SIZE=$(docker image inspect $UI_IMAGE --format='{{.Size}}' || echo 0)
-          # Check app image size
+
           if [ "$APP_SIZE" -gt "$APP_LIMIT" ]; then
-            echo "::warning file=.github/workflows/build-images.yml::App image size ($((APP_SIZE/1024/1024))MB) exceeds limit of $((APP_LIMIT/1024/1024))MB"
+            echo "::warning::App image size ($((APP_SIZE/1024/1024))MB) exceeds 450MB"
           else
             echo "App image size: $((APP_SIZE/1024/1024))MB"
           fi
-          # Check web image size
+
           if [ "$WEB_SIZE" -gt "$WEB_LIMIT" ]; then
-            echo "::warning file=.github/workflows/build-images.yml::Web image size ($((WEB_SIZE/1024/1024))MB) exceeds limit of $((WEB_LIMIT/1024/1024))MB"
+            echo "::warning::Web image size ($((WEB_SIZE/1024/1024))MB) exceeds 50MB"
           else
             echo "Web image size: $((WEB_SIZE/1024/1024))MB"
           fi
-          # Optionally, report UI image size (no limit set)
+
           echo "UI image size: $((UI_SIZE/1024/1024))MB"
