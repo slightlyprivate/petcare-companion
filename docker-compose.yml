@@ -8,7 +8,6 @@ services:
       args:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
-    env_file: .env
     volumes:
       - ./src:/var/www/html
       - storage:/var/www/html/storage/app/public

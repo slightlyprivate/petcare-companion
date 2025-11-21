@@ -10,11 +10,6 @@ on:
       - 'docker/app.Dockerfile'
       - 'docker/entrypoints/**'
       - '.github/workflows/build-app-image.yml'
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'docker/app.Dockerfile'
-      - 'docker/entrypoints/**'
   workflow_dispatch:
 
 env:
@@ -54,11 +49,8 @@ jobs:
             # branch tags (main, develop)
             type=ref,event=branch
 
-            # PR tags (pr-###)
-            type=ref,event=pr
-
-            # SHA tag only on main/develop (fixes invalid ":-sha" bug)
-            type=sha,prefix={{branch}}-,enable=${{ github.event_name != 'pull_request' }}
+            # SHA tag
+            type=sha,prefix={{branch}}-
 
             # "prod" and "latest" for default branch
             type=raw,value=prod,enable={{is_default_branch}}

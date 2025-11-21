@@ -39,17 +39,17 @@ class ApiResponseShapeVerificationTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson(
-                fn (AssertableJson $json) => $json->has('data')
+                fn(AssertableJson $json) => $json->has('data')
                     ->has(
                         'links',
-                        fn ($links) => $links->has('first')
+                        fn($links) => $links->has('first')
                             ->has('last')
                             ->has('prev')
                             ->has('next')
                     )
                     ->has(
                         'meta',
-                        fn ($meta) => $meta->has('current_page')
+                        fn($meta) => $meta->has('current_page')
                             ->has('from')
                             ->has('last_page')
                             ->has('per_page')
@@ -59,12 +59,13 @@ class ApiResponseShapeVerificationTest extends TestCase
                     )
                     ->has(
                         'data.0',
-                        fn ($pet) => $pet->has('id')
+                        fn($pet) => $pet->has('id')
                             ->has('name')
                             ->has('species')
                             ->has('breed')
                             ->has('birth_date')
                             ->has('owner_name')
+                            ->has('avatar_url')
                             ->has('age')
                             ->has('created_at')
                             ->has('updated_at')
@@ -93,9 +94,9 @@ class ApiResponseShapeVerificationTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJson(
-                fn (AssertableJson $json) => $json->has(
+                fn(AssertableJson $json) => $json->has(
                     'data',
-                    fn ($pet) => $pet->has('id')
+                    fn($pet) => $pet->has('id')
                         ->where('name', 'Test Pet')
                         ->where('species', 'Cat')
                         ->where('breed', 'Persian')
@@ -121,10 +122,10 @@ class ApiResponseShapeVerificationTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJson(
-                fn (AssertableJson $json) => $json->has('message')
+                fn(AssertableJson $json) => $json->has('message')
                     ->has(
                         'errors',
-                        fn ($errors) => $errors->has('name')
+                        fn($errors) => $errors->has('name')
                             ->has('species')
                             ->has('owner_name')
                             ->etc()
@@ -157,12 +158,12 @@ class ApiResponseShapeVerificationTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson(
-                fn (AssertableJson $json) => $json->has('data')
+                fn(AssertableJson $json) => $json->has('data')
                     ->has('links')
                     ->has('meta')
                     ->has(
                         'data.0',
-                        fn ($appointment) => $appointment->has('id')
+                        fn($appointment) => $appointment->has('id')
                             ->has('pet_id')
                             ->has('title')
                             ->has('scheduled_at')
@@ -195,9 +196,9 @@ class ApiResponseShapeVerificationTest extends TestCase
 
         $response->assertStatus(201)
             ->assertJson(
-                fn (AssertableJson $json) => $json->has(
+                fn(AssertableJson $json) => $json->has(
                     'data',
-                    fn ($appointment) => $appointment->has('id')
+                    fn($appointment) => $appointment->has('id')
                         ->where('pet_id', $pet->id)
                         ->where('title', 'New Appointment')
                         ->where('notes', 'New appointment notes')
@@ -225,10 +226,10 @@ class ApiResponseShapeVerificationTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJson(
-                fn (AssertableJson $json) => $json->has('message')
+                fn(AssertableJson $json) => $json->has('message')
                     ->has(
                         'errors',
-                        fn ($errors) => $errors->has('title')
+                        fn($errors) => $errors->has('title')
                             ->has('scheduled_at')
                             ->etc()
                     )
@@ -249,7 +250,7 @@ class ApiResponseShapeVerificationTest extends TestCase
 
         $response->assertStatus(404)
             ->assertJson(
-                fn (AssertableJson $json) => $json->has('message')
+                fn(AssertableJson $json) => $json->has('message')
                     ->etc()
             );
     }
@@ -266,9 +267,9 @@ class ApiResponseShapeVerificationTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJson(
-                fn (AssertableJson $json) => $json->has(
+                fn(AssertableJson $json) => $json->has(
                     'meta',
-                    fn ($meta) => $meta->whereType('current_page', 'integer')
+                    fn($meta) => $meta->whereType('current_page', 'integer')
                         ->whereType('from', ['integer', 'null'])
                         ->whereType('last_page', 'integer')
                         ->whereType('per_page', 'integer')
@@ -280,7 +281,7 @@ class ApiResponseShapeVerificationTest extends TestCase
                 )
                     ->has(
                         'links',
-                        fn ($links) => $links->has('first')
+                        fn($links) => $links->has('first')
                             ->has('last')
                             ->has('prev')
                             ->has('next')
@@ -321,7 +322,7 @@ class ApiResponseShapeVerificationTest extends TestCase
             $this->assertNotEquals(
                 500,
                 $response->status(),
-                "500 error on {$method} {$url}: ".$response->getContent()
+                "500 error on {$method} {$url}: " . $response->getContent()
             );
 
             // Assert proper content type

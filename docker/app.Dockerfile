@@ -14,11 +14,16 @@ RUN apk add --no-cache \
     unzip \
     nodejs \
     npm \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libzip-dev \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
     && pecl install redis \
     && docker-php-ext-enable redis \
-    && docker-php-ext-install pcntl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pcntl gd zip \
     && apk del .phpize-deps
 
 WORKDIR /var/www/html
@@ -52,10 +57,8 @@ RUN mkdir -p \
     storage/framework/views \
     bootstrap/cache
 
-# Run Laravel optimizations
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+# Note: Config/route/view caching removed for development compatibility
+# Production deployments should run these optimizations in their entrypoint or CI/CD
 
 # -----------------------------------------------------------------------------
 # Stage 2: Runner - Minimal production runtime
@@ -65,10 +68,15 @@ FROM php:8.3-fpm-alpine AS runner
 # Install runtime dependencies and PHP extensions
 RUN apk add --no-cache \
     mysql-client \
-    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
+    libpng \
+    libjpeg-turbo \
+    freetype \
+    libzip \
+    && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS libpng-dev libjpeg-turbo-dev freetype-dev libzip-dev \
     && pecl install redis \
     && docker-php-ext-enable redis \
-    && docker-php-ext-install pdo_mysql pcntl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql pcntl gd zip \
     && apk del .phpize-deps
 
 # Set production PHP configuration
