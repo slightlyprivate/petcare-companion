@@ -57,14 +57,15 @@ bash:
 build-app:
 	@echo "Building production app image..."
 	docker buildx build \
-		--platform linux/amd64,linux/arm64 \
-		--target runner \
-		--tag ghcr.io/slightlyprivate/petcare-companion-app:prod \
-		--tag ghcr.io/slightlyprivate/petcare-companion-app:latest \
-		--file docker/app/Dockerfile \
-		--cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache \
-		--cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache,mode=max \
-		.
+    --platform linux/amd64,linux/arm64 \
+    --target runner \
+    --tag ghcr.io/slightlyprivate/petcare-companion-app:prod \
+    --tag ghcr.io/slightlyprivate/petcare-companion-app:latest \
+    --file docker/app/Dockerfile \
+    --cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache \
+    --cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-app:buildcache,mode=max \
+		--push \
+    .
 
 build-web:
 	@echo "Building production web image..."
@@ -75,23 +76,23 @@ build-web:
 		--file docker/web/Dockerfile \
 		--cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-web:buildcache \
 		--cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-web:buildcache,mode=max \
+		--push \
 		.
 
-build-all: build-app build-web
+build-ui:
+	@echo "Building production UI image..."
+	docker buildx build \
+		--platform linux/amd64,linux/arm64 \
+		--tag ghcr.io/slightlyprivate/petcare-companion-ui:prod \
+		--tag ghcr.io/slightlyprivate/petcare-companion-ui:latest \
+		--file docker/ui/Dockerfile \
+		--cache-from type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-ui:buildcache \
+		--cache-to type=registry,ref=ghcr.io/slightlyprivate/petcare-companion-ui:buildcache,mode=max \
+		--push \
+		.
+
+build-all: build-app build-web build-ui
 	@echo "All production images built successfully"
-
-push-app:
-	@echo "Pushing app image to registry..."
-	docker push ghcr.io/slightlyprivate/petcare-companion-app:prod
-	docker push ghcr.io/slightlyprivate/petcare-companion-app:latest
-
-push-web:
-	@echo "Pushing web image to registry..."
-	docker push ghcr.io/slightlyprivate/petcare-companion-web:prod
-	docker push ghcr.io/slightlyprivate/petcare-companion-web:latest
-
-push-all: push-app push-web
-	@echo "All images pushed to registry"
 
 # =============================================================================
 # Production Deployment Commands
@@ -116,19 +117,18 @@ prod-ps:
 # =============================================================================
 
 image-sizes:
-	@echo "Checking image sizes..."
-	@echo ""
 	@echo "App Image:"
-	@docker images ghcr.io/slightlyprivate/petcare-companion-app:prod --format "  Size: {{.Size}}"
+	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-app:prod | jq '.manifests[].platform, .manifests[].size'
 	@echo ""
 	@echo "Web Image:"
-	@docker images ghcr.io/slightlyprivate/petcare-companion-web:prod --format "  Size: {{.Size}}"
+	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-web:prod | jq '.manifests[].platform, .manifests[].size'
 	@echo ""
 	@echo "UI Image:"
-	@docker images ghcr.io/slightlyprivate/petcare-companion-ui:prod --format "  Size: {{.Size}}"
+	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-ui:prod | jq '.manifests[].platform, .manifests[].size'
 
 image-scan:
 	@echo "Scanning images for vulnerabilities..."
-	@command -v trivy >/dev/null 2>&1 || { echo "Trivy not installed. Install from https://github.com/aquasecurity/trivy"; exit 1; }
 	trivy image ghcr.io/slightlyprivate/petcare-companion-app:prod
 	trivy image ghcr.io/slightlyprivate/petcare-companion-web:prod
+	trivy image ghcr.io/slightlyprivate/petcare-companion-ui:prod
+
