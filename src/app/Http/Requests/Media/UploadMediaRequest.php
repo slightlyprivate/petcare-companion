@@ -49,10 +49,12 @@ class UploadMediaRequest extends FormRequest
      */
     public function bodyParameters(): array
     {
+        $examplePath = base_path('docs/examples/pet-photo.png');
+
         return [
             'file' => [
                 'description' => 'Binary file to upload (images and short video clips supported).',
-                'example' => 'pet-photo.jpg',
+                'example' => $examplePath,
             ],
             'context' => [
                 'description' => 'Optional storage context to group files (activities, pet_avatars, general).',

@@ -23,4 +23,14 @@ class ListPetCaregiverInvitationsRequest extends FormRequest
     {
         return [];
     }
+
+    /**
+     * No body parameters required for listing caregiver invitations.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [];
+    }
 }

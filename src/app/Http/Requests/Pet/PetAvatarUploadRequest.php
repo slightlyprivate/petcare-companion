@@ -32,4 +32,21 @@ class PetAvatarUploadRequest extends FormRequest
             'avatar' => ['required', 'image', 'mimes:jpeg,jpg,png,webp,gif', 'max:5120'], // max 5MB
         ];
     }
+
+    /**
+     * Provide body parameters for API documentation.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        $examplePath = base_path('docs/examples/pet-photo.png');
+
+        return [
+            'avatar' => [
+                'description' => 'Avatar image to represent the pet (JPEG, PNG, WEBP, or GIF up to 5MB).',
+                'example' => $examplePath,
+            ],
+        ];
+    }
 }

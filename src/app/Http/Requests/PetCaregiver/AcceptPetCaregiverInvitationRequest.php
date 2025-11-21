@@ -23,4 +23,14 @@ class AcceptPetCaregiverInvitationRequest extends FormRequest
     {
         return [];
     }
+
+    /**
+     * Accepting an invitation does not require a request body.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [];
+    }
 }

@@ -23,4 +23,14 @@ class RevokePetCaregiverInvitationRequest extends FormRequest
     {
         return [];
     }
+
+    /**
+     * Revoking an invitation does not require a request body.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bodyParameters(): array
+    {
+        return [];
+    }
 }
