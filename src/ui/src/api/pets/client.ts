@@ -59,6 +59,24 @@ export const updatePet = (payload: {
 }) => api(`/pets/${payload.id}`, { method: 'PUT', body: payload });
 
 /**
+ * Upload pet avatar image
+ */
+export const updatePetAvatar = async (
+  petId: number | string,
+  file: File,
+): Promise<{ message: string; avatar_url: string }> => {
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  const res = await api(`/pets/${petId}/avatar`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  return res as { message: string; avatar_url: string };
+};
+
+/**
  * Delete a pet
  */
 export const deletePet = (id: number | string) => api(`/pets/${id}`, { method: 'DELETE' });

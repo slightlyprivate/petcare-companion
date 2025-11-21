@@ -26,6 +26,7 @@ const DashboardAppointments = lazy(() => import('../pages/Dashboard/DashboardApp
 const DashboardGifts = lazy(() => import('../pages/Dashboard/DashboardGifts'));
 const DashboardAccount = lazy(() => import('../pages/Dashboard/DashboardAccount'));
 const AdminGiftTypes = lazy(() => import('../pages/Dashboard/Admin/AdminGiftTypes'));
+const AcceptInvitation = lazy(() => import('../pages/Dashboard/AcceptInvitation'));
 
 // Dev pages
 const DevHome = lazy(() => import('../pages/Dev/Home'));
@@ -49,6 +50,15 @@ export const routes = [
           { path: PATHS.AUTH.SIGNUP, element: <SignUp />, errorElement: <RouteError /> },
           { path: PATHS.AUTH.VERIFY, element: <VerifyOtp />, errorElement: <RouteError /> },
         ],
+      },
+      {
+        path: '/caregiver-invitations/accept',
+        element: (
+          <RouteGuard>
+            <AcceptInvitation />
+          </RouteGuard>
+        ),
+        errorElement: <RouteError />,
       },
       {
         path: PATHS.DASHBOARD.ROOT,

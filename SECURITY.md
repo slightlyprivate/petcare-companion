@@ -35,6 +35,5 @@ resolved within the window, coordinated disclosure will be discussed with the re
 ## Scope
 
 - Laravel API backend
-- React client application
-- Node-based backend-for-frontend services
+- React client application (directly communicates with Laravel via Nginx)
 - Docker deployment assets and configuration

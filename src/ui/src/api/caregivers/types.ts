@@ -17,6 +17,13 @@ export interface CaregiverInvitation {
   status: 'pending' | 'accepted' | 'declined' | 'revoked' | 'expired';
   expires_at: string;
   created_at: string;
+  token?: string; // Present in received invitations
+  inviter_email?: string; // Present in received invitations
+  pet?: {
+    id: string;
+    name: string;
+    species: string;
+  };
 }
 
 export interface InvitationLists {

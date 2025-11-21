@@ -49,7 +49,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
           <div
             key={t.id}
             role="status"
-            className={`min-w-[240px] max-w-sm rounded border px-3 py-2 shadow text-sm bg-white ${
+            className={`min-w-60 max-w-sm rounded border px-3 py-2 shadow text-sm bg-white ${
               t.type === 'success'
                 ? 'border-green-300'
                 : t.type === 'error'

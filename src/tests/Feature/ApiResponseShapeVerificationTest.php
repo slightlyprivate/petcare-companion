@@ -65,6 +65,7 @@ class ApiResponseShapeVerificationTest extends TestCase
                             ->has('breed')
                             ->has('birth_date')
                             ->has('owner_name')
+                            ->has('avatar_url')
                             ->has('age')
                             ->has('created_at')
                             ->has('updated_at')

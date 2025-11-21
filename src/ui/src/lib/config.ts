@@ -17,6 +17,7 @@ const normalizeBase = (value: string | undefined, fallback: string) => {
 
 export const API_BASE = normalizeBase(import.meta.env.VITE_API_BASE, '/api');
 export const isDev = import.meta.env.DEV;
+export const ASSET_BASE = normalizeBase(import.meta.env.VITE_ASSET_BASE, '/storage');
 
 // Basic runtime guardrails
 if (!API_BASE) {
@@ -25,4 +26,8 @@ if (!API_BASE) {
   } else {
     warn('VITE_API_BASE is not set, using fallback "/api".');
   }
+}
+
+if (!ASSET_BASE && import.meta.env.PROD) {
+  throw new Error('VITE_ASSET_BASE is required in production.');
 }

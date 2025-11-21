@@ -26,6 +26,7 @@ class PetResource extends \Illuminate\Http\Resources\Json\JsonResource
             'birth_date' => $this->birth_date?->format('Y-m-d'),
             'owner_name' => $this->owner_name,
             'age' => $this->age,
+            'avatar_url' => $this->avatar_url,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
             'appointments_count' => $this->whenCounted('appointments'),
