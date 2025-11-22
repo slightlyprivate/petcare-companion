@@ -35,7 +35,7 @@ RUN composer install \
     --no-interaction
 
 # ==========================================
-# Stage 2: PHP runtime (Alpine OK here)
+# Stage 2: PHP runtime (Production)
 # ==========================================
 FROM php:8.3-fpm-alpine3.20 AS runner
 
@@ -80,3 +80,12 @@ COPY docker/app/entrypoints/*.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/*.sh
 
 EXPOSE 9000
+
+# ==========================================
+# Stage 3: Development runtime (with Composer)
+# ==========================================
+FROM runner AS dev
+
+# Install Composer and git for development
+RUN apk add --no-cache git unzip
+COPY --from=vendor /usr/bin/composer /usr/bin/composer

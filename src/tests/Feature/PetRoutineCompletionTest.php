@@ -46,7 +46,7 @@ class PetRoutineCompletionTest extends TestCase
         $response = $this->actingAs($owner)->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
 
         $response->assertStatus(200)
-            ->assertJsonPath('data.completed_at', fn ($value) => $value !== null)
+            ->assertJsonPath('data.completed_at', fn($value) => $value !== null)
             ->assertJsonPath('data.completed_by', $owner->getKey());
 
         $this->assertDatabaseHas('pet_routine_occurrences', [
@@ -203,12 +203,13 @@ class PetRoutineCompletionTest extends TestCase
             'days_of_week' => [$todayIndex],
         ]);
 
-        // Routine not scheduled today
+        // Routine not scheduled today - use a different day that isn't today
+        $notTodayIndex = ($todayIndex + 1) % 7;
         PetRoutine::create([
             'pet_id' => $pet->getKey(),
-            'name' => 'Weekend Only',
+            'name' => 'Not Today',
             'time_of_day' => '10:00',
-            'days_of_week' => [0, 6], // Sunday & Saturday
+            'days_of_week' => [$notTodayIndex],
         ]);
 
         $response = $this->actingAs($owner)->getJson("/api/pets/{$pet->getKey()}/routines/today");
