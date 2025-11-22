@@ -83,6 +83,7 @@ services:
       - '127.0.0.1:8081:80'
     user: www-data
     tmpfs:
+      - /etc/nginx/conf.d
       - /var/cache/nginx
       - /var/run
     healthcheck:

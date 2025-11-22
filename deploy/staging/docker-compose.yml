@@ -5,7 +5,7 @@ services:
     env_file:
       - .env.staging
     healthcheck:
-      test: ['CMD', 'php', '-v']
+      test: ['CMD', 'php', 'artisan', 'inspire']
       interval: 20s
       timeout: 5s
       retries: 5
@@ -44,6 +44,10 @@ services:
     ports:
       - '9081:80'
     restart: unless-stopped
+    tmpfs:
+      - /etc/nginx/conf.d
+      - /var/cache/nginx
+      - /var/run
     networks:
       - default
 

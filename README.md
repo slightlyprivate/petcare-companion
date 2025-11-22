@@ -120,14 +120,14 @@ graph LR
 Build & push images (CI or local):
 
 ```bash
-docker compose -f docker-compose.prod.yml build
-docker compose -f docker-compose.prod.yml push
+docker compose -f deploy/prod/docker-compose.yml build
+docker compose -f deploy/prod/docker-compose.yml push
 ```
 
 Or pull prebuilt images:
 
 ```bash
-docker compose -f docker-compose.prod.yml pull
+docker compose -f deploy/prod/docker-compose.yml pull
 ```
 
 Prepare environment file (`.env`) with external service hosts:
@@ -151,7 +151,6 @@ SESSION_DRIVER=database
 SESSION_SECURE_COOKIE=true
 SANCTUM_STATEFUL_DOMAINS=your-ui.example.com
 SESSION_DOMAIN=your-ui.example.com
-VITE_API_BASE=/api
 VITE_ASSET_BASE=/storage
 ```
 
@@ -161,7 +160,7 @@ Create or attach persistent storage volume (if using Docker volume):
 docker volume create storage
 ```
 
-Alternatively change `docker-compose.prod.yml` to a host bind mount:
+Alternatively change `deploy/prod/docker-compose.yml` to a host bind mount:
 
 ```yaml
 volumes:
@@ -171,21 +170,21 @@ volumes:
 Start stack:
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f deploy/prod/docker-compose.yml up -d
 ```
 
 Run migrations (one-off):
 
 ```bash
-docker compose -f docker-compose.prod.yml exec app php artisan migrate --force
+docker compose -f deploy/prod/docker-compose.yml exec app php artisan migrate --force
 ```
 
 Optional cache warmups:
 
 ```bash
-docker compose -f docker-compose.prod.yml exec app php artisan config:cache
-docker compose -f docker-compose.prod.yml exec app php artisan route:cache
-docker compose -f docker-compose.prod.yml exec app php artisan view:cache
+docker compose -f deploy/prod/docker-compose.yml exec app php artisan config:cache
+docker compose -f deploy/prod/docker-compose.yml exec app php artisan route:cache
+docker compose -f deploy/prod/docker-compose.yml exec app php artisan view:cache
 ```
 
 Health validation:
@@ -195,8 +194,8 @@ Health validation:
 
 ### Important: Avoid Combining Dev & Prod Files
 
-Combining `docker-compose.yml` (dev) with `docker-compose.prod.yml` would unintentionally start
-development-only services (MySQL, Redis, Horizon, bind mounts) in production. Keep production
+Combining `docker-compose.yml` (dev) with `deploy/prod/docker-compose.yml` would unintentionally
+start development-only services (MySQL, Redis, Horizon, bind mounts) in production. Keep production
 concerns isolated to the prod file to ensure:
 
 - Correct dependency on external managed DB/Redis
@@ -263,13 +262,20 @@ concerns isolated to the prod file to ensure:
 - UI should be served as built static assets behind CDN / Nginx.
 - Configure CORS & Sanctum domains appropriately in `.env`.
 
+### UI Runtime API Proxy (Production & Staging)
+
+The UI never embeds an API URL at build time.
+
+Instead, Nginx proxies runtime `/api/*` requests to the backend using:
+
+`API_BASE_URL=http://<backend-service>`
+
+The value is injected via docker-compose at runtime, and substituted into
+`/etc/nginx/conf.d/default.conf` using the built-in nginx template system.
+
 Environment wiring (UI)
 
 - UI build-time vars (Vite):
-  - `VITE_API_BASE` (default `/api`): required in production builds. Set to your Laravel API base
-    URL.
-  - `VITE_API_PROXY_TARGET`: dev-only, points Vite's dev proxy at the Laravel backend (e.g.,
-    `http://web`).
   - `VITE_ASSET_BASE` (default `/storage`): base path/URL for uploaded files returned by Laravel.
 
 ## Documentation
