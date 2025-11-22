@@ -19,6 +19,7 @@ target "ui" {
   inherits   = ["common"]
   context    = "."
   dockerfile = "docker/ui/Dockerfile"
+  platforms = ["linux/amd64"]
 }
 
 group "all" {
