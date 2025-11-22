@@ -1,9 +1,10 @@
 {
-  "release-type": "version",
+  "release-type": "simple",
   "include-v-in-tag": false,
   "monorepo-tags": false,
   "packages": {
     ".": {
+      "release-type": "simple",
       "version-file": "VERSION",
       "changelog-path": "CHANGELOG.md"
     }

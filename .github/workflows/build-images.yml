@@ -17,6 +17,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write # REQUIRED for SARIF upload
 
     steps:
       - name: Checkout repository
@@ -113,3 +114,52 @@ jobs:
           fi
 
           echo "UI image size: $((UI_SIZE/1024/1024))MB"
+
+      ###############################################################
+      # 🔥 NEW: Trivy scan for vulnerabilities (SARIF upload)
+      ###############################################################
+
+      - name: Install Trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/slightlyprivate/petcare-companion-web:latest
+          format: sarif
+          output: trivy-web.sarif
+          ignore-unfixed: false
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+
+      - name: Upload SARIF (web)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-web.sarif
+
+      # OPTIONAL: Scan app
+      - name: Trivy scan (app)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/slightlyprivate/petcare-companion-app:latest
+          format: sarif
+          output: trivy-app.sarif
+          ignore-unfixed: false
+
+      - name: Upload SARIF (app)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-app.sarif
+
+      # OPTIONAL: Scan UI
+      - name: Trivy scan (ui)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/slightlyprivate/petcare-companion-ui:latest
+          format: sarif
+          output: trivy-ui.sarif
+          ignore-unfixed: false
+
+      - name: Upload SARIF (ui)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-ui.sarif
