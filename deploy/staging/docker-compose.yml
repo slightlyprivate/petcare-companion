@@ -36,6 +36,8 @@ services:
   ui:
     container_name: petcare_ui_staging
     image: ghcr.io/slightlyprivate/petcare-companion-ui:develop
+    environment:
+      API_BASE_URL: http://petcare_web_staging
     depends_on:
       web:
         condition: service_healthy
