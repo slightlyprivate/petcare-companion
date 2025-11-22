@@ -18,7 +18,7 @@ economy system with credit-based gifting.
 - **Target User:** Developer recruiter or hiring manager evaluating code style, organization,
   fluency, and understanding of modern web application architecture.
 - **Technical Stack:**
-  - PHP 8.2+
+  - PHP 8.3
   - Laravel 12
   - MySQL 8
   - Laravel Sanctum (API Authentication)
