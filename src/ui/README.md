@@ -68,7 +68,10 @@ Linting and route guard
 HTTP clients
 
 - `http.api`: Use for all calls to the Laravel API (defaults to relative `/api` so Nginx can proxy
-  at runtime).
+  at runtime). When running in a container or staging environment, set `API_BASE_URL` to the Laravel
+  service URL without a trailing slash or `/api` suffix (e.g., `http://web` in Docker,
+  `http://petcare_web_staging` in staging). The client appends `/api` automatically based on this
+  host.
 - `request`: Low-level helper when you need a custom base or atypical options. Includes credentials
   and automatic CSRF token handling via `X-XSRF-TOKEN` header.
 

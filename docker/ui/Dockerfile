@@ -3,12 +3,13 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 COPY src/ui/package*.json ./
-RUN npm install
+RUN --mount=type=cache,target=/root/.npm npm install
 COPY src/ui ./
 RUN npm run build
 
 # Runtime stage
 FROM nginx:stable-alpine
+RUN apk update && apk upgrade
 
 # Copy built UI artifacts
 COPY --from=build /app/dist /usr/share/nginx/html
@@ -16,6 +17,8 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Copy nginx template directory
 COPY src/ui/nginx/templates /etc/nginx/templates
 
+# Remove default nginx config to avoid conflicts with our template
+RUN rm -f /etc/nginx/conf.d/default.conf
 # Expose port 80 for UI
 EXPOSE 80
 
