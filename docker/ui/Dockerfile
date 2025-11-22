@@ -1,37 +1,26 @@
-# docker/ui/Dockerfile
-# =====================================================
-# Build React UI with Node
-# =====================================================
-FROM node:20-alpine3.20 AS builder
-
-RUN apk update && apk upgrade libxml2
+# Build stage
+FROM node:20-alpine AS build
 
 WORKDIR /app
+COPY src/ui/package*.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY src/ui ./
+RUN npm run build
 
-# Copy and install dependencies
-COPY src/ui/package.json src/ui/package-lock.json ./ui/
-RUN --mount=type=cache,target=/root/.npm \
-    cd ui && npm ci --quiet
+# Runtime stage
+FROM nginx:stable-alpine
 
-# Copy source code and build
-COPY src/ui ./ui
-RUN cd ui && npm run build
 
-# =====================================================
-# Serve UI statically with nginx
-# =====================================================
-FROM nginx:1.26-alpine3.20 AS runner
+# Copy built UI artifacts
+COPY --from=build /app/dist /usr/share/nginx/html
 
-RUN apk update && apk upgrade libxml2
+# Copy nginx template directory
+COPY docker/ui/templates /etc/nginx/templates
 
-# Clean default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
-
-# Copy build output
-COPY --from=builder /app/ui/dist /usr/share/nginx/html
-
-# Copy optimized SPA nginx config
-COPY docker/ui/nginx.conf /etc/nginx/conf.d/default.conf
-
+# Remove default nginx config to avoid conflicts with our template
+RUN rm -f /etc/nginx/conf.d/default.conf
+# Expose port 80 for UI
 EXPOSE 80
+
+# Use nginx entrypoint (already supports template variable substitution)
 CMD ["nginx", "-g", "daemon off;"]
