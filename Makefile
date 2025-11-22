@@ -157,4 +157,3 @@ bump-version:
 	new="$$major.$$minor.$$patch"; \
 	echo $$new > VERSION; \
 	echo "Bumped version to $$new"
-

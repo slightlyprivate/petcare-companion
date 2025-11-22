@@ -203,12 +203,13 @@ class PetRoutineCompletionTest extends TestCase
             'days_of_week' => [$todayIndex],
         ]);
 
-        // Routine not scheduled today
+        // Routine not scheduled today - use a different day that isn't today
+        $notTodayIndex = ($todayIndex + 1) % 7;
         PetRoutine::create([
             'pet_id' => $pet->getKey(),
-            'name' => 'Weekend Only',
+            'name' => 'Not Today',
             'time_of_day' => '10:00',
-            'days_of_week' => [0, 6], // Sunday & Saturday
+            'days_of_week' => [$notTodayIndex],
         ]);
 
         $response = $this->actingAs($owner)->getJson("/api/pets/{$pet->getKey()}/routines/today");

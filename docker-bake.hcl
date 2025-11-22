@@ -24,3 +24,14 @@ target "ui" {
 group "all" {
   targets = ["app", "web", "ui"]
 }
+
+target "app-dev" {
+  inherits   = ["common"]
+  context    = "."
+  dockerfile = "docker/app/Dockerfile"
+  target     = "dev"
+}
+
+group "develop" {
+  targets = ["app-dev", "web", "ui"]
+}

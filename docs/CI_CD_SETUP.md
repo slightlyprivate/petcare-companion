@@ -11,9 +11,9 @@ The CI/CD pipeline is automatically triggered on:
 
 ## Jobs
 
-### 1. **Tests** (Matrix: PHP 8.2, 8.3)
+### 1. **Tests** (PHP 8.3)
 
-Runs the complete PHPUnit test suite across multiple PHP versions.
+Runs the complete PHPUnit test suite.
 
 **Services:**
 
@@ -30,7 +30,7 @@ Runs the complete PHPUnit test suite across multiple PHP versions.
 
 **Configuration:**
 
-- Matrix testing across PHP 8.2 and 8.3
+- PHP 8.3
 - In-memory SQLite database for tests (configured in `phpunit.xml`)
 - XDebug coverage support
 
@@ -94,7 +94,7 @@ The workflow will fail if:
 To mimic the CI environment locally:
 
 ```bash
-# Run tests across PHP 8.2 and 8.3
+# Run tests
 cd src
 php artisan test
 
@@ -122,7 +122,7 @@ To modify the workflow:
 
 ```yaml
 matrix:
-  php: ['8.2', '8.3', '8.4']
+  php: ['8.3', '8.4']
 ```
 
 **Add additional extensions:**

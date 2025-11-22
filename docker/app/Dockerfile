@@ -1,9 +1,12 @@
 # ==========================================
 # Stage 1: Composer dependencies (PHP 8.3)
 # ==========================================
-FROM php:8.3-cli-alpine AS vendor
+FROM php:8.3-cli-alpine3.20 AS vendor
 
 WORKDIR /app
+
+# Pull security updates for libxml2
+RUN apk update && apk upgrade libxml2
 
 # Install system packages & PHP extensions for Composer
 RUN apk add --no-cache \
@@ -32,31 +35,35 @@ RUN composer install \
     --no-interaction
 
 # ==========================================
-# Stage 2: PHP runtime (Alpine OK here)
+# Stage 2: PHP runtime (Production)
 # ==========================================
-FROM php:8.3-fpm-alpine AS runner
+FROM php:8.3-fpm-alpine3.20 AS runner
 
 WORKDIR /var/www/html
+
+# Pull security updates for libxml2
+RUN apk update && apk upgrade libxml2
 
 # Install PHP extensions
 RUN apk add --no-cache \
     libpng \
-    libpng-dev \
     libjpeg-turbo \
-    libjpeg-turbo-dev \
     freetype \
-    freetype-dev \
     libzip \
-    libzip-dev \
     zlib \
-    zlib-dev \
     mysql-client \
- && apk add --no-cache --virtual .phpize-deps $PHPIZE_DEPS \
+ && apk add --no-cache --virtual .build-deps \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
+    libzip-dev \
+    zlib-dev \
+    $PHPIZE_DEPS \
  && pecl install redis \
  && docker-php-ext-enable redis \
  && docker-php-ext-configure gd --with-freetype --with-jpeg \
  && docker-php-ext-install pdo_mysql pcntl gd zip \
- && apk del .phpize-deps
+ && apk del .build-deps
 
 # Copy from builder stages
 COPY --from=vendor /app/vendor ./vendor
@@ -73,3 +80,12 @@ COPY docker/app/entrypoints/*.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/*.sh
 
 EXPOSE 9000
+
+# ==========================================
+# Stage 3: Development runtime (with Composer)
+# ==========================================
+FROM runner AS dev
+
+# Install Composer and git for development
+RUN apk add --no-cache git unzip
+COPY --from=vendor /usr/bin/composer /usr/bin/composer
