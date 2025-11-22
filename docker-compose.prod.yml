@@ -73,9 +73,14 @@ services:
   ui:
     container_name: petcare_ui
     image: ghcr.io/slightlyprivate/petcare-companion-ui:prod
+    environment:
+      # Assumes the UI service resolves API_BASE_URL=http://web via the shared frontend network; ensure both ui and web remain attached to frontend to keep this routing valid.
+      API_BASE_URL: http://web
+    depends_on:
+      web:
+        condition: service_healthy
     ports:
       - '127.0.0.1:8081:80'
-    read_only: true
     user: www-data
     tmpfs:
       - /var/cache/nginx

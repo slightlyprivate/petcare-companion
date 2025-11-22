@@ -67,18 +67,28 @@ Linting and route guard
 
 HTTP clients
 
-- `http.api`: Use for all calls to the Laravel API (prefix `VITE_API_BASE`, default `/api`).
+- `http.api`: Use for all calls to the Laravel API (defaults to relative `/api` so Nginx can proxy
+  at runtime). When running in a container or staging environment, set `API_BASE_URL` to the Laravel
+  service URL without a trailing slash or `/api` suffix (e.g., `http://web` in Docker,
+  `http://petcare_web_staging` in staging). The client appends `/api` automatically based on this
+  host.
 - `request`: Low-level helper when you need a custom base or atypical options. Includes credentials
   and automatic CSRF token handling via `X-XSRF-TOKEN` header.
 
 Environment variables
 
-- `VITE_API_BASE`: Base URL for Laravel API (default `/api`). In production, set to your Laravel
-  backend URL.
+- `VITE_API_BASE`: Optional override for Laravel API base (default `/api`). In production builds we
+  rely on the runtime Nginx proxy to forward `/api` to the backend.
 - `VITE_API_PROXY_TARGET`: Dev-only proxy target for Vite (e.g., `http://web` from the compose
   network, or `http://localhost:8000` for local Laravel).
 - `VITE_ASSET_BASE`: Public base path/URL for uploaded files (default `/storage` in Docker).
 - See `.env.example` in `src/ui` for typical values.
+
+Container runtime (production/staging):
+
+- Set `API_BASE_URL` on the UI container to point at the Laravel Nginx service (e.g.,
+  `http://petcare_web_staging`). The UI calls `/api/...` and Nginx proxies at runtime via a
+  templated config.
 
 CSRF protection
 
