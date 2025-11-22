@@ -50,7 +50,7 @@ Files live in `deploy/staging/`.
   interruption.
 - Cron example (every hour):
 
-  ```c
+  ```cron
   0 * * * * cd /srv/petcare-staging && ./update.sh >> /var/log/petcare-staging.log 2>&1
   ```
 
