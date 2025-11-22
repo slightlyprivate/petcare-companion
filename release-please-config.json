@@ -1,5 +1,4 @@
 {
-  "release-type": "simple",
   "include-v-in-tag": false,
   "monorepo-tags": false,
   "packages": {
