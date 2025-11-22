@@ -3,13 +3,13 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 COPY src/ui/package*.json ./
-RUN --mount=type=cache,target=/root/.npm npm install
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY src/ui ./
 RUN npm run build
 
 # Runtime stage
 FROM nginx:stable-alpine
-RUN apk update && apk upgrade
+
 
 # Copy built UI artifacts
 COPY --from=build /app/dist /usr/share/nginx/html

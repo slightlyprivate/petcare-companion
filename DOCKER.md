@@ -4,7 +4,7 @@ This repo ships with a Docker-first workflow for both development and production
 `docker/` folder is now split by concern:
 
 - PHP API: `docker/app/Dockerfile` with runtime helpers in `docker/app/entrypoints/`
-- Dev Nginx: `docker/nginx.conf`
+- Dev Nginx: `docker/web/nginx.prod.conf`
 - Prod Nginx: `docker/web/Dockerfile` + `docker/web/nginx.prod.conf`
 - UI SPA: `docker/ui/Dockerfile` + `src/ui/nginx/templates/default.conf.template`
 - Shared snippets: `docker/shared/nginx/*.conf` (drop-in includes as needed)
