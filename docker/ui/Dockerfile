@@ -2,7 +2,9 @@
 # =====================================================
 # Build React UI with Node
 # =====================================================
-FROM node:20-alpine AS builder
+FROM node:20-alpine3.20 AS builder
+
+RUN apk update && apk upgrade libxml2
 
 WORKDIR /app
 
@@ -18,7 +20,9 @@ RUN cd ui && npm run build
 # =====================================================
 # Serve UI statically with nginx
 # =====================================================
-FROM nginx:stable-alpine AS runner
+FROM nginx:1.26-alpine3.20 AS runner
+
+RUN apk update && apk upgrade libxml2
 
 # Clean default nginx config
 RUN rm /etc/nginx/conf.d/default.conf

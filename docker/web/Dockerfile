@@ -1,5 +1,7 @@
 # docker/web/Dockerfile
-FROM nginx:stable-alpine
+FROM nginx:1.26-alpine3.20
+
+RUN apk update && apk upgrade libxml2
 
 RUN apk add --no-cache curl
 
