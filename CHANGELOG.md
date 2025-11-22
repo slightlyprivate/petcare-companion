@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0](https://github.com/slightlyprivate/petcare-companion/compare/v0.3.1...0.4.0) (2025-11-22)
+
+
+### Features
+
+* add Trivy vulnerability scanning and SARIF upload to CI workflow ([3a11e9a](https://github.com/slightlyprivate/petcare-companion/commit/3a11e9aa938535ca302ee995d80f4bef15faaa03))
+
+
+### Bug Fixes
+
+* remove unnecessary release-type field from configuration ([b1ef4a6](https://github.com/slightlyprivate/petcare-companion/commit/b1ef4a67998d1a3aa1f875ea342de40eec0fa5da))
+* update release type to version in release configuration ([2846320](https://github.com/slightlyprivate/petcare-companion/commit/284632067f16711cfcd78dd92dffca7450090b35))
+
 ## [0.3.1](https://github.com/slightlyprivate/petcare-companion/compare/v0.3.0...v0.3.1) (2025-11-22)
 
 
