@@ -4,16 +4,16 @@ services:
     image: ghcr.io/slightlyprivate/petcare-companion-app:develop
     env_file:
       - .env.staging
-    depends_on:
-      - db
-      - redis
     healthcheck:
-      test: ['CMD', 'php', '-r', 'exit(0);']
-      interval: 30s
+      test: ['CMD', 'php', '-v']
+      interval: 20s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
     restart: unless-stopped
+    networks:
+      - default
+      - shared-db
+      - shared-cache
     volumes:
       - storage:/var/www/html/storage/app/public
 
@@ -28,6 +28,8 @@ services:
     ports:
       - '9080:80'
     restart: unless-stopped
+    networks:
+      - default
     volumes:
       - storage:/var/www/html/storage/app/public:ro
 
@@ -40,38 +42,8 @@ services:
     ports:
       - '9081:80'
     restart: unless-stopped
-
-  db:
-    container_name: petcare_db_staging
-    image: mysql:8.0
-    environment:
-      MYSQL_DATABASE: ${DB_DATABASE:-petcare}
-      MYSQL_USER: ${DB_USERNAME:-petcare}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-petcare}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
-    ports:
-      - '127.0.0.1:3308:3306'
-    volumes:
-      - dbdata:/var/lib/mysql
-    healthcheck:
-      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD || exit 1']
-      interval: 10s
-      timeout: 5s
-      retries: 12
-
-  redis:
-    container_name: petcare_redis_staging
-    image: redis:7-alpine
-    command: ['redis-server', '--appendonly', 'yes']
-    ports:
-      - '127.0.0.1:6380:6379'
-    volumes:
-      - redisdata:/data
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 3s
-      retries: 5
+    networks:
+      - default
 
   mailhog:
     container_name: petcare_mailhog_staging
@@ -80,8 +52,14 @@ services:
       - '127.0.0.1:8026:8025'
       - '127.0.0.1:1026:1025'
     restart: unless-stopped
+    networks:
+      - default
 
 volumes:
-  dbdata:
-  redisdata:
   storage:
+
+networks:
+  shared-db:
+    external: true
+  shared-cache:
+    external: true
