@@ -133,6 +133,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-web.sarif
+          category: trivy-web
 
       # OPTIONAL: Scan app
       - name: Trivy scan (app)
@@ -148,6 +149,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-app.sarif
+          category: trivy-app
 
       # OPTIONAL: Scan UI
       - name: Trivy scan (ui)
@@ -163,3 +165,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-ui.sarif
+          category: trivy-ui
