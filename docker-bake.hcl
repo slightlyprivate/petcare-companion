@@ -33,5 +33,5 @@ target "app-dev" {
 }
 
 group "develop" {
-  targets = ["app-dev", "web", "ui"]
+  targets = ["app", "web", "ui"]
 }
