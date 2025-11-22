@@ -35,7 +35,7 @@ server {
     # API proxy to backend
     location /api/ {
         proxy_pass ${API_BASE_URL};
-        proxy_set_header Host $http_host;
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -50,7 +50,7 @@ server {
     # Sanctum CSRF cookie endpoint
     location /sanctum/ {
         proxy_pass ${API_BASE_URL};
-        proxy_set_header Host $host;
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -65,7 +65,7 @@ server {
     # Storage assets
     location /storage/ {
         proxy_pass ${API_BASE_URL};
-        proxy_set_header Host $host;
+        proxy_set_header Host $proxy_host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
