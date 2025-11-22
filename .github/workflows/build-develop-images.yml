@@ -1,0 +1,47 @@
+name: Build Develop Images
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'src/**'
+      - 'docker/**'
+      - 'docker-bake.hcl'
+      - '.github/workflows/build-develop-images.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push develop images
+        uses: docker/bake-action@v5
+        with:
+          files: ./docker-bake.hcl
+          targets: develop
+          push: true
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+            app.tags=ghcr.io/slightlyprivate/petcare-companion-app:develop
+            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:develop-${{ github.sha }}
+            web.tags=ghcr.io/slightlyprivate/petcare-companion-web:develop
+            web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:develop-${{ github.sha }}
+            ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:develop
+            ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:develop-${{ github.sha }}

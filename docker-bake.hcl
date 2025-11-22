@@ -24,3 +24,8 @@ target "ui" {
 group "all" {
   targets = ["app", "web", "ui"]
 }
+
+group "develop" {
+  targets = ["app", "web", "ui"]
+  platforms = ["linux/amd64", "linux/arm64"]
+}
