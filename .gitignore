@@ -1,5 +1,6 @@
 # Ignore dependencies and build files
-/node_modules
+node_modules/
+**/node_modules
 /public/hot
 /public/storage
 /storage/*.key

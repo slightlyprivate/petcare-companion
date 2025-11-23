@@ -9,7 +9,8 @@ GHCR.
   and hostnames).
 - Ensure the host exposes open ports that do not clash with production:
   - Web: `9080`
-  - UI: `9081`
+  - PWA Experience UI: `9081`
+  - UI: `9082`
   - MailHog: `8026` (UI) and `1026` (SMTP)
   - MySQL: `3308` (loopback)
   - Redis: `6380` (loopback)
@@ -26,6 +27,7 @@ Services use the `:develop` images:
 
 - `ghcr.io/slightlyprivate/petcare-companion-app:develop`
 - `ghcr.io/slightlyprivate/petcare-companion-web:develop`
+- `ghcr.io/slightlyprivate/petcare-companion-pwa:develop`
 - `ghcr.io/slightlyprivate/petcare-companion-ui:develop`
 
 To refresh to the latest build, run `./update.sh` (safe to place behind cron or a webhook).

@@ -45,3 +45,5 @@ jobs:
             web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:develop-${{ github.sha }}
             ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:develop
             ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:develop-${{ github.sha }}
+            pwa.tags=ghcr.io/slightlyprivate/petcare-companion-pwa:develop
+            pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:develop-${{ github.sha }}

@@ -171,14 +171,30 @@ services:
     environment:
       NODE_ENV: development
       VITE_API_PROXY_TARGET: http://web
+    command: sh -lc "npm install && npm run dev -- --host --port 5174"
+    ports:
+      - '5174:5174'
+    depends_on:
+      - web
+    volumes:
+      - ./src/ui:/app/src/ui
+      - /app/src/ui/node_modules
+
+  pwa:
+    container_name: petcare_pwa
+    image: node:20-alpine
+    working_dir: /app/src/pwa
+    environment:
+      NODE_ENV: development
+      VITE_API_PROXY_TARGET: http://web
     command: sh -lc "npm install && npm run dev -- --host"
     ports:
       - '5173:5173'
     depends_on:
       - web
     volumes:
-      - ./src/ui:/app/src/ui
-      - /app/src/ui/node_modules
+      - ./src/pwa:/app/src/pwa
+      - /app/src/pwa/node_modules
 
 volumes:
   dbdata:

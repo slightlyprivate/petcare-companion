@@ -41,6 +41,7 @@ jobs:
             ghcr.io/slightlyprivate/petcare-companion-app
             ghcr.io/slightlyprivate/petcare-companion-web
             ghcr.io/slightlyprivate/petcare-companion-ui
+            ghcr.io/slightlyprivate/petcare-companion-pwa
           labels: false
 
       - name: Read version
@@ -62,6 +63,8 @@ jobs:
             web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:latest
             ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:${{ steps.version.outputs.version }}
             ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:latest
+            pwa.tags=ghcr.io/slightlyprivate/petcare-companion-pwa:${{ steps.version.outputs.version }}
+            pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:latest
 
       - name: Add build summary
         if: always()
@@ -72,6 +75,7 @@ jobs:
               { name: "petcare-companion-app", image: "ghcr.io/slightlyprivate/petcare-companion-app" },
               { name: "petcare-companion-web", image: "ghcr.io/slightlyprivate/petcare-companion-web" },
               { name: "petcare-companion-ui", image: "ghcr.io/slightlyprivate/petcare-companion-ui" },
+              { name: "petcare-companion-pwa", image: "ghcr.io/slightlyprivate/petcare-companion-pwa" },
             ];
             const version = '${{ steps.version.outputs.version }}';
             const isMain = '${{ github.ref }}' === 'refs/heads/main';
@@ -94,12 +98,16 @@ jobs:
           APP_IMAGE="ghcr.io/slightlyprivate/petcare-companion-app:${{ steps.version.outputs.version }}"
           WEB_IMAGE="ghcr.io/slightlyprivate/petcare-companion-web:${{ steps.version.outputs.version }}"
           UI_IMAGE="ghcr.io/slightlyprivate/petcare-companion-ui:${{ steps.version.outputs.version }}"
+          PWA_IMAGE="ghcr.io/slightlyprivate/petcare-companion-pwa:${{ steps.version.outputs.version }}"
           APP_LIMIT=$((450 * 1024 * 1024))
           WEB_LIMIT=$((50 * 1024 * 1024))
+          UI_LIMIT=$((150 * 1024 * 1024))
+          PWA_LIMIT=$((80 * 1024 * 1024))
 
           APP_SIZE=$(docker image inspect $APP_IMAGE --format='{{.Size}}' || echo 0)
           WEB_SIZE=$(docker image inspect $WEB_IMAGE --format='{{.Size}}' || echo 0)
           UI_SIZE=$(docker image inspect $UI_IMAGE --format='{{.Size}}' || echo 0)
+          PWA_SIZE=$(docker image inspect $PWA_IMAGE --format='{{.Size}}' || echo 0)
 
           if [ "$APP_SIZE" -gt "$APP_LIMIT" ]; then
             echo "::warning::App image size ($((APP_SIZE/1024/1024))MB) exceeds 450MB"
@@ -113,7 +121,17 @@ jobs:
             echo "Web image size: $((WEB_SIZE/1024/1024))MB"
           fi
 
-          echo "UI image size: $((UI_SIZE/1024/1024))MB"
+          if [ "$UI_SIZE" -gt "$UI_LIMIT" ]; then
+            echo "::warning::UI image size ($((UI_SIZE/1024/1024))MB) exceeds 150MB"
+          else
+            echo "UI image size: $((UI_SIZE/1024/1024))MB"
+          fi
+
+          if [ "$PWA_SIZE" -gt "$PWA_LIMIT" ]; then
+            echo "::warning::PWA image size ($((PWA_SIZE/1024/1024))MB) exceeds 80MB"
+          else
+            echo "PWA image size: $((PWA_SIZE/1024/1024))MB"
+          fi
 
       ###############################################################
       # 🔥 NEW: Trivy scan for vulnerabilities (SARIF upload)
@@ -151,7 +169,7 @@ jobs:
           sarif_file: trivy-app.sarif
           category: trivy-app
 
-      # OPTIONAL: Scan UI
+      # OPTIONAL: Scan Utility UI
       - name: Trivy scan (ui)
         uses: aquasecurity/trivy-action@0.24.0
         with:
@@ -166,3 +184,19 @@ jobs:
         with:
           sarif_file: trivy-ui.sarif
           category: trivy-ui
+
+      # OPTIONAL: Scan PWA
+      - name: Trivy scan (pwa)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/slightlyprivate/petcare-companion-pwa:latest
+          format: sarif
+          output: trivy-pwa.sarif
+          ignore-unfixed: false
+
+      - name: Upload SARIF (pwa)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-pwa.sarif
+          category: trivy-pwa

@@ -42,6 +42,24 @@ services:
       web:
         condition: service_healthy
     ports:
+      - '9082:80'
+    restart: unless-stopped
+    tmpfs:
+      - /etc/nginx/conf.d
+      - /var/cache/nginx
+      - /var/run
+    networks:
+      - default
+
+  pwa:
+    container_name: petcare_pwa_staging
+    image: ghcr.io/slightlyprivate/petcare-companion-pwa:develop
+    environment:
+      API_BASE_URL: http://petcare_web_staging
+    depends_on:
+      web:
+        condition: service_healthy
+    ports:
       - '9081:80'
     restart: unless-stopped
     tmpfs:
