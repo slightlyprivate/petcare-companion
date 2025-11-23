@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0](https://github.com/slightlyprivate/petcare-companion/compare/0.4.2...0.5.0) (2025-11-23)
+
+
+### Features
+
+* add @types/node to devDependencies and update tsconfig for type support ([6b36f57](https://github.com/slightlyprivate/petcare-companion/commit/6b36f572f70707fb3763a5be30dc220c8060a6ed))
+* update package.json scripts and dependencies, add TypeScript configuration ([#26](https://github.com/slightlyprivate/petcare-companion/issues/26)) ([2aabec5](https://github.com/slightlyprivate/petcare-companion/commit/2aabec57dd5d3e9d514b56949a7d0cb60f29d68b))
+
+
+### Bug Fixes
+
+* update Vite configuration for server settings ([2aabec5](https://github.com/slightlyprivate/petcare-companion/commit/2aabec57dd5d3e9d514b56949a7d0cb60f29d68b))
+
 ## [0.4.2](https://github.com/slightlyprivate/petcare-companion/compare/0.4.1...0.4.2) (2025-11-23)
 
 
