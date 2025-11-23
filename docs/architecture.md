@@ -4,9 +4,10 @@
 
 - Root overview: `README.md`
 - API (Laravel): `src/README.md`
-- UI (Vite + React): `src/ui/README.md`
+- UI (Vite + React, account/billing): `src/ui/README.md`
+- PWA Experience UI (Vite + React PWA): `src/pwa/README.md`
 - Compose and containers: `docker-compose.yml`, `docker/app`, `docker/web`, `docker/ui`,
-  `docker/shared`
+  `docker/pwa`, `docker/shared`
 
 ## Context
 
@@ -22,8 +23,8 @@ focus on maintainability, clarity, and proper MVC separation in a Dockerized env
 - **Architecture Style:** MVC + REST, with clear validation, resources, service layer, and
   comprehensive test coverage.
 - **Environment:** Containerized PHP-FPM + Nginx + MySQL stack using Docker Compose.
-- **Frontend Integration:** React UI communicates directly with the Laravel API (via the `web` Nginx
-  service);
+- **Frontend Integration:** Both the account UI (`src/ui`) and the caregiving PWA (`src/pwa`)
+  communicate directly with the Laravel API (via the `web` Nginx service);
 - **Authorization:** Dual-role system (standard user vs. system admin) enforced through Laravel
   policies.
 - **Payment Processing:** Stripe Checkout for credit purchases; gifts use wallet credits.
@@ -186,7 +187,7 @@ miscalculations.
 Laravel Sanctum provides session-based authentication with CSRF protection for the React UI.
 
 - CSRF issuance: `GET /sanctum/csrf-cookie` sets the `XSRF-TOKEN` cookie.
-  - UI obtains this via `src/ui/src/lib/csrf.ts` which reads the cookie.
+  - The Experience UI obtains this via `src/pwa/src/lib/csrf.ts` which reads the cookie.
   - CSRF token is attached as `X-XSRF-TOKEN` on unsafe methods (POST/PUT/PATCH/DELETE) by
     `axiosClient`.
 - Mutation enforcement: Laravel requires a valid CSRF token for mutating routes under `/api/auth/*`
@@ -198,8 +199,8 @@ Laravel Sanctum provides session-based authentication with CSRF protection for t
 
 References:
 
-- UI CSRF (handles Sanctum's XSRF-TOKEN cookie): `src/ui/src/lib/csrf.ts`,
-  `src/ui/src/lib/csrfStore.ts`, `src/ui/src/lib/axiosClient.ts`
+- UI CSRF (handles Sanctum's XSRF-TOKEN cookie): `src/pwa/src/lib/csrf.ts`,
+  `src/pwa/src/lib/csrfStore.ts`, `src/pwa/src/lib/axiosClient.ts`
 - Laravel Sanctum config: `config/sanctum.php`
 - Laravel auth routes: `routes/api.php`
 

@@ -19,7 +19,7 @@ Sanctum-based authentication.
 
 ## Overview
 
-- **Goal:** Demonstrate a clean Laravel 12 API paired with a modern Vite/React dashboard.
+- **Goal:** Demonstrate a clean Laravel 12 API paired with dedicated UI + PWA frontends.
 - **Scope:** Lightweight caregiver/activity tracker with uploads, queues, and Docker orchestration.
 - **Audience:** Developers exploring Laravel + React best practices (PSR-12, typed services,
   CI-ready setup).
@@ -32,7 +32,8 @@ Sanctum-based authentication.
 
 - **app** — Laravel PHP-FPM container (path: `src/`)
 - **web** — Nginx frontend for the Laravel API (port 8080 → 80 in container)
-- **ui** — Vite dev server for React UI (development only)
+- **pwa** — Vite dev server for the caregiving PWA (development only)
+- **ui** — Vite dev server for the account/billing UI (development only)
 - **db** — MySQL 8 with persistent volume
 - **redis** — Redis 7 for cache + queues
 - **worker / scheduler / horizon** — Optional queue consumers
@@ -40,7 +41,8 @@ Sanctum-based authentication.
 ### Ports (development defaults)
 
 - API via Nginx: `http://localhost:8080`
-- UI (Vite): `http://localhost:5173`
+- PWA (Vite): `http://localhost:5173`
+- UI (Vite): `http://localhost:5174`
 - MySQL: `localhost:3307`
 - Redis: `localhost:6379`
 
@@ -53,7 +55,8 @@ graph LR
   end
 
   subgraph Frontend
-    F[frontend-ui<br/>Vite + React UI]
+    U[UI<br/>Account/Billing]
+    X[PWA Experience UI<br/>Caregiving Surface]
   end
 
   subgraph API
@@ -64,8 +67,10 @@ graph LR
   D[(db<br/>MySQL 8.0)]
   R[(redis<br/>Redis 7)]
 
-  A -->|HTTP :5173| F
-  F -->|/api/* /sanctum/*| W
+  A -->|HTTP :5174| U
+  A -->|HTTP :5173| X
+  U -->|/api/* /sanctum/*| W
+  X -->|/api/* /sanctum/*| W
   W --> P
   P --> D
   P --> R
@@ -77,7 +82,8 @@ graph LR
 2. Start stack: `docker compose up -d`
 3. Generate key: `docker compose exec app php artisan key:generate`
 4. Migrate + seed: `docker compose exec app php artisan migrate --seed`
-5. Visit the UI at `http://localhost:5173`; API lives at `http://localhost:8080`
+5. Visit the PWA at `http://localhost:5173` (caregiving workflows) and the UI at
+   `http://localhost:5174` (account/billing). The API lives at `http://localhost:8080`.
 
 **Notes**
 
@@ -85,6 +91,8 @@ graph LR
   `/storage/*` is proxied automatically.
 - Laravel commands must run via `docker compose exec app php artisan <cmd>` to keep parity with CI.
 - Queue/scheduler/horizon containers are optional; enable them when experimenting with Redis queues.
+- The UI (`src/ui`) is scoped to account, billing, and admin flows; the caregiving PWA (`src/pwa`)
+  owns daily caregiver experiences.
 
 ## Common Workflows
 
@@ -97,7 +105,7 @@ graph LR
 
 ### Authentication
 
-- Sanctum cookie-based flow with CSRF handling under `src/ui/src/api`. Configure `APP_URL`,
+- Sanctum cookie-based flow with CSRF handling under `src/pwa/src/api`. Configure `APP_URL`,
   `FRONTEND_URL`, `SESSION_DOMAIN`, and `SANCTUM_STATEFUL_DOMAINS` for your environment.
 - Refer to `docs/architecture.md` → Auth Flow for the full sequence diagram and edge cases.
 
@@ -112,7 +120,8 @@ graph LR
 | Topic                   | Location                           | Notes                                  |
 | ----------------------- | ---------------------------------- | -------------------------------------- |
 | API / Laravel           | `src/README.md`                    | Artisan scripts, testing, feature list |
-| React UI                | `src/ui/README.md`                 | Vite scripts, component library notes  |
+| UI                      | `src/ui/README.md`                 | Account/billing workspace guidance     |
+| PWA Experience UI       | `src/pwa/README.md`                | Caregiving workflows + Vite scripts    |
 | Architecture & diagrams | `docs/architecture.md`             | Storage, auth, queue deep dives        |
 | Docker / CI             | `docs/CI_CD_SETUP.md`, `DOCKER.md` | Image build strategy, Compose tips     |
 | Demo workflow           | `docs/demo-scenario.md`            | End-to-end caregiver + activity flow   |

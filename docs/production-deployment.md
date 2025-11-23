@@ -50,8 +50,8 @@ populated `.env` files.
    `docker compose -f deploy/prod/docker-compose.yml exec app php artisan storage:link`.
 8. **Health check:** `docker compose -f deploy/prod/docker-compose.yml ps` and
    `curl -f https://your-api.example.com/health`.
-9. **UI smoke test:** Verify React assets load via the `ui` container and that `/storage/*` URLs
-   resolve uploaded media.
+9. **UI smoke test:** Verify React assets load via both the `ui` and `pwa` containers and that
+   `/storage/*` URLs resolve uploaded media.
 10. **Log verification:** Inspect
     `docker compose -f deploy/prod/docker-compose.yml logs -f web app worker` for warnings before
     handing off.
@@ -59,7 +59,8 @@ populated `.env` files.
 ## Troubleshooting
 
 - **UI cannot call API (401/CORS):** Ensure `FRONTEND_URL`, `APP_URL`, `SESSION_DOMAIN`, and
-  `SANCTUM_STATEFUL_DOMAINS` share the same base domain; mismatched values break Sanctum cookies.
+  `SANCTUM_STATEFUL_DOMAINS` share the same base domain for both frontends; mismatched values break
+  Sanctum cookies.
 - **Storage URLs return 404:** Confirm the `storage` volume is mounted. When not relying on the
   Nginx alias, run `php artisan storage:link` inside the container.
 - **Healthchecks stuck in `starting`:** External DB or Redis is unreachable. Validate firewalls, TLS

@@ -6,7 +6,8 @@ This repo ships with a Docker-first workflow for both development and production
 - PHP API: `docker/app/Dockerfile` with runtime helpers in `docker/app/entrypoints/`
 - Dev Nginx: `docker/web/nginx.prod.conf`
 - Prod Nginx: `docker/web/Dockerfile` + `docker/web/nginx.prod.conf`
-- UI SPA: `docker/ui/Dockerfile` + `src/ui/nginx/templates/default.conf.template`
+- UI SPA (account/billing): `docker/ui/Dockerfile` + `src/ui/nginx/templates/default.conf.template`
+- PWA Experience UI: `docker/pwa/Dockerfile` + `src/pwa/nginx/templates/default.conf.template`
 - Shared snippets: `docker/shared/nginx/*.conf` (drop-in includes as needed)
 
 ## Local Development (Compose)
@@ -22,6 +23,7 @@ Targets (GHCR in examples):
 - App (PHP-FPM): `ghcr.io/slightlyprivate/petcare-companion-app:{prod,latest,<branch>}`
 - Web (Nginx reverse proxy): `ghcr.io/slightlyprivate/petcare-companion-web:{prod,latest,<branch>}`
 - UI (static React bundle): `ghcr.io/slightlyprivate/petcare-companion-ui:{prod,latest,<branch>}`
+- PWA Experience UI: `ghcr.io/slightlyprivate/petcare-companion-pwa:{prod,latest,<branch>}`
 
 ### Build (multi-arch)
 
@@ -45,10 +47,18 @@ docker buildx build \
 
 # UI
 docker buildx build \
-  --platform linux/amd64,linux/arm64 \
+  --platform linux/amd64 \
   --tag ghcr.io/slightlyprivate/petcare-companion-ui:prod \
   --tag ghcr.io/slightlyprivate/petcare-companion-ui:latest \
   --file docker/ui/Dockerfile \
+  .
+
+# PWA
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-pwa:prod \
+  --tag ghcr.io/slightlyprivate/petcare-companion-pwa:latest \
+  --file docker/pwa/Dockerfile \
   .
 ```
 
@@ -59,11 +69,13 @@ docker buildx build \
 docker push ghcr.io/slightlyprivate/petcare-companion-app:prod
 docker push ghcr.io/slightlyprivate/petcare-companion-web:prod
 docker push ghcr.io/slightlyprivate/petcare-companion-ui:prod
+docker push ghcr.io/slightlyprivate/petcare-companion-pwa:prod
 
 # Pull prebuilt
 docker pull ghcr.io/slightlyprivate/petcare-companion-app:prod
 docker pull ghcr.io/slightlyprivate/petcare-companion-web:prod
 docker pull ghcr.io/slightlyprivate/petcare-companion-ui:prod
+docker pull ghcr.io/slightlyprivate/petcare-companion-pwa:prod
 ```
 
 `make build-app`, `make build-web`, and `make build-all` wrap the same buildx flows (see

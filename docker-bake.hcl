@@ -22,8 +22,14 @@ target "ui" {
   platforms = ["linux/amd64"]
 }
 
+target "pwa" {
+  inherits   = ["common"]
+  context    = "."
+  dockerfile = "docker/pwa/Dockerfile"
+}
+
 group "all" {
-  targets = ["app", "web", "ui"]
+  targets = ["app", "web", "ui", "pwa"]
 }
 
 target "app-dev" {
@@ -34,5 +40,5 @@ target "app-dev" {
 }
 
 group "develop" {
-  targets = ["app", "web", "ui"]
+  targets = ["app", "web", "ui", "pwa"]
 }

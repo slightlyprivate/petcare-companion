@@ -35,7 +35,7 @@ import { Icon } from '../components/icons';
 
 ### Available Icons
 
-See `/src/ui/src/components/icons/Icon.tsx` for the complete registry of available icons.
+See `/src/pwa/src/components/icons/Icon.tsx` for the complete registry of available icons.
 
 Common icons include:
 
@@ -48,7 +48,7 @@ Common icons include:
 
 ### Adding New Icons
 
-1. Import the icon from `lucide-react` in `/src/ui/src/components/icons/Icon.tsx`:
+1. Import the icon from `lucide-react` in `/src/pwa/src/components/icons/Icon.tsx`:
 
 ```tsx
 import { NewIcon } from 'lucide-react';
@@ -104,7 +104,7 @@ Use it anywhere in your components:
 For domain-specific icon usage (like activity types), we maintain wrapper components:
 
 ```tsx
-// /src/ui/src/lib/activityIcons.tsx
+// /src/pwa/src/lib/activityIcons.tsx
 export function FeedingIcon({ className }: IconProps) {
   return <Icon name="feeding" className={className} size={20} />;
 }

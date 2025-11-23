@@ -6,21 +6,24 @@ IS_DEFAULT_BRANCH := $(if $(filter $(DEFAULT_BRANCH),$(CURRENT_BRANCH)),1,0)
 APP_TAGS := ghcr.io/slightlyprivate/petcare-companion-app:$(VERSION)
 WEB_TAGS := ghcr.io/slightlyprivate/petcare-companion-web:$(VERSION)
 UI_TAGS := ghcr.io/slightlyprivate/petcare-companion-ui:$(VERSION)
+PWA_TAGS := ghcr.io/slightlyprivate/petcare-companion-pwa:$(VERSION)
 
 ifeq ($(IS_DEFAULT_BRANCH),1)
 APP_TAGS := $(APP_TAGS),ghcr.io/slightlyprivate/petcare-companion-app:latest
 WEB_TAGS := $(WEB_TAGS),ghcr.io/slightlyprivate/petcare-companion-web:latest
 UI_TAGS := $(UI_TAGS),ghcr.io/slightlyprivate/petcare-companion-ui:latest
+PWA_TAGS := $(PWA_TAGS),ghcr.io/slightlyprivate/petcare-companion-pwa:latest
 endif
 
 BAKE_FILE := docker-bake.hcl
-BAKE_TAGS := --set app.tags=$(APP_TAGS) --set web.tags=$(WEB_TAGS) --set ui.tags=$(UI_TAGS)
+BAKE_TAGS := --set app.tags=$(APP_TAGS) --set web.tags=$(WEB_TAGS) --set ui.tags=$(UI_TAGS) --set pwa.tags=$(PWA_TAGS)
 
 DEV_COMPOSE = docker-compose.yml
 PROD_COMPOSE = docker-compose.prod.yml
 
 .PHONY: up upd down seed migrate logs ps env bash pint stan restart test bump-version
-.PHONY: build-app build-web build-ui build-all bake-all push-app push-web push-ui push-all prod-up prod-down
+.PHONY: build-app build-web build-ui-only build-pwa build-all bake-all
+.PHONY: push-app push-web push-ui-only push-pwa push-all prod-up prod-down
 
 # =============================================================================
 # Development Commands
@@ -80,9 +83,15 @@ build-web:
 	@echo "Building production web image with Bake (no push)..."
 	docker buildx bake -f $(BAKE_FILE) --set web.tags=$(WEB_TAGS) web
 
-build-ui:
+build-ui-only:
 	@echo "Building production UI image with Bake (no push)..."
 	docker buildx bake -f $(BAKE_FILE) --set ui.tags=$(UI_TAGS) ui
+
+build-pwa:
+	@echo "Building production PWA image with Bake (no push)..."
+	docker buildx bake -f $(BAKE_FILE) --set pwa.tags=$(PWA_TAGS) pwa
+
+build-ui: build-ui-only build-pwa
 
 build-all: bake-all
 
@@ -98,9 +107,15 @@ push-web:
 	@echo "Building and pushing web image with Bake..."
 	docker buildx bake -f $(BAKE_FILE) --set web.tags=$(WEB_TAGS) --push web
 
-push-ui:
+push-ui-only:
 	@echo "Building and pushing UI image with Bake..."
 	docker buildx bake -f $(BAKE_FILE) --set ui.tags=$(UI_TAGS) --push ui
+
+push-pwa:
+	@echo "Building and pushing PWA image with Bake..."
+	docker buildx bake -f $(BAKE_FILE) --set pwa.tags=$(PWA_TAGS) --push pwa
+
+push-ui: push-ui-only push-pwa
 
 push-all:
 	@echo "Building and pushing all images with Bake..."
@@ -137,12 +152,16 @@ image-sizes:
 	@echo ""
 	@echo "UI Image:"
 	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-ui:prod | jq '.manifests[].platform, .manifests[].size'
+	@echo ""
+	@echo "PWA Image:"
+	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-pwa:prod | jq '.manifests[].platform, .manifests[].size'
 
 image-scan:
 	@echo "Scanning images for vulnerabilities..."
 	trivy image ghcr.io/slightlyprivate/petcare-companion-app:prod
 	trivy image ghcr.io/slightlyprivate/petcare-companion-web:prod
 	trivy image ghcr.io/slightlyprivate/petcare-companion-ui:prod
+	trivy image ghcr.io/slightlyprivate/petcare-companion-pwa:prod
 
 bump-version:
 	@echo "Usage: make bump-version PART=patch|minor|major"
