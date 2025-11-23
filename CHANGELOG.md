@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2](https://github.com/slightlyprivate/petcare-companion/compare/0.4.1...0.4.2) (2025-11-23)
+
+
+### Bug Fixes
+
+* **docker:** update Dockerfile for improved PHP app build and nginx configuration ([980821c](https://github.com/slightlyprivate/petcare-companion/commit/980821c315e6dc3012b8962011b5c57ec0618b2a))
+* **docker:** update Dockerfiles to pull latest security patches for dependencies ([8131b17](https://github.com/slightlyprivate/petcare-companion/commit/8131b17d0429f13ab54aa1f7baf5a2cb2709353c))
+* **proxy:** update Host header to use $proxy_host for API endpoints ([ee4dc69](https://github.com/slightlyprivate/petcare-companion/commit/ee4dc69269bfcdfe18621532d7c93571b16dd42c))
+* **ui:** add platforms specification for UI target ([714f6d9](https://github.com/slightlyprivate/petcare-companion/commit/714f6d91d3ac5c8eb93e23b1745a6448dc2c2e3d))
+
 ## [0.4.1](https://github.com/slightlyprivate/petcare-companion/compare/0.4.0...0.4.1) (2025-11-22)
 
 
