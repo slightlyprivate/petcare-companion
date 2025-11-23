@@ -1,6 +1,8 @@
 # Build stage
 FROM node:20-alpine AS build
 
+RUN apk update && apk upgrade --no-cache --available
+
 WORKDIR /app
 COPY src/ui/package*.json ./
 RUN --mount=type=cache,target=/root/.npm npm ci
@@ -10,6 +12,7 @@ RUN npm run build
 # Runtime stage
 FROM nginx:stable-alpine
 
+RUN apk update && apk upgrade --no-cache --available
 
 # Copy built UI artifacts
 COPY --from=build /app/dist /usr/share/nginx/html

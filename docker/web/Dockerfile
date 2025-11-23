@@ -4,8 +4,9 @@ FROM ghcr.io/slightlyprivate/petcare-companion-app:develop AS app
 # Production web server
 FROM nginx:1.26-alpine3.20
 
-RUN apk update && apk upgrade libxml2
-RUN apk add --no-cache curl
+RUN apk update \
+ && apk upgrade --no-cache --available \
+ && apk add --no-cache curl
 
 # Remove default configs
 RUN rm /etc/nginx/conf.d/default.conf

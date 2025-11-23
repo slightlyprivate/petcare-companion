@@ -5,8 +5,8 @@ FROM php:8.3-cli-alpine3.20 AS vendor
 
 WORKDIR /app
 
-# Pull security updates for libxml2
-RUN apk update && apk upgrade libxml2
+# Pull the latest security patches (libxml2/openssl/curl/etc.)
+RUN apk update && apk upgrade --no-cache --available
 
 # Install system packages & PHP extensions for Composer
 RUN apk add --no-cache \
@@ -41,8 +41,8 @@ FROM php:8.3-fpm-alpine3.20 AS runner
 
 WORKDIR /var/www/html
 
-# Pull security updates for libxml2
-RUN apk update && apk upgrade libxml2
+# Pull the latest security patches (libxml2/openssl/curl/etc.)
+RUN apk update && apk upgrade --no-cache --available
 
 # Install PHP extensions
 RUN apk add --no-cache \

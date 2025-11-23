@@ -1,23 +1,48 @@
 # PetCare Companion — Monorepo
 
-A lightweight, educational monorepo demonstrating a Laravel API with a React UI, containerized with
-Docker Compose.
+[![CI](https://github.com/slightlyprivate/petcare-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/ci.yml)
+[![Build Images (main)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-images.yml/badge.svg)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-images.yml)
+[![Build Images (develop)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-develop-images.yml/badge.svg)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-develop-images.yml)
+
+Educational Laravel API + React UI stack with Dockerized workflows, shared caregiving features, and
+Sanctum-based authentication.
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Architecture at a Glance](#architecture-at-a-glance)
+3. [Repository Map](#repository-map)
+4. [Local Development](#local-development)
+5. [Common Workflows](#common-workflows)
+6. [Documentation](#documentation)
+7. [Production Deployment](#production-deployment)
 
 ## Overview
 
-- Purpose: Showcase clean API design and a modern UI with Laravel Sanctum authentication.
-- Audience: Developers exploring Laravel + Vite/React with Docker.
-- Scope: Non-production, minimal footprint, no secrets committed.
-- Core workflows: Shared caregiving access, daily routine scheduling, activity timeline logging
-  (documented via Scribe; see `docs/demo-scenario.md` for a concise walkthrough).
+- **Goal:** Demonstrate a clean Laravel 12 API paired with a modern Vite/React dashboard.
+- **Scope:** Lightweight caregiver/activity tracker with uploads, queues, and Docker orchestration.
+- **Audience:** Developers exploring Laravel + React best practices (PSR-12, typed services,
+  CI-ready setup).
+- **Environments:** Development compose stack, staging (`deploy/staging`), and production
+  (`deploy/prod`).
 
-## Services
+## Architecture at a Glance
 
-- api: Laravel 12 application (path: `src/`), served behind Nginx.
-- web: Nginx reverse proxy for the Laravel API (port 8080 → 80 in container).
-- ui: Vite dev server with HMR for the React UI (development only).
-- db: MySQL 8.0 with persistent volume.
-- redis: Redis 7 for cache/queue experimentation.
+### Services
+
+- **app** — Laravel PHP-FPM container (path: `src/`)
+- **web** — Nginx frontend for the Laravel API (port 8080 → 80 in container)
+- **ui** — Vite dev server for React UI (development only)
+- **db** — MySQL 8 with persistent volume
+- **redis** — Redis 7 for cache + queues
+- **worker / scheduler / horizon** — Optional queue consumers
+
+### Ports (development defaults)
+
+- API via Nginx: `http://localhost:8080`
+- UI (Vite): `http://localhost:5173`
+- MySQL: `localhost:3307`
+- Redis: `localhost:6379`
 
 ## Repository Map
 
@@ -46,246 +71,59 @@ graph LR
   P --> R
 ```
 
-## Quick Start (Development)
+## Local Development
 
-- Copy env: `cp .env.example .env`
-- Start dev stack: `docker compose up`
-- Generate app key: `docker compose exec app php artisan key:generate`
-- Migrate + seed:
-  `docker compose exec app php artisan migrate && docker compose exec app php artisan db:seed`
-- Shared storage (uploads) is mounted between `app` and `web` and served from `/storage`
+1. Copy envs: `cp .env.example .env`
+2. Start stack: `docker compose up -d`
+3. Generate key: `docker compose exec app php artisan key:generate`
+4. Migrate + seed: `docker compose exec app php artisan migrate --seed`
+5. Visit the UI at `http://localhost:5173`; API lives at `http://localhost:8080`
 
-## Ports
+**Notes**
 
-- API: `http://localhost:8080`
-- UI (Vite dev server): `http://localhost:5173`
-- MySQL: `localhost:3307`
-- Redis: `localhost:6379`
+- Shared uploads: the default compose file mounts `storage/app/public` between `app` and `web`, and
+  `/storage/*` is proxied automatically.
+- Laravel commands must run via `docker compose exec app php artisan <cmd>` to keep parity with CI.
+- Queue/scheduler/horizon containers are optional; enable them when experimenting with Redis queues.
 
-## Dev Notes
+## Common Workflows
 
-- Laravel commands: `docker-compose exec app php artisan <cmd>`
+### Uploads & Storage
 
-### Queue/Cache with Redis (Dev)
+- Upload endpoint: `POST /api/uploads` (authenticated) accepts images/MP4/WebM ≤10 MB.
+- URLs resolve through `/storage` using the shared Docker volume; React uses `VITE_ASSET_BASE`
+  (default `/storage`). See `docs/architecture.md` → Shared Storage section for diagrams and
+  directory conventions.
 
-- `.env` now defaults to Redis: `CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis` with
-  `REDIS_HOST=redis`.
-- PHP image includes `phpredis` extension (installed via PECL in `docker/app/Dockerfile`).
-- Workers still run as a separate service, but you can use Horizon for dashboarding.
+### Authentication
 
-### Horizon (Optional)
+- Sanctum cookie-based flow with CSRF handling under `src/ui/src/api`. Configure `APP_URL`,
+  `FRONTEND_URL`, `SESSION_DOMAIN`, and `SANCTUM_STATEFUL_DOMAINS` for your environment.
+- Refer to `docs/architecture.md` → Auth Flow for the full sequence diagram and edge cases.
 
-- Compose includes a `horizon` service which can run `php artisan horizon`.
-- Rebuild PHP images to enable required extensions (`pcntl`, `posix`, `redis`):
-  - `docker compose build app worker scheduler horizon`
-- Enable Horizon runtime:
-  - Edit `docker-compose.yml` and set `ENABLE_HORIZON: "true"` under the `horizon` service.
-- Install Horizon before enabling it:
-  - `docker compose exec app bash -lc "composer require laravel/horizon:^5.23 && php artisan horizon:install && php artisan migrate"`
-- Access dashboard at `/horizon` (served via the `web` service).
-- If you see "Command \"horizon\" is not defined", ensure you've run the composer and artisan steps
-  above, or keep `ENABLE_HORIZON` set to `false` until installation is complete.
-- In production, run Horizon as its own process and secure the dashboard behind auth or IP
-  allowlists.
+### Queues & Cache
 
-### Code Formatting (Prettier)
-
-- Config lives at the repo root: `prettier.config.cjs` and `.prettierignore`.
-- UI:
-  - Install deps (first run): `cd src/ui && npm install`
-  - Format: `npm run format`
-  - Check: `npm run format:check`
-- In containers:
-  - UI (frontend-ui): `docker compose exec ui sh -lc "npm run format"`
-
-### Pre-commit Hook (Husky)
-
-- Install root dev deps once: `npm install` (at repo root). This runs `husky install` via `prepare`.
-- Husky hook: `.husky/pre-commit` uses `lint-staged` to run Prettier only on staged files.
-- Manual formatting across both projects: `npm run format` (root) or check `npm run format:check`.
-
-### Development Stack
-
-- Use `docker-compose.yml` (now dev-focused) for development. It includes: Laravel (app), Nginx
-  (web), MySQL (db), Redis (redis), Queue worker, Scheduler, Horizon (optional), and Vite UI with
-  HMR.
-- UI (Vite HMR): <http://localhost:5173>
-- API (Nginx → PHP-FPM): <http://localhost:8080>
-- Production usage: use ONLY the production file: `docker compose -f docker-compose.prod.yml up -d`
-  (Do not combine with the dev compose; that would start local MySQL/Redis and bind mounts
-  unintended for production.)
-
-## Production Run Steps
-
-Build & push images (CI or local):
-
-```bash
-docker compose -f deploy/prod/docker-compose.yml build
-docker compose -f deploy/prod/docker-compose.yml push
-```
-
-Or pull prebuilt images:
-
-```bash
-docker compose -f deploy/prod/docker-compose.yml pull
-```
-
-Prepare environment file (`.env`) with external service hosts:
-
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://your-api.example.com
-FRONTEND_URL=https://your-ui.example.com
-DB_CONNECTION=mysql
-DB_HOST=your-managed-mysql-host
-DB_PORT=3306
-DB_DATABASE=petcare
-DB_USERNAME=petcare
-DB_PASSWORD=****
-REDIS_HOST=your-managed-redis-host
-REDIS_PORT=6379
-CACHE_DRIVER=redis
-QUEUE_CONNECTION=redis
-SESSION_DRIVER=database
-SESSION_SECURE_COOKIE=true
-SANCTUM_STATEFUL_DOMAINS=your-ui.example.com
-SESSION_DOMAIN=your-ui.example.com
-VITE_ASSET_BASE=/storage
-```
-
-Create or attach persistent storage volume (if using Docker volume):
-
-```bash
-docker volume create storage
-```
-
-Alternatively change `deploy/prod/docker-compose.yml` to a host bind mount:
-
-```yaml
-volumes:
-  - /srv/petcare/storage:/var/www/html/storage/app/public:rw
-```
-
-Start stack:
-
-```bash
-docker compose -f deploy/prod/docker-compose.yml up -d
-```
-
-Run migrations (one-off):
-
-```bash
-docker compose -f deploy/prod/docker-compose.yml exec app php artisan migrate --force
-```
-
-Optional cache warmups:
-
-```bash
-docker compose -f deploy/prod/docker-compose.yml exec app php artisan config:cache
-docker compose -f deploy/prod/docker-compose.yml exec app php artisan route:cache
-docker compose -f deploy/prod/docker-compose.yml exec app php artisan view:cache
-```
-
-Health validation:
-
-- Nginx: `curl -f https://your-api.example.com/health`
-- UI static assets served correctly.
-
-### Important: Avoid Combining Dev & Prod Files
-
-Combining `docker-compose.yml` (dev) with `deploy/prod/docker-compose.yml` would unintentionally
-start development-only services (MySQL, Redis, Horizon, bind mounts) in production. Keep production
-concerns isolated to the prod file to ensure:
-
-- Correct dependency on external managed DB/Redis
-- Immutable containers (no source bind mounts)
-- Reduced attack surface (no dev tooling)
-- Predictable lifecycle and scaling
-
-## Uploads & Storage
-
-- Laravel uses the `public` disk backed by the shared `storage` volume mounted on `app` and `web`.
-- Nginx serves uploaded assets from `/storage/*` (see `docker/nginx.conf`); no proxy layer or BFF is
-  required.
-- Upload API: `POST /api/uploads` (auth) accepts images/MP4/WebM up to 10MB and returns the stored
-  `path` and public `url`.
-- React uses `VITE_ASSET_BASE` (default `/storage`) to resolve media URLs from activity uploads.
-- Default directories: activities → `activities/media`, pet avatars → `pets/avatars`, general →
-  `uploads`.
-
-## Auth & Cookies
-
-- Flow: The React UI authenticates with Laravel using OTP login. Laravel Sanctum manages
-  session-based authentication using cookies. The UI makes direct API calls to Laravel endpoints.
-- CSRF: Laravel Sanctum provides CSRF protection via `/sanctum/csrf-cookie`. The UI fetches this
-  endpoint to get the XSRF-TOKEN cookie, which is then sent as the `X-XSRF-TOKEN` header on mutating
-  requests.
-- Logout: `POST /api/auth/logout` clears the session/cookies and revokes the current Sanctum token
-  in Laravel.
-- Cookies: In production, ensure `SESSION_SECURE_COOKIE=true` in Laravel's `.env` and configure CORS
-  appropriately for cross-origin requests.
-
-  **Laravel production config references:**
-  - **CORS:** Edit `config/cors.php` to allow your UI domain:
-
-    ```php
-    // config/cors.php
-    return [
-        'paths' => ['api/*', 'sanctum/csrf-cookie'],
-        'allowed_origins' => ['https://your-ui-domain.com'],
-        'supports_credentials' => true,
-    ];
-    ```
-
-  - **Sanctum domains:** Edit `SANCTUM_STATEFUL_DOMAINS` in `.env` to include your UI domain:
-
-    ```env
-    SANCTUM_STATEFUL_DOMAINS=your-ui-domain.com
-    ```
-
-  - **Session settings:** In `.env`, ensure cookies are secure and same-site is set for
-    cross-origin:
-
-    ```env
-    SESSION_SECURE_COOKIE=true
-    SESSION_SAME_SITE=lax
-    ```
-
-  - See also: `config/session.php` for session driver and cookie settings.
-
-## Production Compose (Reference)
-
-- `docker-compose.prod.yml` is production-oriented and references prebuilt images (no bind mounts).
-- DB/Redis are expected to be external; set connection variables in `.env`.
-- Build & push images before deploying (`ghcr.io/yourorg/*`).
-- UI should be served as built static assets behind CDN / Nginx.
-- Configure CORS & Sanctum domains appropriately in `.env`.
-
-### UI Runtime API Proxy (Production & Staging)
-
-The UI never embeds an API URL at build time.
-
-Instead, Nginx proxies runtime `/api/*` requests to the backend using:
-
-`API_BASE_URL=http://<backend-service>`
-
-The value is injected via docker-compose at runtime, and substituted into
-`/etc/nginx/conf.d/default.conf` using the built-in nginx template system.
-
-Environment wiring (UI)
-
-- UI build-time vars (Vite):
-  - `VITE_ASSET_BASE` (default `/storage`): base path/URL for uploaded files returned by Laravel.
+- Redis powers cache + queue drivers by default (`CACHE_DRIVER=redis`, `QUEUE_CONNECTION=redis`).
+- Worker containers live in compose; for Horizon enable the `horizon` service and follow the install
+  steps documented in `docs/architecture.md`.
 
 ## Documentation
 
-- API (Laravel): `src/README.md`
-- UI (Vite + React): `src/ui/README.md`
-- Architecture: `docs/architecture.md`
-- Docker & builds: `DOCKER.md`
-- Postman: `src/storage/app/scribe/collection.json`
+| Topic                   | Location                           | Notes                                  |
+| ----------------------- | ---------------------------------- | -------------------------------------- |
+| API / Laravel           | `src/README.md`                    | Artisan scripts, testing, feature list |
+| React UI                | `src/ui/README.md`                 | Vite scripts, component library notes  |
+| Architecture & diagrams | `docs/architecture.md`             | Storage, auth, queue deep dives        |
+| Docker / CI             | `docs/CI_CD_SETUP.md`, `DOCKER.md` | Image build strategy, Compose tips     |
+| Demo workflow           | `docs/demo-scenario.md`            | End-to-end caregiver + activity flow   |
+| Production deployment   | `docs/production-deployment.md`    | Env checklist, troubleshooting         |
 
-## CI
+## Production Deployment
 
-- UI image build/push: `.github/workflows/ui.yml` (pushes to GHCR)
+- Production compose and helper scripts live in `deploy/prod/`.
+- Containers expect external MySQL + Redis and prebuilt images from GHCR.
+- Start with `docker compose -f deploy/prod/docker-compose.yml pull` followed by `up -d`, run
+  migrations via `exec app php artisan migrate --force`, then warm caches as needed.
+- Detailed environment variable requirements, manual deployment checklist, troubleshooting tips,
+  backup plan, and monitoring suggestions are documented in
+  [`docs/production-deployment.md`](docs/production-deployment.md).
