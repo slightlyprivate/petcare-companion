@@ -4,6 +4,8 @@
 [![Build Images (main)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-images.yml/badge.svg)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-images.yml)
 [![Build Images (develop)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-develop-images.yml/badge.svg)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-develop-images.yml)
 
+<img src="./assets/petcare-companion.png" alt="PetCare Companion Logo" width="250">
+
 Educational Laravel API + React UI stack with Dockerized workflows, shared caregiving features, and
 Sanctum-based authentication.
 
