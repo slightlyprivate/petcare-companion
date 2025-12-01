@@ -54,5 +54,5 @@ jobs:
             ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:develop-${{ github.sha }}
             pwa.tags=ghcr.io/slightlyprivate/petcare-companion-pwa:develop
             pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:develop-${{ github.sha }}
-            ui.args=VITE_APP_VERSION=${{ steps.version.outputs.version }}
-            pwa.args=VITE_APP_VERSION=${{ steps.version.outputs.version }}
+            ui.args.VITE_APP_VERSION=${{ steps.version.outputs.version }}
+            pwa.args.VITE_APP_VERSION=${{ steps.version.outputs.version }}
