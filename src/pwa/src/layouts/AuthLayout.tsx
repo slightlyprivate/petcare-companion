@@ -1,6 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
 import { PATHS } from '../routes/paths';
-import { AppVersionFooter } from '../components/AppVersionFooter';
 
 /**
  * Auth layout for authentication-related pages.
@@ -25,7 +24,6 @@ export default function AuthLayout() {
           <Outlet />
         </div>
       </div>
-      <AppVersionFooter />
     </div>
   );
 }
