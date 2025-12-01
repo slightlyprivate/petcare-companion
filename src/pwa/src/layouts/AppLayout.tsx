@@ -2,6 +2,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useMe, useLogout } from '../api/auth/hooks';
 import { PATHS } from '../routes/paths';
 import Navigation from '../components/Navigation';
+import { AppVersionFooter } from '../components/AppVersionFooter';
 
 // Unified application layout (navigation chrome + routed content)
 export default function AppLayout() {
@@ -36,6 +37,7 @@ export default function AppLayout() {
       <main className="p-4">
         <Outlet />
       </main>
+      <AppVersionFooter />
     </div>
   );
 }

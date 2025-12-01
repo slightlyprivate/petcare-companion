@@ -62,3 +62,12 @@ code {
   padding: 0.1rem 0.35rem;
   border-radius: 0.35rem;
 }
+
+.version-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.75rem;
+  text-align: center;
+}
