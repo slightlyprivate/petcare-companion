@@ -1,7 +1,31 @@
 #!/bin/sh
+set -e
 
-# Fix permissions every container start
-chown -R www-data:www-data /var/www/html/storage
-chmod -R 775 /var/www/html/storage
+echo "[entrypoint] Preparing Laravel filesystem..."
 
-php-fpm
+# Ensure required directories exist
+mkdir -p \
+  /var/www/html/storage/app/public \
+  /var/www/html/storage/framework/cache \
+  /var/www/html/storage/framework/sessions \
+  /var/www/html/storage/framework/views \
+  /var/www/html/storage/logs \
+  /var/www/html/bootstrap/cache
+
+# Fix permissions
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+echo "[entrypoint] Clearing stale Laravel caches..."
+php artisan config:clear || true
+php artisan cache:clear || true
+php artisan route:clear || true
+php artisan view:clear || true
+
+echo "[entrypoint] Rebuilding Laravel caches..."
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
+
+echo "[entrypoint] Starting PHP-FPM..."
+exec php-fpm
