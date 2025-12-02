@@ -1,9 +1,9 @@
 services:
   app:
-    container_name: petcare_app_staging
-    image: ghcr.io/slightlyprivate/petcare-companion-app:develop
+    container_name: ${APP_CONTAINER_NAME:-petcare_app_staging}
+    image: ${DOCKER_REGISTRY}/petcare-companion-app:${IMAGE_TAG:-develop}
     env_file:
-      - .env.staging
+      - .env
     healthcheck:
       test: ['CMD', 'php', 'artisan', 'inspire']
       interval: 20s
@@ -16,12 +16,15 @@ services:
       - shared-cache
     volumes:
       - storage:/var/www/html/storage/app/public
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-staging}'
 
   web:
-    container_name: petcare_web_staging
-    image: ghcr.io/slightlyprivate/petcare-companion-web:develop
+    container_name: ${WEB_CONTAINER_NAME:-petcare_web_staging}
+    image: ${DOCKER_REGISTRY}/petcare-companion-web:${IMAGE_TAG:-develop}
     env_file:
-      - .env.staging
+      - .env
     depends_on:
       app:
         condition: service_healthy
@@ -30,12 +33,21 @@ services:
     restart: unless-stopped
     networks:
       - default
+      - traefik-proxy
     volumes:
       - storage:/var/www/html/storage/app/public:ro
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-staging}'
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.petcare_web_${ENV:-staging}.rule=Host(`${WEB_DOMAIN:-web.staging.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_web_${ENV:-staging}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_web_${ENV:-staging}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_web_${ENV:-staging}.loadbalancer.server.port=80'
 
   ui:
-    container_name: petcare_ui_staging
-    image: ghcr.io/slightlyprivate/petcare-companion-ui:develop
+    container_name: ${UI_CONTAINER_NAME:-petcare_ui_staging}
+    image: ${DOCKER_REGISTRY}/petcare-companion-ui:${IMAGE_TAG:-develop}
     environment:
       API_BASE_URL: http://petcare_web_staging
     depends_on:
@@ -50,10 +62,19 @@ services:
       - /var/run
     networks:
       - default
+      - traefik-proxy
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-staging}'
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.petcare_ui_${ENV:-staging}.rule=Host(`${UI_DOMAIN:-ui.staging.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_ui_${ENV:-staging}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_ui_${ENV:-staging}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_ui_${ENV:-staging}.loadbalancer.server.port=80'
 
   pwa:
-    container_name: petcare_pwa_staging
-    image: ghcr.io/slightlyprivate/petcare-companion-pwa:develop
+    container_name: ${PWA_CONTAINER_NAME:-petcare_pwa_staging}
+    image: ${DOCKER_REGISTRY}/petcare-companion-pwa:${IMAGE_TAG:-develop}
     environment:
       API_BASE_URL: http://petcare_web_staging
     depends_on:
@@ -68,16 +89,15 @@ services:
       - /var/run
     networks:
       - default
-
-  mailhog:
-    container_name: petcare_mailhog_staging
-    image: mailhog/mailhog:latest
-    ports:
-      - '127.0.0.1:8026:8025'
-      - '127.0.0.1:1026:1025'
-    restart: unless-stopped
-    networks:
-      - default
+      - traefik-proxy
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-staging}'
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.petcare_pwa_${ENV:-staging}.rule=Host(`${PWA_DOMAIN:-pwa.staging.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_pwa_${ENV:-staging}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_pwa_${ENV:-staging}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_pwa_${ENV:-staging}.loadbalancer.server.port=80'
 
 volumes:
   storage:
@@ -86,4 +106,6 @@ networks:
   shared-db:
     external: true
   shared-cache:
+    external: true
+  traefik-proxy:
     external: true

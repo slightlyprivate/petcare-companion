@@ -37,6 +37,10 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "VITE_APP_VERSION=$VERSION" >> $GITHUB_ENV
 
+      - name: Compute short SHA
+        id: shortsha
+        run: echo "SHORT_SHA=$(git rev-parse --short=7 HEAD)" >> $GITHUB_OUTPUT
+
       - name: Build and push develop images
         uses: docker/bake-action@v5
         with:
@@ -47,12 +51,12 @@ jobs:
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
             app.tags=ghcr.io/slightlyprivate/petcare-companion-app:develop
-            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:develop-${{ github.sha }}
+            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:dev-${{ steps.shortsha.outputs.SHORT_SHA }}
             web.tags=ghcr.io/slightlyprivate/petcare-companion-web:develop
-            web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:develop-${{ github.sha }}
+            web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:dev-${{ steps.shortsha.outputs.SHORT_SHA }}
             ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:develop
-            ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:develop-${{ github.sha }}
+            ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:dev-${{ steps.shortsha.outputs.SHORT_SHA }}
             pwa.tags=ghcr.io/slightlyprivate/petcare-companion-pwa:develop
-            pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:develop-${{ github.sha }}
+            pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:dev-${{ steps.shortsha.outputs.SHORT_SHA }}
             ui.args.VITE_APP_VERSION=${{ steps.version.outputs.version }}
             pwa.args.VITE_APP_VERSION=${{ steps.version.outputs.version }}
