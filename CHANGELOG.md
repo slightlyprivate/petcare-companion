@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0](https://github.com/slightlyprivate/petcare-companion/compare/0.5.0...0.6.0) (2025-12-02)
+
+
+### Features
+
+* add entrypoint script to set permissions for storage directory ([903c0a3](https://github.com/slightlyprivate/petcare-companion/commit/903c0a391e697cea0d0ed113c7fbb28a23bf8972))
+* add logo image to README and update layout ([c9a6fc1](https://github.com/slightlyprivate/petcare-companion/commit/c9a6fc1ccddd25d8ba3a021d29f4e30efce9cf11))
+* add versioning to builds and display in app footer ([5064a52](https://github.com/slightlyprivate/petcare-companion/commit/5064a5230dd8e20faea21da12e0c9b8a31d07cd8))
+* **deploy:** Implement blue/green deployment strategy for production ([#28](https://github.com/slightlyprivate/petcare-companion/issues/28)) ([63dc5bf](https://github.com/slightlyprivate/petcare-companion/commit/63dc5bfe54cfb5263150d26ac03868a7c7f7ccf1))
+* enhance entrypoint scripts for Laravel filesystem preparation and cache management ([7e26c9a](https://github.com/slightlyprivate/petcare-companion/commit/7e26c9a92d9283b7d97dd32d34cca7c2355b74b0))
+
+
+### Bug Fixes
+
+* correct syntax for setting VITE_APP_VERSION in build workflow ([2f2f09f](https://github.com/slightlyprivate/petcare-companion/commit/2f2f09f7da54a76a3f1917f3ac6bd6eb7648fc3b))
+* remove unused AppVersionFooter component from AuthLayout ([5d9f348](https://github.com/slightlyprivate/petcare-companion/commit/5d9f348fc5b1101e31fe662471c0c31afc919dee))
+* update image tag patterns for consistency across environments ([ff582a0](https://github.com/slightlyprivate/petcare-companion/commit/ff582a09750867d71a49125b01ea08585abe48f3))
+
 ## [0.5.0](https://github.com/slightlyprivate/petcare-companion/compare/0.4.2...0.5.0) (2025-11-23)
 
 
