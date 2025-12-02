@@ -62,7 +62,7 @@ docker compose up -d
 
 ```bash
 cd deploy/staging
-cp .env.example .env.staging
+cp .env.example .env
 # Configure environment variables
 docker compose up -d
 ```
