@@ -12,6 +12,7 @@ services:
     restart: unless-stopped
     entrypoint: /usr/local/bin/entrypoint.sh
     networks:
+      - backend
       - shared-db-petcare
       - shared-cache-petcare
     volumes:
@@ -30,7 +31,14 @@ services:
       app:
         condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost/health']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     networks:
+      - backend
       - traefik-proxy
     volumes:
       - .env:/var/www/html/.env
@@ -131,6 +139,8 @@ services:
       - 'petcare.env=${ENV:-develop}'
 
 networks:
+  backend:
+    driver: bridge
   shared-db-petcare:
     external: true
   shared-cache-petcare:
