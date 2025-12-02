@@ -26,6 +26,24 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 DEPLOY_ROOT="${PROJECT_ROOT}/deploy"
 ACTIVE_SLOT_FILE="${DEPLOY_ROOT}/production/active-slot"
 
+# Helper function to update TRAEFIK_ENABLE in .env file
+update_traefik_enable() {
+    local env_file="$1"
+    local value="$2"
+    
+    if [ ! -f "$env_file" ]; then
+        echo "❌ Error: .env file not found at ${env_file}"
+        exit 1
+    fi
+    
+    # Update or add TRAEFIK_ENABLE in .env file
+    if grep -q "^TRAEFIK_ENABLE=" "$env_file"; then
+        sed -i "s/^TRAEFIK_ENABLE=.*/TRAEFIK_ENABLE=${value}/" "$env_file"
+    else
+        echo "TRAEFIK_ENABLE=${value}" >> "$env_file"
+    fi
+}
+
 echo "🚀 PetCare Production Deployment"
 echo "================================"
 echo "Version: ${VERSION}"
@@ -80,7 +98,7 @@ docker compose pull
 
 echo ""
 echo "🔧 Step 2: Deploying to ${TARGET_SLOT} slot (inactive)..."
-export TRAEFIK_ENABLE="false"
+update_traefik_enable "${TARGET_DIR}/.env" "false"
 docker compose up -d
 
 echo ""
@@ -102,14 +120,14 @@ echo "✅ All services healthy"
 
 echo ""
 echo "🔀 Step 5: Activating ${TARGET_SLOT} slot in Traefik..."
-export TRAEFIK_ENABLE="true"
+update_traefik_enable "${TARGET_DIR}/.env" "true"
 docker compose up -d
 
 echo ""
 echo "⏸️  Step 6: Deactivating ${ACTIVE_SLOT} slot..."
 ACTIVE_DIR="${DEPLOY_ROOT}/production-${ACTIVE_SLOT}"
 cd "$ACTIVE_DIR"
-export TRAEFIK_ENABLE="false"
+update_traefik_enable "${ACTIVE_DIR}/.env" "false"
 docker compose up -d
 
 echo ""
@@ -126,9 +144,9 @@ echo "  📁 Deployed to: ${TARGET_DIR}"
 echo ""
 echo "Quick rollback (if needed):"
 echo "  cd ${ACTIVE_DIR}"
-echo "  export TRAEFIK_ENABLE=true && docker compose up -d"
+echo "  sed -i 's/^TRAEFIK_ENABLE=.*/TRAEFIK_ENABLE=true/' .env && docker compose up -d"
 echo "  cd ${TARGET_DIR}"
-echo "  export TRAEFIK_ENABLE=false && docker compose up -d"
+echo "  sed -i 's/^TRAEFIK_ENABLE=.*/TRAEFIK_ENABLE=false/' .env && docker compose up -d"
 echo "  echo '${ACTIVE_SLOT}' > ${ACTIVE_SLOT_FILE}"
 echo ""
 echo "Note: All paths above are absolute. You can run these commands from any directory."

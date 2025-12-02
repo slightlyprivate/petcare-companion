@@ -86,3 +86,58 @@ validate_env_keys() {
         echo "Extra in .env:"; echo "$extra_in_env"
         return 1
     fi
+
+# ---------------------------
+# Main execution block
+# ---------------------------
+
+# Default environments and their directories
+declare -A ENV_DIRS=(
+    [development]="$PROJECT_ROOT/environments/development"
+    [staging]="$PROJECT_ROOT/environments/staging"
+    [production-blue]="$PROJECT_ROOT/environments/production-blue"
+    [production-green]="$PROJECT_ROOT/environments/production-green"
+)
+
+ENVIRONMENTS=()
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --environment)
+            if [[ -n "${2:-}" ]]; then
+                ENVIRONMENTS+=("$2")
+                shift 2
+            else
+                log_error "Missing value for --environment"
+                exit 1
+            fi
+            ;;
+        *)
+            log_error "Unknown argument: $1"
+            exit 1
+            ;;
+    esac
+done
+
+# If no environment specified, validate all
+if [[ ${#ENVIRONMENTS[@]} -eq 0 ]]; then
+    ENVIRONMENTS=(development staging production-blue production-green)
+fi
+
+for ENV in "${ENVIRONMENTS[@]}"; do
+    DIR="${ENV_DIRS[$ENV]}"
+    if [[ -z "$DIR" || ! -d "$DIR" ]]; then
+        log_warning "Directory for environment '$ENV' not found: $DIR"
+        continue
+    fi
+    validate_env_keys "$DIR" "$ENV"
+done
+
+if [[ $ERRORS -eq 0 ]]; then
+    log_success "All environment validations passed."
+    exit 0
+else
+    log_error "Environment validation failed with $ERRORS error(s)."
+    exit 1
+fi

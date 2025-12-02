@@ -30,8 +30,7 @@ The staging environment mirrors the `develop` branch and keeps production isolat
 
 Files live in `deploy/staging/`.
 
-1. Copy `.env.staging.example` to `.env.staging` and fill secrets (`APP_KEY`, DB credentials, mail
-   sender, etc.).
+1. Copy `.env.example` to `.env` and fill secrets (`APP_KEY`, DB credentials, mail sender, etc.).
 2. From the staging host directory (e.g., `/srv/petcare-staging`):
 
    ```bash
