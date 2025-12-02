@@ -4,8 +4,8 @@ services:
   # Ensure proper CORS / Sanctum configuration in .env.
 
   app:
-    container_name: petcare_app
-    image: ghcr.io/slightlyprivate/petcare-companion-app:prod
+    container_name: ${APP_CONTAINER_NAME:-petcare_app}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-prod}
     env_file: .env
     read_only: true
     user: www-data
@@ -21,10 +21,13 @@ services:
       start_period: 30s
     networks:
       - backend
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
 
   web:
-    container_name: petcare_web
-    image: ghcr.io/slightlyprivate/petcare-companion-web:prod
+    container_name: ${WEB_CONTAINER_NAME:-petcare_web}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-prod}
     depends_on:
       app:
         condition: service_healthy
@@ -46,10 +49,19 @@ services:
     networks:
       - frontend
       - backend
+      - traefik-proxy
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.petcare_web_${ENV:-prod}.rule=Host(`${WEB_DOMAIN:-web.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_web_${ENV:-prod}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_web_${ENV:-prod}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_web_${ENV:-prod}.loadbalancer.server.port=80'
 
   worker:
-    container_name: petcare_worker
-    image: ghcr.io/slightlyprivate/petcare-companion-app:prod
+    container_name: ${WORKER_CONTAINER_NAME:-petcare_worker}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-prod}
     command: php artisan queue:work --sleep=3 --tries=3 --memory=256
     env_file: .env
     read_only: true
@@ -69,10 +81,13 @@ services:
     restart: unless-stopped
     networks:
       - backend
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
 
   ui:
-    container_name: petcare_ui
-    image: ghcr.io/slightlyprivate/petcare-companion-ui:prod
+    container_name: ${UI_CONTAINER_NAME:-petcare_ui}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-prod}
     environment:
       API_BASE_URL: http://web
     read_only: true
@@ -94,10 +109,19 @@ services:
       start_period: 10s
     networks:
       - frontend
+      - traefik-proxy
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.petcare_ui_${ENV:-prod}.rule=Host(`${UI_DOMAIN:-ui.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_ui_${ENV:-prod}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_ui_${ENV:-prod}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_ui_${ENV:-prod}.loadbalancer.server.port=80'
 
   pwa:
-    container_name: petcare_pwa
-    image: ghcr.io/slightlyprivate/petcare-companion-pwa:prod
+    container_name: ${PWA_CONTAINER_NAME:-petcare_pwa}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-prod}
     environment:
       API_BASE_URL: http://web
     read_only: true
@@ -119,12 +143,23 @@ services:
       start_period: 10s
     networks:
       - frontend
+      - traefik-proxy
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.petcare_pwa_${ENV:-prod}.rule=Host(`${PWA_DOMAIN:-pwa.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_pwa_${ENV:-prod}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_pwa_${ENV:-prod}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_pwa_${ENV:-prod}.loadbalancer.server.port=80'
 
 networks:
   frontend:
     driver: bridge
   backend:
     driver: bridge
+  traefik-proxy:
+    external: true
 
 volumes:
   storage:

@@ -138,3 +138,11 @@ graph LR
 - Detailed environment variable requirements, manual deployment checklist, troubleshooting tips,
   backup plan, and monitoring suggestions are documented in
   [`docs/production-deployment.md`](docs/production-deployment.md).
+
+## Image Tags
+
+- Development: `ghcr.io/slightlyprivate/petcare-companion-{service}:dev-{shortsha}`
+- Staging: `ghcr.io/slightlyprivate/petcare-companion-{service}:staging-{version}`
+- Production: `ghcr.io/slightlyprivate/petcare-companion-{service}:release-{version}`
+
+Services include: `app`, `web`, `ui`, `pwa`
