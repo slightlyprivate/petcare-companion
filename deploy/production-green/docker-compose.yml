@@ -1,0 +1,166 @@
+services:
+  # 🟩 GREEN SLOT - Production deployment
+  # External services (DB/Redis/Object storage) should be provisioned outside Compose.
+  # Ensure proper CORS / Sanctum configuration in .env.
+
+  app:
+    container_name: ${APP_CONTAINER_NAME:-petcare_app_green}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-latest}
+    env_file: .env
+    read_only: true
+    user: www-data
+    volumes:
+      - storage:/var/www/html/storage/app/public:rw
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ['CMD', 'php', 'artisan', 'inspire']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - backend
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
+      - 'petcare.slot=green'
+
+  web:
+    container_name: ${WEB_CONTAINER_NAME:-petcare_web_green}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-release-latest}
+    depends_on:
+      app:
+        condition: service_healthy
+    read_only: true
+    user: www-data
+    volumes:
+      - storage:/var/www/html/storage/app/public:ro
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/health || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - frontend
+      - backend
+      - traefik-proxy
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
+      - 'petcare.slot=green'
+      # Traefik labels - controlled by TRAEFIK_ENABLE (false for inactive slot)
+      - 'traefik.enable=${TRAEFIK_ENABLE:-false}'
+      - 'traefik.http.routers.petcare_web_prod_green.rule=Host(`${WEB_DOMAIN:-web.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_web_prod_green.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_web_prod_green.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_web_prod_green.loadbalancer.server.port=80'
+
+  worker:
+    container_name: ${WORKER_CONTAINER_NAME:-petcare_worker_green}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-latest}
+    command: php artisan queue:work --sleep=3 --tries=3 --memory=256
+    env_file: .env
+    read_only: true
+    user: www-data
+    volumes:
+      - storage:/var/www/html/storage/app/public:rw
+    tmpfs:
+      - /tmp
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'pgrep', '-f', 'artisan queue:work']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - backend
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
+      - 'petcare.slot=green'
+
+  ui:
+    container_name: ${UI_CONTAINER_NAME:-petcare_ui_green}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-release-latest}
+    environment:
+      API_BASE_URL: http://web
+    read_only: true
+    depends_on:
+      web:
+        condition: service_healthy
+    user: www-data
+    tmpfs:
+      - /etc/nginx/conf.d
+      - /var/cache/nginx
+      - /var/run
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/health >/dev/null 2>&1 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - frontend
+      - traefik-proxy
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
+      - 'petcare.slot=green'
+      - 'traefik.enable=${TRAEFIK_ENABLE:-false}'
+      - 'traefik.http.routers.petcare_ui_prod_green.rule=Host(`${UI_DOMAIN:-ui.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_ui_prod_green.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_ui_prod_green.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_ui_prod_green.loadbalancer.server.port=80'
+
+  pwa:
+    container_name: ${PWA_CONTAINER_NAME:-petcare_pwa_green}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-release-latest}
+    environment:
+      API_BASE_URL: http://web
+    read_only: true
+    depends_on:
+      web:
+        condition: service_healthy
+    user: www-data
+    tmpfs:
+      - /etc/nginx/conf.d
+      - /var/cache/nginx
+      - /var/run
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost/health >/dev/null 2>&1 || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - frontend
+      - traefik-proxy
+    labels:
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-prod}'
+      - 'petcare.slot=green'
+      - 'traefik.enable=${TRAEFIK_ENABLE:-false}'
+      - 'traefik.http.routers.petcare_pwa_prod_green.rule=Host(`${PWA_DOMAIN:-pwa.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_pwa_prod_green.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_pwa_prod_green.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_pwa_prod_green.loadbalancer.server.port=80'
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+  traefik-proxy:
+    external: true
+
+volumes:
+  storage:
+    external: true

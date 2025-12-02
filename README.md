@@ -4,6 +4,8 @@
 [![Build Images (main)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-images.yml/badge.svg)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-images.yml)
 [![Build Images (develop)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-develop-images.yml/badge.svg)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-develop-images.yml)
 
+<img src="./assets/petcare-companion.png" alt="PetCare Companion Logo" width="250">
+
 Educational Laravel API + React UI stack with Dockerized workflows, shared caregiving features, and
 Sanctum-based authentication.
 
@@ -136,3 +138,11 @@ graph LR
 - Detailed environment variable requirements, manual deployment checklist, troubleshooting tips,
   backup plan, and monitoring suggestions are documented in
   [`docs/production-deployment.md`](docs/production-deployment.md).
+
+## Image Tags
+
+- Development: `ghcr.io/slightlyprivate/petcare-companion-{service}:dev-{shortsha}`
+- Staging: `ghcr.io/slightlyprivate/petcare-companion-{service}:staging-{version}`
+- Production: `ghcr.io/slightlyprivate/petcare-companion-{service}:release-{version}`
+
+Services include: `app`, `web`, `ui`, `pwa`

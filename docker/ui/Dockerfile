@@ -1,5 +1,8 @@
 # Build stage
+ARG VITE_APP_VERSION=dev
 FROM node:20-alpine AS build
+ARG VITE_APP_VERSION
+ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
 RUN apk update && apk upgrade --no-cache --available
 
@@ -11,6 +14,8 @@ RUN npm run build
 
 # Runtime stage
 FROM nginx:stable-alpine
+ARG VITE_APP_VERSION
+ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
 RUN apk update && apk upgrade --no-cache --available
 
