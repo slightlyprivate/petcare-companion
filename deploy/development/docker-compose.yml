@@ -1,7 +1,7 @@
 services:
   app:
     container_name: ${APP_CONTAINER_NAME:-petcare_app_develop}
-    image: ${DOCKER_REGISTRY}/petcare-companion-app:${IMAGE_TAG:-develop}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-develop}
     env_file:
       - .env
     healthcheck:

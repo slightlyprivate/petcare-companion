@@ -40,7 +40,7 @@ if [ ! -f "$ACTIVE_SLOT_FILE" ]; then
 fi
 
 # Read current active slot
-ACTIVE_SLOT=$(cat "$ACTIVE_SLOT_FILE" | tr -d '[:space:]')
+ACTIVE_SLOT="$(cat "$ACTIVE_SLOT_FILE" | tr -d '[:space:]')"
 echo "📍 Current active slot: ${ACTIVE_SLOT}"
 
 # Determine target slot (opposite of active)
@@ -131,3 +131,4 @@ echo "  cd ${TARGET_DIR}"
 echo "  export TRAEFIK_ENABLE=false && docker compose up -d"
 echo "  echo '${ACTIVE_SLOT}' > ${ACTIVE_SLOT_FILE}"
 echo ""
+echo "Note: All paths above are absolute. You can run these commands from any directory."
