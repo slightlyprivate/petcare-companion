@@ -89,8 +89,9 @@ sleep 30
 
 echo ""
 echo "🏥 Step 4: Health check..."
-HEALTH_STATUS=$(docker compose ps --format json | jq -r '.[].Health' | grep -v "healthy" | wc -l)
-if [ "$HEALTH_STATUS" -gt 0 ]; then
+HEALTH_STATUS=$(docker compose ps --format json | jq -r 'if type == "array" then .[].Health else .Health end' | grep -c "healthy" || echo "0")
+TOTAL_SERVICES=$(docker compose ps --format json | jq -r 'if type == "array" then . | length else 1 end')
+if [ "$HEALTH_STATUS" -lt "$TOTAL_SERVICES" ]; then
     echo "❌ Health check failed. Some services are not healthy:"
     docker compose ps
     echo ""

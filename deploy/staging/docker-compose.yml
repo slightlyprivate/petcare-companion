@@ -5,7 +5,7 @@ services:
     env_file:
       - .env
     healthcheck:
-      test: ['CMD', 'php', 'artisan', 'inspire']
+      test: ['CMD-SHELL', 'php artisan migrate:status >/dev/null 2>&1']
       interval: 20s
       timeout: 5s
       retries: 5
@@ -49,7 +49,7 @@ services:
     container_name: ${UI_CONTAINER_NAME:-petcare_ui_staging}
     image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-develop}
     environment:
-      API_BASE_URL: http://petcare_web_staging
+      API_BASE_URL: http://web
     depends_on:
       web:
         condition: service_healthy
@@ -76,7 +76,7 @@ services:
     container_name: ${PWA_CONTAINER_NAME:-petcare_pwa_staging}
     image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-develop}
     environment:
-      API_BASE_URL: http://petcare_web_staging
+      API_BASE_URL: http://web
     depends_on:
       web:
         condition: service_healthy

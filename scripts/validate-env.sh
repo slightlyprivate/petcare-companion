@@ -74,7 +74,15 @@ validate_env_keys() {
         return 0
     fi
     
-    #!/usr/bin/env bash
-    echo "validate-env.sh has been removed. No action needed." 
-    exit 0
     env_keys=$(extract_env_keys "$env_dir/.env")
+    example_keys=$(extract_env_keys "$env_dir/.env.example")
+
+    missing_in_env=$(comm -23 <(echo "$example_keys") <(echo "$env_keys"))
+    extra_in_env=$(comm -13 <(echo "$example_keys") <(echo "$env_keys"))
+
+    if [[ -n "$missing_in_env" || -n "$extra_in_env" ]]; then
+        log_error "$env_name: .env keys mismatch"
+        echo "Missing in .env:"; echo "$missing_in_env"
+        echo "Extra in .env:"; echo "$extra_in_env"
+        return 1
+    fi

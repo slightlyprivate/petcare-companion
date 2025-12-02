@@ -14,7 +14,7 @@ services:
     tmpfs:
       - /tmp
     healthcheck:
-      test: ['CMD', 'php', 'artisan', 'inspire']
+      test: ['CMD', 'php', 'artisan', 'migrate:status']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -55,10 +55,10 @@ services:
       - 'petcare.slot=blue'
       # Traefik labels - controlled by TRAEFIK_ENABLE (false for inactive slot)
       - 'traefik.enable=${TRAEFIK_ENABLE:-false}'
-      - 'traefik.http.routers.petcare_web_prod.rule=Host(`${WEB_DOMAIN:-web.petcare.ubuntu.slightlyprivate.com}`)'
-      - 'traefik.http.routers.petcare_web_prod.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
-      - 'traefik.http.routers.petcare_web_prod.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
-      - 'traefik.http.services.petcare_web_prod.loadbalancer.server.port=80'
+      - 'traefik.http.routers.petcare_web_prod_${SLOT:-blue}.rule=Host(`${WEB_DOMAIN:-web.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_web_prod_${SLOT:-blue}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_web_prod_${SLOT:-blue}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_web_prod_${SLOT:-blue}.loadbalancer.server.port=80'
 
   worker:
     container_name: ${WORKER_CONTAINER_NAME:-petcare_worker_blue}
@@ -115,10 +115,10 @@ services:
       - 'petcare.env=${ENV:-prod}'
       - 'petcare.slot=blue'
       - 'traefik.enable=${TRAEFIK_ENABLE:-false}'
-      - 'traefik.http.routers.petcare_ui_prod.rule=Host(`${UI_DOMAIN:-ui.petcare.ubuntu.slightlyprivate.com}`)'
-      - 'traefik.http.routers.petcare_ui_prod.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
-      - 'traefik.http.routers.petcare_ui_prod.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
-      - 'traefik.http.services.petcare_ui_prod.loadbalancer.server.port=80'
+      - 'traefik.http.routers.petcare_ui_prod_blue.rule=Host(`${UI_DOMAIN:-ui.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_ui_prod_blue.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_ui_prod_blue.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_ui_prod_blue.loadbalancer.server.port=80'
 
   pwa:
     container_name: ${PWA_CONTAINER_NAME:-petcare_pwa_blue}
@@ -148,10 +148,10 @@ services:
       - 'petcare.env=${ENV:-prod}'
       - 'petcare.slot=blue'
       - 'traefik.enable=${TRAEFIK_ENABLE:-false}'
-      - 'traefik.http.routers.petcare_pwa_prod.rule=Host(`${PWA_DOMAIN:-pwa.petcare.ubuntu.slightlyprivate.com}`)'
-      - 'traefik.http.routers.petcare_pwa_prod.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
-      - 'traefik.http.routers.petcare_pwa_prod.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
-      - 'traefik.http.services.petcare_pwa_prod.loadbalancer.server.port=80'
+      - 'traefik.http.routers.petcare_pwa_prod_blue.rule=Host(`${PWA_DOMAIN:-pwa.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_pwa_prod_blue.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
+      - 'traefik.http.routers.petcare_pwa_prod_blue.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
+      - 'traefik.http.services.petcare_pwa_prod_blue.loadbalancer.server.port=80'
 
 networks:
   frontend:

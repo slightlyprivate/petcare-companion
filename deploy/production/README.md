@@ -45,11 +45,11 @@ cat /srv/stacks/petcare-companion/deploy/production/active-slot
 
 # If blue is active, switch to green:
 cd /srv/stacks/petcare-companion/deploy/production-green
-echo "TRAEFIK_ENABLE=true" >> .env
+sed -i 's/^TRAEFIK_ENABLE=.*/TRAEFIK_ENABLE=true/' .env
 docker compose up -d
 
 cd /srv/stacks/petcare-companion/deploy/production-blue
-echo "TRAEFIK_ENABLE=false" >> .env
+sed -i 's/^TRAEFIK_ENABLE=.*/TRAEFIK_ENABLE=false/' .env
 docker compose up -d
 
 echo "green" > /srv/stacks/petcare-companion/deploy/production/active-slot

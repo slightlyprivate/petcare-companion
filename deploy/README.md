@@ -45,17 +45,18 @@ docker compose up -d
 
 **Key Features:**
 
-- Uses `:develop` tagged images from GHCR
-- Shared external networks for database and cache
-- Port-based access (no Traefik)
+- Uses `:staging-{version}` tagged images from GHCR
+- Traefik proxy integration with automatic SSL via Cloudflare
+- External networks: `shared-db-petcare`, `shared-cache-petcare`, `traefik-proxy`
 - Shared storage volume between services
+- Domain-based routing similar to development and production
 - Services: `app`, `web`, `ui`, `pwa`
 
-**Ports:**
+**Hostnames:**
 
-- Web: `9080`
-- PWA: `9081`
-- UI: `9082`
+- Web: `web.staging.petcare.ubuntu.slightlyprivate.com`
+- UI: `ui.staging.petcare.ubuntu.slightlyprivate.com`
+- PWA: `pwa.staging.petcare.ubuntu.slightlyprivate.com`
 
 **Setup:**
 
@@ -72,19 +73,27 @@ docker compose up -d
 
 **Key Features:**
 
-- Uses `:prod` tagged images from GHCR
+- Uses `:release-{version}` tagged images from GHCR
 - Read-only filesystems with minimal tmpfs mounts
 - Runs as non-root user (`www-data`)
 - Comprehensive healthchecks with start periods
 - Isolated frontend/backend networks
 - Includes queue worker with memory limits
+- Traefik proxy integration with automatic SSL via Cloudflare
+- Domain-based routing via the `traefik-proxy` network
 - Services: `app`, `web`, `worker`, `ui`, `pwa`
 
-**Ports:**
+**Hostnames:**
 
-- Web: `127.0.0.1:8080`
-- PWA: `127.0.0.1:8081`
-- UI: `127.0.0.1:8082`
+- Web: `web.petcare.ubuntu.slightlyprivate.com`
+- UI: `ui.petcare.ubuntu.slightlyprivate.com`
+- PWA: `pwa.petcare.ubuntu.slightlyprivate.com`
+
+Blue/Green deployments:
+
+- `production-blue/` and `production-green/` mirror `production/` and both use Traefik routing with
+  no container port mappings. Active slot is managed via `deploy/production/active-slot` and Traefik
+  labels.
 
 **Setup:**
 
@@ -100,9 +109,9 @@ docker compose exec app php artisan storage:link
 
 ## Image Tags
 
-- **Development:** `ghcr.io/slightlyprivate/petcare-companion-{service}:develop`
-- **Staging:** `ghcr.io/slightlyprivate/petcare-companion-{service}:develop`
-- **Production:** `ghcr.io/slightlyprivate/petcare-companion-{service}:prod`
+- **Development:** `ghcr.io/slightlyprivate/petcare-companion-{service}:dev-{shortsha}`
+- **Staging:** `ghcr.io/slightlyprivate/petcare-companion-{service}:staging-{version}`
+- **Production:** `ghcr.io/slightlyprivate/petcare-companion-{service}:release-{version}`
 
 Services include: `app`, `web`, `ui`, `pwa`
 

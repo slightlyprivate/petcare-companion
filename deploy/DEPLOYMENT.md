@@ -117,8 +117,14 @@ docker compose up -d --pull always
 # 4. Health check (wait for services to be healthy)
 echo "Running health checks..."
 sleep 30
-docker compose ps | grep -q "healthy" || exit 1
-
+# Ensure all services are healthy
+total_services=$(docker compose ps --format json | jq '. | length')
+healthy_services=$(docker compose ps --format json | jq '[.[] | select(.Health=="healthy")] | length')
+if [ "$total_services" -eq 0 ] || [ "$healthy_services" -ne "$total_services" ]; then
+    echo "ERROR: Not all services are healthy!"
+    docker compose ps
+    exit 1
+fi
 # 5. Activate new slot and deactivate old slot
 echo "Activating $TARGET_SLOT slot..."
 export TRAEFIK_ENABLE="true"
@@ -164,6 +170,19 @@ echo "✅ Deployment complete! Active slot is now: $TARGET_SLOT"
 - **Both slots use the same router names** (no slot suffix)
 - **Only one slot has `traefik.enable=true` at a time**
 - Traefik automatically routes to the enabled slot
+
+Example labels (applied via compose when `TRAEFIK_ENABLE` toggles):
+
+```yaml
+labels:
+  - 'traefik.enable=${TRAEFIK_ENABLE}'
+  - 'traefik.http.routers.petcare-web.rule=Host(`${WEB_DOMAIN}`)'
+  - 'traefik.http.routers.petcare-web.entrypoints=${TRAEFIK_ENTRYPOINT}'
+  - 'traefik.http.routers.petcare-web.tls.certresolver=${TRAEFIK_CERT_RESOLVER}'
+  - 'traefik.http.services.petcare-web.loadbalancer.server.port=80'
+```
+
+Network: both slots attach to the shared `traefik-proxy` network so Traefik can discover services.
 
 ### Shared Resources
 
