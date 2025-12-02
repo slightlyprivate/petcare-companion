@@ -5,7 +5,7 @@ services:
 
   app:
     container_name: ${APP_CONTAINER_NAME:-petcare_app}
-    image: ${DOCKER_REGISTRY}/petcare-companion-app:${IMAGE_TAG:-prod}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-prod}
     env_file: .env
     read_only: true
     user: www-data
@@ -27,7 +27,7 @@ services:
 
   web:
     container_name: ${WEB_CONTAINER_NAME:-petcare_web}
-    image: ${DOCKER_REGISTRY}/petcare-companion-web:${IMAGE_TAG:-prod}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-prod}
     depends_on:
       app:
         condition: service_healthy
@@ -61,7 +61,7 @@ services:
 
   worker:
     container_name: ${WORKER_CONTAINER_NAME:-petcare_worker}
-    image: ${DOCKER_REGISTRY}/petcare-companion-app:${IMAGE_TAG:-prod}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-prod}
     command: php artisan queue:work --sleep=3 --tries=3 --memory=256
     env_file: .env
     read_only: true
@@ -87,7 +87,7 @@ services:
 
   ui:
     container_name: ${UI_CONTAINER_NAME:-petcare_ui}
-    image: ${DOCKER_REGISTRY}/petcare-companion-ui:${IMAGE_TAG:-prod}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-prod}
     environment:
       API_BASE_URL: http://web
     read_only: true
@@ -121,7 +121,7 @@ services:
 
   pwa:
     container_name: ${PWA_CONTAINER_NAME:-petcare_pwa}
-    image: ${DOCKER_REGISTRY}/petcare-companion-pwa:${IMAGE_TAG:-prod}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-prod}
     environment:
       API_BASE_URL: http://web
     read_only: true
