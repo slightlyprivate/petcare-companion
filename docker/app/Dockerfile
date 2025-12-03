@@ -27,7 +27,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY src/composer.json src/composer.lock ./
 
 # Install dependencies
-RUN composer install \
+RUN --mount=type=cache,target=/root/.composer \
+    composer install \
     --no-dev \
     --no-scripts \
     --prefer-dist \
@@ -72,7 +73,7 @@ COPY --from=vendor /app/vendor ./vendor
 COPY src/ ./
 
 # Create storage directories
-RUN mkdir -p storage/framework/{cache,sessions,views} \
+RUN mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
@@ -80,6 +81,8 @@ COPY docker/app/entrypoints/*.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/*.sh
 
 EXPOSE 9000
+
+USER www-data
 
 # ==========================================
 # Stage 3: Development runtime (with Composer)

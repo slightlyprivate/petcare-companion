@@ -20,10 +20,13 @@ ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 RUN apk update && apk upgrade --no-cache --available
 
 # Copy built UI artifacts
-COPY --from=build /app/dist /usr/share/nginx/html
+COPY --from=build --chown=nginx:nginx /app/dist /usr/share/nginx/html
 
 # Copy nginx template directory
 COPY docker/ui/templates /etc/nginx/templates
+
+# Copy shared security config
+COPY docker/shared/nginx/security.conf /etc/nginx/conf.d/
 
 # Remove default nginx config to avoid conflicts with our template
 RUN rm -f /etc/nginx/conf.d/default.conf
