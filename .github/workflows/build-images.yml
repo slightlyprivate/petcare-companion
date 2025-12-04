@@ -44,9 +44,14 @@ jobs:
             ghcr.io/slightlyprivate/petcare-companion-pwa
           labels: false
 
-      - name: Read version
+      - name: Read version and set build info
         id: version
-        run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=$(cat VERSION)
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "app_version=${VERSION}+${SHORT_SHA}" >> $GITHUB_OUTPUT
 
       - name: Build and push images
         uses: docker/bake-action@v5
@@ -57,6 +62,8 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
+            ui.args.VITE_APP_VERSION=${{ steps.version.outputs.app_version }}
+            pwa.args.VITE_APP_VERSION=${{ steps.version.outputs.app_version }}
             app.tags=ghcr.io/slightlyprivate/petcare-companion-app:${{ steps.version.outputs.version }}
             app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:latest
             app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:staging-${{ steps.version.outputs.version }}
@@ -94,10 +101,12 @@ jobs:
               { name: "petcare-companion-pwa", image: "ghcr.io/slightlyprivate/petcare-companion-pwa" },
             ];
             const version = '${{ steps.version.outputs.version }}';
+            const appVersion = '${{ steps.version.outputs.app_version }}';
             const isMain = '${{ github.ref }}' === 'refs/heads/main';
             const platforms = 'linux/amd64, linux/arm64';
             let summary = `## Docker Build Summary\n\n`;
-            summary += `**Version:** \`${version}\`\n\n`;
+            summary += `**Version:** \`${version}\`\n`;
+            summary += `**App Version (displayed in UI):** \`${appVersion}\`\n\n`;
             summary += `**Platforms:** ${platforms}\n\n`;
             summary += `| Image | Tags |\n|-------|------|\n`;
             for (const img of images) {
