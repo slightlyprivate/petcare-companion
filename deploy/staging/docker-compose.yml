@@ -1,7 +1,7 @@
 services:
   app:
     container_name: ${APP_CONTAINER_NAME:-petcare_app_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-develop}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-staging-latest}
     env_file:
       - .env
     healthcheck:
@@ -10,51 +10,58 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    entrypoint: /usr/local/bin/entrypoint.sh
     networks:
       - default
-      - shared-db
-      - shared-cache
+      - shared-db-petcare
+      - shared-cache-petcare
     volumes:
-      - storage:/var/www/html/storage/app/public
+      - .env:/var/www/html/.env
+      - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-staging}:/var/www/html/storage
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-staging}'
 
   web:
     container_name: ${WEB_CONTAINER_NAME:-petcare_web_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-develop}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-staging-latest}
     env_file:
       - .env
     depends_on:
       app:
         condition: service_healthy
-    ports:
-      - '9080:80'
     restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost/health']
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
     networks:
       - default
       - traefik-proxy
     volumes:
-      - storage:/var/www/html/storage/app/public:ro
+      - .env:/var/www/html/.env
+      - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-staging}:/var/www/html/storage:ro
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-staging}'
       - 'traefik.enable=true'
-      - 'traefik.http.routers.petcare_web_${ENV:-staging}.rule=Host(`${WEB_DOMAIN:-web.staging.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_web_${ENV:-staging}.rule=Host(`${WEB_DOMAIN:-petcare.web.staging.ubuntu.slightlyprivate.com}`)'
       - 'traefik.http.routers.petcare_web_${ENV:-staging}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
       - 'traefik.http.routers.petcare_web_${ENV:-staging}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
       - 'traefik.http.services.petcare_web_${ENV:-staging}.loadbalancer.server.port=80'
 
   ui:
     container_name: ${UI_CONTAINER_NAME:-petcare_ui_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-develop}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-staging-latest}
     environment:
       API_BASE_URL: http://web
     depends_on:
       web:
         condition: service_healthy
-    ports:
-      - '9082:80'
     restart: unless-stopped
     tmpfs:
       - /etc/nginx/conf.d
@@ -64,24 +71,23 @@ services:
       - default
       - traefik-proxy
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-staging}'
       - 'traefik.enable=true'
-      - 'traefik.http.routers.petcare_ui_${ENV:-staging}.rule=Host(`${UI_DOMAIN:-ui.staging.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_ui_${ENV:-staging}.rule=Host(`${UI_DOMAIN:-petcare.ui.staging.ubuntu.slightlyprivate.com}`)'
       - 'traefik.http.routers.petcare_ui_${ENV:-staging}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
       - 'traefik.http.routers.petcare_ui_${ENV:-staging}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
       - 'traefik.http.services.petcare_ui_${ENV:-staging}.loadbalancer.server.port=80'
 
   pwa:
     container_name: ${PWA_CONTAINER_NAME:-petcare_pwa_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-develop}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-staging-latest}
     environment:
       API_BASE_URL: http://web
     depends_on:
       web:
         condition: service_healthy
-    ports:
-      - '9081:80'
     restart: unless-stopped
     tmpfs:
       - /etc/nginx/conf.d
@@ -91,21 +97,61 @@ services:
       - default
       - traefik-proxy
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-staging}'
       - 'traefik.enable=true'
-      - 'traefik.http.routers.petcare_pwa_${ENV:-staging}.rule=Host(`${PWA_DOMAIN:-pwa.staging.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_pwa_${ENV:-staging}.rule=Host(`${PWA_DOMAIN:-petcare.pwa.staging.ubuntu.slightlyprivate.com}`)'
       - 'traefik.http.routers.petcare_pwa_${ENV:-staging}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
       - 'traefik.http.routers.petcare_pwa_${ENV:-staging}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
       - 'traefik.http.services.petcare_pwa_${ENV:-staging}.loadbalancer.server.port=80'
 
-volumes:
-  storage:
+  worker:
+    container_name: ${WORKER_CONTAINER_NAME:-petcare_worker_staging}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-staging-latest}
+    env_file:
+      - .env
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    entrypoint: /usr/local/bin/worker.sh
+    networks:
+      - default
+      - shared-db-petcare
+      - shared-cache-petcare
+    volumes:
+      - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-staging}:/var/www/html/storage
+    labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-staging}'
+
+  scheduler:
+    container_name: ${SCHEDULER_CONTAINER_NAME:-petcare_scheduler_staging}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-staging-latest}
+    env_file:
+      - .env
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    entrypoint: /usr/local/bin/scheduler.sh
+    networks:
+      - default
+      - shared-db-petcare
+      - shared-cache-petcare
+    volumes:
+      - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-staging}:/var/www/html/storage
+    labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'promtail.scrape=true'
+      - 'petcare.env=${ENV:-staging}'
 
 networks:
-  shared-db:
+  shared-db-petcare:
     external: true
-  shared-cache:
+  shared-cache-petcare:
     external: true
   traefik-proxy:
     external: true

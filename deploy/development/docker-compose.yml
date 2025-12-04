@@ -19,6 +19,7 @@ services:
       - .env:/var/www/html/.env
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage}:/var/www/html/storage
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-develop}'
 
@@ -44,10 +45,11 @@ services:
       - .env:/var/www/html/.env
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage}:/var/www/html/storage:ro
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-develop}'
       - 'traefik.enable=true'
-      - 'traefik.http.routers.petcare_web_${ENV:-develop}.rule=Host(`${WEB_DOMAIN:-web.develop.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_web_${ENV:-develop}.rule=Host(`${WEB_DOMAIN:-petcare.web.develop.ubuntu.slightlyprivate.com}`)'
       - 'traefik.http.routers.petcare_web_${ENV:-develop}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
       - 'traefik.http.routers.petcare_web_${ENV:-develop}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
       - 'traefik.http.services.petcare_web_${ENV:-develop}.loadbalancer.server.port=80'
@@ -69,10 +71,11 @@ services:
       - default
       - traefik-proxy
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-develop}'
       - 'traefik.enable=true'
-      - 'traefik.http.routers.petcare_ui_${ENV:-develop}.rule=Host(`${UI_DOMAIN:-ui.develop.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_ui_${ENV:-develop}.rule=Host(`${UI_DOMAIN:-petcare.ui.develop.ubuntu.slightlyprivate.com}`)'
       - 'traefik.http.routers.petcare_ui_${ENV:-develop}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
       - 'traefik.http.routers.petcare_ui_${ENV:-develop}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
       - 'traefik.http.services.petcare_ui_${ENV:-develop}.loadbalancer.server.port=80'
@@ -94,10 +97,11 @@ services:
       - default
       - traefik-proxy
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-develop}'
       - 'traefik.enable=true'
-      - 'traefik.http.routers.petcare_pwa_${ENV:-develop}.rule=Host(`${PWA_DOMAIN:-pwa.develop.petcare.ubuntu.slightlyprivate.com}`)'
+      - 'traefik.http.routers.petcare_pwa_${ENV:-develop}.rule=Host(`${PWA_DOMAIN:-petcare.pwa.develop.ubuntu.slightlyprivate.com}`)'
       - 'traefik.http.routers.petcare_pwa_${ENV:-develop}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
       - 'traefik.http.routers.petcare_pwa_${ENV:-develop}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
       - 'traefik.http.services.petcare_pwa_${ENV:-develop}.loadbalancer.server.port=80'
@@ -113,11 +117,13 @@ services:
     restart: unless-stopped
     entrypoint: /usr/local/bin/worker.sh
     networks:
+      - default
       - shared-db-petcare
       - shared-cache-petcare
     volumes:
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage}:/var/www/html/storage
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-develop}'
 
@@ -132,11 +138,13 @@ services:
     restart: unless-stopped
     entrypoint: /usr/local/bin/scheduler.sh
     networks:
+      - default
       - shared-db-petcare
       - shared-cache-petcare
     volumes:
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage}:/var/www/html/storage
     labels:
+      - 'com.centurylinklabs.watchtower.enable=true'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-develop}'
 
