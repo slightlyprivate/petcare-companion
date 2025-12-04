@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0](https://github.com/slightlyprivate/petcare-companion/compare/0.9.0...0.10.0) (2025-12-04)
+
+
+### Features
+
+* enhance version handling in AppVersionFooter and update build info extraction ([81d290d](https://github.com/slightlyprivate/petcare-companion/commit/81d290deb7b56a532cde5eb9db881b8092b8e6aa))
+* improve entrypoint script clarity and structure for Laravel setup ([0f60968](https://github.com/slightlyprivate/petcare-companion/commit/0f60968553647896b84e4c74b82312496ffda62b))
+* update environment configurations and entrypoint scripts for improved storage handling and permissions ([3e8e953](https://github.com/slightlyprivate/petcare-companion/commit/3e8e953d16f389fa6e37ac82c8edac9766316554))
+
 ## [0.9.0](https://github.com/slightlyprivate/petcare-companion/compare/0.8.0...0.9.0) (2025-12-04)
 
 
