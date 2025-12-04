@@ -59,12 +59,28 @@ jobs:
             *.cache-to=type=gha,mode=max
             app.tags=ghcr.io/slightlyprivate/petcare-companion-app:${{ steps.version.outputs.version }}
             app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:latest
+            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:staging-${{ steps.version.outputs.version }}
+            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:staging-latest
+            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:release-${{ steps.version.outputs.version }}
+            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:release-latest
             web.tags=ghcr.io/slightlyprivate/petcare-companion-web:${{ steps.version.outputs.version }}
             web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:latest
+            web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:staging-${{ steps.version.outputs.version }}
+            web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:staging-latest
+            web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:release-${{ steps.version.outputs.version }}
+            web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:release-latest
             ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:${{ steps.version.outputs.version }}
             ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:latest
+            ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:staging-${{ steps.version.outputs.version }}
+            ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:staging-latest
+            ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:release-${{ steps.version.outputs.version }}
+            ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:release-latest
             pwa.tags=ghcr.io/slightlyprivate/petcare-companion-pwa:${{ steps.version.outputs.version }}
             pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:latest
+            pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:staging-${{ steps.version.outputs.version }}
+            pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:staging-latest
+            pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:release-${{ steps.version.outputs.version }}
+            pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:release-latest
 
       - name: Add build summary
         if: always()
@@ -86,7 +102,13 @@ jobs:
             summary += `| Image | Tags |\n|-------|------|\n`;
             for (const img of images) {
               const tags = [`${img.image}:${version}`];
-              if (isMain) tags.push(`${img.image}:latest`);
+              if (isMain) {
+                tags.push(`${img.image}:latest`);
+                tags.push(`${img.image}:staging-${version}`);
+                tags.push(`${img.image}:staging-latest`);
+                tags.push(`${img.image}:release-${version}`);
+                tags.push(`${img.image}:release-latest`);
+              }
               summary += `| \`${img.image}\` | ${tags.map(t => `\`${t}\``).join(', ')} |\n`;
             }
             summary += `\n✅ **Build and push completed successfully.**\n`;
