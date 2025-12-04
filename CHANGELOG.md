@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0](https://github.com/slightlyprivate/petcare-companion/compare/0.7.0...0.8.0) (2025-12-04)
+
+
+### Features
+
+* Add staging and release tags for Docker images in build workflow ([c8d008d](https://github.com/slightlyprivate/petcare-companion/commit/c8d008d009d6a552c7c3d6b4592ee5e6a6eb9e4c))
+* Enhance Docker configuration and security settings across multiple services ([b984fdd](https://github.com/slightlyprivate/petcare-companion/commit/b984fdd1d56af558e9de5ebc2b0dccde790c2683))
+* Update Docker Compose files to replace 'backend' and 'frontend' networks with 'default' ([eb0bd10](https://github.com/slightlyprivate/petcare-companion/commit/eb0bd109cfb0af5a2088cbac6fa05692e40b4533))
+* Update Dockerfile to ensure proper user context for Composer installation in development stage ([90356ce](https://github.com/slightlyprivate/petcare-companion/commit/90356ced7ca1eec556d89d34dcb7426cea16bfe7))
+
 ## [0.7.0](https://github.com/slightlyprivate/petcare-companion/compare/0.6.0...0.7.0) (2025-12-02)
 
 
