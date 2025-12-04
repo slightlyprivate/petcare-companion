@@ -1,5 +1,4 @@
-#!/usr/bin/env sh
-set -eu
+#!/bin/sh
 
 echo "[worker] Preparing Laravel filesystem..."
 
