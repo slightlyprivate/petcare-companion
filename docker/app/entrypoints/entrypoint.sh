@@ -12,10 +12,6 @@ mkdir -p \
   /var/www/html/storage/logs \
   /var/www/html/bootstrap/cache
 
-# Fix permissions
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
 echo "[entrypoint] Clearing stale Laravel caches..."
 php artisan config:clear || true
 php artisan cache:clear || true
@@ -26,6 +22,9 @@ echo "[entrypoint] Rebuilding Laravel caches..."
 php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
+
+# Run migrations
+php artisan migrate --force
 
 echo "[entrypoint] Starting PHP-FPM..."
 exec php-fpm
