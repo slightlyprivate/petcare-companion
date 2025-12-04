@@ -53,6 +53,7 @@ RUN apk add --no-cache \
     libzip \
     zlib \
     mysql-client \
+    su-exec \
  && apk add --no-cache --virtual .build-deps \
     libpng-dev \
     libjpeg-turbo-dev \
@@ -82,16 +83,16 @@ RUN chmod +x /usr/local/bin/*.sh
 
 EXPOSE 9000
 
-USER www-data
+# Note: Container starts as root, entrypoint fixes permissions then drops to www-data
+# This ensures mounted volumes have correct ownership regardless of host UID/GID
 
 # ==========================================
 # Stage 3: Development runtime (with Composer)
 # ==========================================
 FROM runner AS dev
 
-USER root
 # Install Composer and git for development
 RUN apk add --no-cache git unzip
 COPY --from=vendor /usr/bin/composer /usr/bin/composer
 
-USER www-data
+# Note: Inherits root user from runner stage, entrypoint handles permission dropping
