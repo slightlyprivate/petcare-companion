@@ -89,6 +89,9 @@ USER www-data
 # ==========================================
 FROM runner AS dev
 
+USER root
 # Install Composer and git for development
 RUN apk add --no-cache git unzip
 COPY --from=vendor /usr/bin/composer /usr/bin/composer
+
+USER www-data
