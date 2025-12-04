@@ -20,7 +20,7 @@ services:
       retries: 3
       start_period: 30s
     networks:
-      - backend
+      - default
     labels:
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-prod}'
@@ -46,8 +46,7 @@ services:
       retries: 3
       start_period: 10s
     networks:
-      - frontend
-      - backend
+      - default
       - traefik-proxy
     labels:
       - 'promtail.scrape=true'
@@ -81,7 +80,7 @@ services:
       retries: 3
     restart: unless-stopped
     networks:
-      - backend
+      - default
     labels:
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-prod}'
@@ -108,7 +107,7 @@ services:
       retries: 3
       start_period: 10s
     networks:
-      - frontend
+      - default
       - traefik-proxy
     labels:
       - 'promtail.scrape=true'
@@ -141,7 +140,7 @@ services:
       retries: 3
       start_period: 10s
     networks:
-      - frontend
+      - default
       - traefik-proxy
     labels:
       - 'promtail.scrape=true'
@@ -154,10 +153,6 @@ services:
       - 'traefik.http.services.petcare_pwa_prod_green.loadbalancer.server.port=80'
 
 networks:
-  frontend:
-    driver: bridge
-  backend:
-    driver: bridge
   traefik-proxy:
     external: true
 

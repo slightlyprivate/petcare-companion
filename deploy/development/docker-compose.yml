@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     entrypoint: /usr/local/bin/entrypoint.sh
     networks:
-      - backend
+      - default
       - shared-db-petcare
       - shared-cache-petcare
     volumes:
@@ -38,7 +38,7 @@ services:
       retries: 3
       start_period: 5s
     networks:
-      - backend
+      - default
       - traefik-proxy
     volumes:
       - .env:/var/www/html/.env
@@ -66,6 +66,7 @@ services:
       - /var/cache/nginx
       - /var/run
     networks:
+      - default
       - traefik-proxy
     labels:
       - 'promtail.scrape=true'
@@ -90,6 +91,7 @@ services:
       - /var/cache/nginx
       - /var/run
     networks:
+      - default
       - traefik-proxy
     labels:
       - 'promtail.scrape=true'
@@ -139,8 +141,6 @@ services:
       - 'petcare.env=${ENV:-develop}'
 
 networks:
-  backend:
-    driver: bridge
   shared-db-petcare:
     external: true
   shared-cache-petcare:
