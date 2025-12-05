@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0](https://github.com/slightlyprivate/petcare-companion/compare/0.10.0...0.11.0) (2025-12-05)
+
+
+### Features
+
+* enable manual triggering of build workflow with workflow_dispatch ([5d0c3d0](https://github.com/slightlyprivate/petcare-companion/commit/5d0c3d080bd747ffa425a8f21b6b51eeccef5ede))
+
 ## [0.10.0](https://github.com/slightlyprivate/petcare-companion/compare/0.9.0...0.10.0) (2025-12-04)
 
 
