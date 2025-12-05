@@ -1,5 +1,7 @@
 # PetCare Companion — PWA Experience UI
 
+> Last CI/CD test: December 5, 2025
+
 - Stack: Vite, React, Tailwind (v4 via `@tailwindcss/vite`), TanStack Query
 - Location: `src/pwa`
 
