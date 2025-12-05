@@ -27,7 +27,7 @@ docker compose up -d --pull always
 ```bash
 cd /srv/stacks/petcare-companion/deploy/staging
 export DOCKER_REGISTRY=ghcr.io/slightlyprivate
-export IMAGE_TAG=staging-1.2.3
+export IMAGE_TAG=staging
 docker compose up -d --pull always
 ```
 

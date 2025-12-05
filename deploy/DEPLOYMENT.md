@@ -59,7 +59,7 @@ docker push ${DOCKER_REGISTRY}/petcare-companion-app:release-1.2.3
 **Deploy to Staging:**
 
 - Target: `/srv/stacks/petcare-companion/deploy/staging/`
-- Update `.env` with `IMAGE_TAG=staging-1.2.3` and `DOCKER_REGISTRY=ghcr.io/slightlyprivate`
+- Update `.env` with `IMAGE_TAG=staging` (moving alias) or `staging-1.2.3` and `DOCKER_REGISTRY=ghcr.io/slightlyprivate`
 - Run: `docker compose up -d --pull always`
 
 **Benefit:**
@@ -209,7 +209,7 @@ deploy/
 │   └── .env.example             # IMAGE_TAG=dev-{shortsha}
 ├── staging/
 │   ├── docker-compose.yml       # Uses staging-{version} tags
-│   └── .env.example             # IMAGE_TAG=staging-{version}
+│   └── .env.example             # IMAGE_TAG=staging (or staging-{version})
 ├── production/
 │   ├── active-slot              # Tracks active slot: "blue" or "green"
 │   ├── README.md                # Blue/green deployment guide

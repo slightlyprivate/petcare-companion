@@ -124,14 +124,14 @@ deploy/
 ### Development
 
 - **Trigger**: Push to `develop` branch
-- **Tag**: `dev-{shortsha}` (e.g., `dev-4f31a8c`)
+- **Tag**: `develop` (moving) + `dev-{shortsha}` (e.g., `dev-4f31a8c`)
 - **Deploy**: Automated via Watchtower (external service)
 - **Timeline**: ~5-10 minutes
 
 ### Staging
 
 - **Trigger**: Push to `main` branch
-- **Tag**: `staging-{version}` (e.g., `staging-1.2.3`)
+- **Tag**: `staging` (moving) + `staging-{version}` (e.g., `staging-1.2.3`)
 - **Deploy**: Automated via Watchtower (external service)
 - **Timeline**: ~5-10 minutes
 

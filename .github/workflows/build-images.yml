@@ -65,12 +65,16 @@ jobs:
             ui.args.VITE_APP_VERSION=${{ steps.version.outputs.app_version }}
             pwa.args.VITE_APP_VERSION=${{ steps.version.outputs.app_version }}
             app.tags=ghcr.io/slightlyprivate/petcare-companion-app:staging-${{ steps.version.outputs.version }}
+            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:staging
             app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:release-${{ steps.version.outputs.version }}
             web.tags=ghcr.io/slightlyprivate/petcare-companion-web:staging-${{ steps.version.outputs.version }}
+            web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:staging
             web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:release-${{ steps.version.outputs.version }}
             ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:staging-${{ steps.version.outputs.version }}
+            ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:staging
             ui.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:release-${{ steps.version.outputs.version }}
             pwa.tags=ghcr.io/slightlyprivate/petcare-companion-pwa:staging-${{ steps.version.outputs.version }}
+            pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:staging
             pwa.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:release-${{ steps.version.outputs.version }}
 
       - name: Add build summary
