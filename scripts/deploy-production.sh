@@ -99,7 +99,7 @@ docker compose pull
 echo ""
 echo "🔧 Step 2: Deploying to ${TARGET_SLOT} slot (inactive)..."
 update_traefik_enable "${TARGET_DIR}/.env" "false"
-docker compose up -d
+docker compose up -d --pull always
 
 echo ""
 echo "⏳ Step 3: Waiting for services to become healthy (30s)..."
@@ -122,6 +122,21 @@ echo ""
 echo "🔀 Step 5: Activating ${TARGET_SLOT} slot in Traefik..."
 update_traefik_enable "${TARGET_DIR}/.env" "true"
 docker compose up -d
+
+# Optional smoke check if SMOKE_URL is provided
+if [ -n "${SMOKE_URL:-}" ]; then
+    echo ""
+    echo "🌐 Step 5b: Smoke check at ${SMOKE_URL}..."
+    if curl -fsSL --max-time 10 "$SMOKE_URL" >/dev/null; then
+        echo "✅ Smoke check passed"
+    else
+        echo "❌ Smoke check failed"
+        echo "Deployment is live on ${TARGET_SLOT} but smoke check failed. Consider flipping back:"
+        echo "  cd ${ACTIVE_DIR} && sed -i 's/^TRAEFIK_ENABLE=.*/TRAEFIK_ENABLE=true/' .env && docker compose up -d"
+        echo "  cd ${TARGET_DIR} && sed -i 's/^TRAEFIK_ENABLE=.*/TRAEFIK_ENABLE=false/' .env && docker compose up -d"
+        exit 1
+    fi
+fi
 
 echo ""
 echo "⏸️  Step 6: Deactivating ${ACTIVE_SLOT} slot..."

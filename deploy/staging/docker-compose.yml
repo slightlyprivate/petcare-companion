@@ -1,7 +1,8 @@
+name: slightly-better-petcare-staging
 services:
   app:
     container_name: ${APP_CONTAINER_NAME:-petcare_app_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-staging-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-staging-1.2.3}
     env_file:
       - .env
     healthcheck:
@@ -13,8 +14,8 @@ services:
     entrypoint: /usr/local/bin/entrypoint.sh
     networks:
       - default
-      - shared-db-petcare
-      - shared-cache-petcare
+      - shared-db-petcare-staging
+      - shared-cache-petcare-staging
     volumes:
       - .env:/var/www/html/.env
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-staging}:/var/www/html/storage
@@ -25,7 +26,7 @@ services:
 
   web:
     container_name: ${WEB_CONTAINER_NAME:-petcare_web_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-staging-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-staging-1.2.3}
     env_file:
       - .env
     depends_on:
@@ -41,6 +42,8 @@ services:
     networks:
       - default
       - traefik-proxy
+      - shared-db-petcare-staging
+      - shared-cache-petcare-staging
     volumes:
       - .env:/var/www/html/.env
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-staging}:/var/www/html/storage:ro
@@ -56,7 +59,7 @@ services:
 
   ui:
     container_name: ${UI_CONTAINER_NAME:-petcare_ui_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-staging-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-staging-1.2.3}
     environment:
       API_BASE_URL: http://web
     depends_on:
@@ -82,7 +85,7 @@ services:
 
   pwa:
     container_name: ${PWA_CONTAINER_NAME:-petcare_pwa_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-staging-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-staging-1.2.3}
     environment:
       API_BASE_URL: http://web
     depends_on:
@@ -108,7 +111,7 @@ services:
 
   worker:
     container_name: ${WORKER_CONTAINER_NAME:-petcare_worker_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-staging-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-staging-1.2.3}
     env_file:
       - .env
     depends_on:
@@ -118,8 +121,8 @@ services:
     entrypoint: /usr/local/bin/worker.sh
     networks:
       - default
-      - shared-db-petcare
-      - shared-cache-petcare
+      - shared-db-petcare-staging
+      - shared-cache-petcare-staging
     volumes:
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-staging}:/var/www/html/storage
     labels:
@@ -129,7 +132,7 @@ services:
 
   scheduler:
     container_name: ${SCHEDULER_CONTAINER_NAME:-petcare_scheduler_staging}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-staging-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-staging-1.2.3}
     env_file:
       - .env
     depends_on:
@@ -139,8 +142,8 @@ services:
     entrypoint: /usr/local/bin/scheduler.sh
     networks:
       - default
-      - shared-db-petcare
-      - shared-cache-petcare
+      - shared-db-petcare-staging
+      - shared-cache-petcare-staging
     volumes:
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-staging}:/var/www/html/storage
     labels:
@@ -149,9 +152,9 @@ services:
       - 'petcare.env=${ENV:-staging}'
 
 networks:
-  shared-db-petcare:
+  shared-db-petcare-staging:
     external: true
-  shared-cache-petcare:
+  shared-cache-petcare-staging:
     external: true
   traefik-proxy:
     external: true

@@ -111,6 +111,7 @@ cd "/srv/stacks/petcare-companion/deploy/production-$TARGET_SLOT"
 export IMAGE_TAG="release-1.2.3"
 export DOCKER_REGISTRY
 export TRAEFIK_ENABLE="false"  # Start inactive
+# Watchtower is disabled on production slots by label; promotion is always manual.
 
 docker compose up -d --pull always
 
@@ -205,10 +206,10 @@ Network: both slots attach to the shared `traefik-proxy` network so Traefik can 
 deploy/
 ├── development/
 │   ├── docker-compose.yml       # Uses dev-{shortsha} tags
-│   └── .env.example             # IMAGE_TAG=dev-latest
+│   └── .env.example             # IMAGE_TAG=dev-{shortsha}
 ├── staging/
 │   ├── docker-compose.yml       # Uses staging-{version} tags
-│   └── .env.example             # IMAGE_TAG=staging-latest
+│   └── .env.example             # IMAGE_TAG=staging-{version}
 ├── production/
 │   ├── active-slot              # Tracks active slot: "blue" or "green"
 │   ├── README.md                # Blue/green deployment guide
@@ -288,6 +289,14 @@ TRAEFIK_ENABLE=true|false  # Controls active slot
 - [ ] Switch `TRAEFIK_ENABLE` back to previous slot
 - [ ] Restart compose services to apply labels
 - [ ] Update `active-slot` file to previous value
+
+### Post-Deployment
+
+- [ ] Hit primary endpoints/health URLs (set `SMOKE_URL` when running deploy script)
+- [ ] Run migrations on active slot if needed: `docker compose -f deploy/production-$(cat deploy/production/active-slot)/docker-compose.yml exec app php artisan migrate --force`
+- [ ] Refresh caches if needed: `php artisan config:cache` and `route:cache`
+- [ ] Verify queues/Horizon/worker status
+- [ ] Confirm logs are clean for the first 5–10 minutes
 
 ---
 

@@ -20,10 +20,10 @@ This repo ships with a Docker-first workflow for both development and production
 
 Targets (GHCR in examples):
 
-- App (PHP-FPM): `ghcr.io/slightlyprivate/petcare-companion-app:{prod,latest,<branch>}`
-- Web (Nginx reverse proxy): `ghcr.io/slightlyprivate/petcare-companion-web:{prod,latest,<branch>}`
-- UI (static React bundle): `ghcr.io/slightlyprivate/petcare-companion-ui:{prod,latest,<branch>}`
-- PWA Experience UI: `ghcr.io/slightlyprivate/petcare-companion-pwa:{prod,latest,<branch>}`
+- App (PHP-FPM): `ghcr.io/slightlyprivate/petcare-companion-app:{staging-<ver>,release-<ver>,dev-<sha>}`
+- Web (Nginx reverse proxy): `ghcr.io/slightlyprivate/petcare-companion-web:{staging-<ver>,release-<ver>,dev-<sha>}`
+- UI (static React bundle): `ghcr.io/slightlyprivate/petcare-companion-ui:{staging-<ver>,release-<ver>,dev-<sha>}`
+- PWA Experience UI: `ghcr.io/slightlyprivate/petcare-companion-pwa:{staging-<ver>,release-<ver>,dev-<sha>}`
 
 ### Build (multi-arch)
 
@@ -32,32 +32,32 @@ Targets (GHCR in examples):
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   --target runner \
-  --tag ghcr.io/slightlyprivate/petcare-companion-app:prod \
-  --tag ghcr.io/slightlyprivate/petcare-companion-app:latest \
+  --tag ghcr.io/slightlyprivate/petcare-companion-app:staging-1.2.3 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-app:release-1.2.3 \
   --file docker/app/Dockerfile \
   .
 
 # Web
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  --tag ghcr.io/slightlyprivate/petcare-companion-web:prod \
-  --tag ghcr.io/slightlyprivate/petcare-companion-web:latest \
+  --tag ghcr.io/slightlyprivate/petcare-companion-web:staging-1.2.3 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-web:release-1.2.3 \
   --file docker/web/Dockerfile \
   .
 
 # UI
 docker buildx build \
   --platform linux/amd64 \
-  --tag ghcr.io/slightlyprivate/petcare-companion-ui:prod \
-  --tag ghcr.io/slightlyprivate/petcare-companion-ui:latest \
+  --tag ghcr.io/slightlyprivate/petcare-companion-ui:staging-1.2.3 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-ui:release-1.2.3 \
   --file docker/ui/Dockerfile \
   .
 
 # PWA
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  --tag ghcr.io/slightlyprivate/petcare-companion-pwa:prod \
-  --tag ghcr.io/slightlyprivate/petcare-companion-pwa:latest \
+  --tag ghcr.io/slightlyprivate/petcare-companion-pwa:staging-1.2.3 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-pwa:release-1.2.3 \
   --file docker/pwa/Dockerfile \
   .
 ```
@@ -66,16 +66,16 @@ docker buildx build \
 
 ```bash
 # Push (after login: docker login ghcr.io)
-docker push ghcr.io/slightlyprivate/petcare-companion-app:prod
-docker push ghcr.io/slightlyprivate/petcare-companion-web:prod
-docker push ghcr.io/slightlyprivate/petcare-companion-ui:prod
-docker push ghcr.io/slightlyprivate/petcare-companion-pwa:prod
+docker push ghcr.io/slightlyprivate/petcare-companion-app:release-1.2.3
+docker push ghcr.io/slightlyprivate/petcare-companion-web:release-1.2.3
+docker push ghcr.io/slightlyprivate/petcare-companion-ui:release-1.2.3
+docker push ghcr.io/slightlyprivate/petcare-companion-pwa:release-1.2.3
 
 # Pull prebuilt
-docker pull ghcr.io/slightlyprivate/petcare-companion-app:prod
-docker pull ghcr.io/slightlyprivate/petcare-companion-web:prod
-docker pull ghcr.io/slightlyprivate/petcare-companion-ui:prod
-docker pull ghcr.io/slightlyprivate/petcare-companion-pwa:prod
+docker pull ghcr.io/slightlyprivate/petcare-companion-app:release-1.2.3
+docker pull ghcr.io/slightlyprivate/petcare-companion-web:release-1.2.3
+docker pull ghcr.io/slightlyprivate/petcare-companion-ui:release-1.2.3
+docker pull ghcr.io/slightlyprivate/petcare-companion-pwa:release-1.2.3
 ```
 
 `make build-app`, `make build-web`, and `make build-all` wrap the same buildx flows (see

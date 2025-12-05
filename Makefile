@@ -2,17 +2,18 @@ VERSION := $(shell cat VERSION)
 DEFAULT_BRANCH ?= main
 CURRENT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
 IS_DEFAULT_BRANCH := $(if $(filter $(DEFAULT_BRANCH),$(CURRENT_BRANCH)),1,0)
+SHORT_SHA := $(shell git rev-parse --short=7 HEAD 2>/dev/null)
 
-APP_TAGS := ghcr.io/slightlyprivate/petcare-companion-app:$(VERSION)
-WEB_TAGS := ghcr.io/slightlyprivate/petcare-companion-web:$(VERSION)
-UI_TAGS := ghcr.io/slightlyprivate/petcare-companion-ui:$(VERSION)
-PWA_TAGS := ghcr.io/slightlyprivate/petcare-companion-pwa:$(VERSION)
+APP_TAGS := ghcr.io/slightlyprivate/petcare-companion-app:dev-$(SHORT_SHA)
+WEB_TAGS := ghcr.io/slightlyprivate/petcare-companion-web:dev-$(SHORT_SHA)
+UI_TAGS := ghcr.io/slightlyprivate/petcare-companion-ui:dev-$(SHORT_SHA)
+PWA_TAGS := ghcr.io/slightlyprivate/petcare-companion-pwa:dev-$(SHORT_SHA)
 
 ifeq ($(IS_DEFAULT_BRANCH),1)
-APP_TAGS := $(APP_TAGS),ghcr.io/slightlyprivate/petcare-companion-app:latest
-WEB_TAGS := $(WEB_TAGS),ghcr.io/slightlyprivate/petcare-companion-web:latest
-UI_TAGS := $(UI_TAGS),ghcr.io/slightlyprivate/petcare-companion-ui:latest
-PWA_TAGS := $(PWA_TAGS),ghcr.io/slightlyprivate/petcare-companion-pwa:latest
+APP_TAGS := ghcr.io/slightlyprivate/petcare-companion-app:staging-$(VERSION),ghcr.io/slightlyprivate/petcare-companion-app:release-$(VERSION)
+WEB_TAGS := ghcr.io/slightlyprivate/petcare-companion-web:staging-$(VERSION),ghcr.io/slightlyprivate/petcare-companion-web:release-$(VERSION)
+UI_TAGS := ghcr.io/slightlyprivate/petcare-companion-ui:staging-$(VERSION),ghcr.io/slightlyprivate/petcare-companion-ui:release-$(VERSION)
+PWA_TAGS := ghcr.io/slightlyprivate/petcare-companion-pwa:staging-$(VERSION),ghcr.io/slightlyprivate/petcare-companion-pwa:release-$(VERSION)
 endif
 
 BAKE_FILE := docker-bake.hcl

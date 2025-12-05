@@ -1,67 +1,111 @@
-# Production Blue/Green Deployment
+# Production Directory
 
-This directory tracks the active production deployment slot for blue/green deployments.
+## ⚠️ DEPRECATION NOTICE
 
-## Active Slot Tracking
+**This directory structure is deprecated and kept for reference only.**
 
-The `active-slot` file contains either:
+For production deployments, use the **blue/green deployment slots**:
 
-- `blue` - Blue slot is currently serving production traffic
-- `green` - Green slot is currently serving production traffic
+- [`production-blue/`](../production-blue/) - Blue slot for zero-downtime deployments
+- [`production-green/`](../production-green/) - Green slot for zero-downtime deployments
 
-## How It Works
+Watchtower labels are disabled on production slots; promotion is always manual after staging is
+validated.
 
-1. **CI/CD Pipeline reads this file** to determine which slot is currently active
-2. **Deploys to the INACTIVE slot** (opposite of what's in the file)
-3. **Runs health checks** on the newly deployed inactive slot
-4. **Swaps Traefik labels** by updating the inactive slot's `.env` file:
-   - Set `TRAEFIK_ENABLE=true` on the newly deployed slot
-   - Set `TRAEFIK_ENABLE=false` on the old active slot
-5. **Restarts the newly deployed slot** to apply Traefik label changes
-6. **Updates this `active-slot` file** to reflect the new active slot
+## 📁 Current Contents
 
-## Directory Structure
+This directory contains only:
 
-```
-deploy/
-├── production/
-│   ├── active-slot           # Tracks which slot is active (blue or green)
-│   └── docker-compose.yml    # Legacy single-slot deployment (deprecated)
-├── production-blue/
-│   ├── docker-compose.yml    # 🟦 Blue slot configuration
-│   └── .env                  # Blue slot environment (SLOT=blue, TRAEFIK_ENABLE=true/false)
-└── production-green/
-    ├── docker-compose.yml    # 🟩 Green slot configuration
-    └── .env                  # Green slot environment (SLOT=green, TRAEFIK_ENABLE=true/false)
-```
+- **`active-slot`** - Tracks which production slot (blue or green) is currently active and receiving
+  traffic
+- **`README.md`** - This deprecation notice (you are here)
 
-## Manual Slot Switch
+## 🟦🟩 Using Blue/Green Deployments
 
-To manually switch slots:
+### Quick Start
+
+Deploy to production using the automated script:
 
 ```bash
-# Check current active slot
-cat /srv/stacks/petcare-companion/deploy/production/active-slot
-
-# If blue is active, switch to green:
-cd /srv/stacks/petcare-companion/deploy/production-green
-sed -i 's/^TRAEFIK_ENABLE=.*/TRAEFIK_ENABLE=true/' .env
-docker compose up -d
-
-cd /srv/stacks/petcare-companion/deploy/production-blue
-sed -i 's/^TRAEFIK_ENABLE=.*/TRAEFIK_ENABLE=false/' .env
-docker compose up -d
-
-echo "green" > /srv/stacks/petcare-companion/deploy/production/active-slot
+./scripts/deploy-production.sh 1.2.3
 ```
 
-## Key Configuration
+The script will:
 
-Both slots use:
+1. Read the `active-slot` file to determine current active slot
+2. Deploy new version to the inactive slot
+3. Run health checks
+4. Switch Traefik traffic to the new slot
+5. Update the `active-slot` file
 
-- **Same domains** in Traefik router rules (no slot suffix)
-- **Different container names** (include slot suffix: `_blue` or `_green`)
-- **Shared external storage volume** (`storage`)
-- **`TRAEFIK_ENABLE` variable** controls which slot receives traffic
+### Manual Operations
 
-This ensures zero-downtime deployments with instant traffic switching.
+Check active slot:
+
+```bash
+cat deploy/production/active-slot
+```
+
+View active slot containers:
+
+```bash
+ACTIVE=$(cat deploy/production/active-slot)
+docker compose -f deploy/production-$ACTIVE/docker-compose.yml ps
+```
+
+View logs from active slot:
+
+```bash
+ACTIVE=$(cat deploy/production/active-slot)
+docker compose -f deploy/production-$ACTIVE/docker-compose.yml logs -f
+```
+
+## 📚 Documentation
+
+For complete production deployment documentation, see:
+
+- **[DEPLOYMENT.md](../DEPLOYMENT.md)** - Comprehensive deployment guide
+- **[QUICK-REFERENCE.md](../QUICK-REFERENCE.md)** - Command cheatsheet
+
+## 🔄 Migration from Legacy
+
+If you have an existing deployment using the old `deploy/prod/` structure:
+
+1. **Stop the old deployment** (choose a maintenance window)
+
+   ```bash
+   cd deploy/prod && docker compose down
+   ```
+
+2. **Set up blue/green slots** following [DEPLOYMENT.md - First-Time Setup](../DEPLOYMENT.md#production-first-time-setup)
+
+3. **Deploy current version to both slots**
+
+   ```bash
+   # Blue slot (active)
+   cd deploy/production-blue
+   cp .env.example .env
+   # Edit .env: set IMAGE_TAG=release-{current-version}, TRAEFIK_ENABLE=true
+   docker compose up -d
+
+   # Green slot (inactive)
+   cd ../production-green
+   cp .env.example .env
+   # Edit .env: set IMAGE_TAG=release-{current-version}, TRAEFIK_ENABLE=false
+   docker compose up -d
+
+   # Initialize active slot tracker
+   echo "blue" > ../production/active-slot
+   ```
+
+4. **Test deployment script**
+
+   ```bash
+   ./scripts/deploy-production.sh {next-version}
+   ```
+
+## 📞 Support
+
+If you need help migrating from the legacy deployment structure, see:
+
+- Ask in #engineering Slack channel

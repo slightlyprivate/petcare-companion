@@ -33,6 +33,8 @@ docker compose up -d --pull always
 
 ### Production (Blue/Green)
 
+Watchtower is disabled on production slots; use the script below to promote after staging validation.
+
 ```bash
 # Automated deployment (requires DOCKER_REGISTRY)
 export DOCKER_REGISTRY=ghcr.io/slightlyprivate

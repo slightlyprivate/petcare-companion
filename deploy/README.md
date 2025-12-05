@@ -1,173 +1,200 @@
-# Deployment Configurations
+# Deployment Documentation
 
-This directory contains Docker Compose configurations for different deployment environments of the
-PetCare Companion application.
+Environment-specific Docker Compose configurations for the PetCare Companion application with
+production-grade CI/CD and blue/green deployment support.
 
-## Directory Structure
+## 📚 Documentation
 
-- **`development/`** - Development environment with Traefik routing and external networks
-- **`staging/`** - Staging environment for testing develop branch changes
-- **`production/`** - Production-ready configuration with security hardening
+Choose the guide that fits your needs:
 
-## Environment Overview
+### 📖 [DEPLOYMENT.md](./DEPLOYMENT.md)
 
-### Development (`development/`)
+**Comprehensive deployment guide** for operations and engineering teams.
 
-**Purpose:** Remote development environment with HTTPS routing via Traefik
+Covers:
 
-**Key Features:**
+- Complete CI/CD pipeline details
+- Blue/green production architecture
+- First-time environment setup
+- Deployment procedures and workflows
+- Health check configuration
+- Security hardening
+- Troubleshooting guide
 
-- Uses `:develop` tagged images from GHCR
-- Traefik proxy integration with automatic SSL via Cloudflare
-- External networks: `shared-db-petcare`, `shared-cache-petcare`, `traefik-proxy`
-- Persistent storage at `/mnt/data/appdata/petcare-storage`
-- Promtail log collection enabled
-- Services: `app`, `web`, `ui`, `pwa`, `worker`, `scheduler`
+**Use this when**: Setting up new environments, learning the deployment system, or troubleshooting
+issues.
 
-**Hostnames:**
+### ⚡ [QUICK-REFERENCE.md](./QUICK-REFERENCE.md)
 
-- Web: `web.develop.petcare.ubuntu.slightlyprivate.com`
-- UI: `ui.develop.petcare.ubuntu.slightlyprivate.com`
-- PWA: `pwa.develop.petcare.ubuntu.slightlyprivate.com`
+**Command cheatsheet** for daily operations.
 
-**Setup:**
+Includes:
+
+- Fast setup commands
+- Deployment one-liners
+- Status check commands
+- Log viewing shortcuts
+- Emergency procedures
+- Useful aliases
+
+**Use this when**: You need to quickly deploy, check status, view logs, or perform common tasks.
+
+## 🎯 Quick Start
+
+### I want to
+
+>**Deploy to production**
 
 ```bash
-cd deploy/development
-cp .env.example .env
-# Configure environment variables
+./scripts/deploy-production.sh 1.2.3
+```
+
+📖 Details: [DEPLOYMENT.md - Production Procedures](./DEPLOYMENT.md#-production-deployment-procedures)
+
+>**Set up a new environment**
+
+```bash
+cd deploy/{environment}
+cp .env.example .env && nano .env
 docker compose up -d
 ```
 
-### Staging (`staging/`)
+📖 Details: [DEPLOYMENT.md - First-Time Setup](./DEPLOYMENT.md#-first-time-environment-setup)
 
-**Purpose:** Pre-production testing of the `develop` branch
-
-**Key Features:**
-
-- Uses `:staging-{version}` tagged images from GHCR
-- Traefik proxy integration with automatic SSL via Cloudflare
-- External networks: `shared-db-petcare`, `shared-cache-petcare`, `traefik-proxy`
-- Shared storage volume between services
-- Domain-based routing similar to development and production
-- Services: `app`, `web`, `ui`, `pwa`
-
-**Hostnames:**
-
-- Web: `web.staging.petcare.ubuntu.slightlyprivate.com`
-- UI: `ui.staging.petcare.ubuntu.slightlyprivate.com`
-- PWA: `pwa.staging.petcare.ubuntu.slightlyprivate.com`
-
-**Setup:**
+>**Check what's running**
 
 ```bash
-cd deploy/staging
-cp .env.example .env
-# Configure environment variables
-docker compose up -d
+cat deploy/production/active-slot
+docker compose -f deploy/production-$(cat deploy/production/active-slot)/docker-compose.yml ps
 ```
 
-### Production (`production/`)
+⚡ More: [QUICK-REFERENCE.md - Status Checks](./QUICK-REFERENCE.md#-status-checks)
 
-**Purpose:** Production deployment with security best practices
-
-**Key Features:**
-
-- Uses `:release-{version}` tagged images from GHCR
-- Read-only filesystems with minimal tmpfs mounts
-- Runs as non-root user (`www-data`)
-- Comprehensive healthchecks with start periods
-- Isolated frontend/backend networks
-- Includes queue worker with memory limits
-- Traefik proxy integration with automatic SSL via Cloudflare
-- Domain-based routing via the `traefik-proxy` network
-- Services: `app`, `web`, `worker`, `ui`, `pwa`
-
-**Hostnames:**
-
-- Web: `web.petcare.ubuntu.slightlyprivate.com`
-- UI: `ui.petcare.ubuntu.slightlyprivate.com`
-- PWA: `pwa.petcare.ubuntu.slightlyprivate.com`
-
-Blue/Green deployments:
-
-- `production-blue/` and `production-green/` mirror `production/` and both use Traefik routing with
-  no container port mappings. Active slot is managed via `deploy/production/active-slot` and Traefik
-  labels.
-
-**Setup:**
+>**View logs**
 
 ```bash
-cd deploy/production
-cp .env.example .env
-# Configure all required secrets and external service endpoints
-docker compose pull
-docker compose up -d
-docker compose exec app php artisan migrate --force
-docker compose exec app php artisan storage:link
+ACTIVE=$(cat deploy/production/active-slot)
+docker compose -f deploy/production-$ACTIVE/docker-compose.yml logs -f
 ```
 
-## Image Tags
+⚡ More: [QUICK-REFERENCE.md - Logs](./QUICK-REFERENCE.md#-logs)
 
-- **Development:** `ghcr.io/slightlyprivate/petcare-companion-{service}:dev-{shortsha}`
-- **Staging:** `ghcr.io/slightlyprivate/petcare-companion-{service}:staging-{version}`
-- **Production:** `ghcr.io/slightlyprivate/petcare-companion-{service}:release-{version}`
+>**Rollback production**
 
-Services include: `app`, `web`, `ui`, `pwa`
+```bash
+./scripts/deploy-production.sh 1.2.2  # previous version
+```
 
-## Common Services
+📖 Details: [DEPLOYMENT.md - Emergency Rollback](./DEPLOYMENT.md#emergency-rollback)
 
-All environments deploy:
+**Troubleshoot issues**
+📖 See: [DEPLOYMENT.md - Troubleshooting Guide](./DEPLOYMENT.md#-troubleshooting-guide)
 
-- **app** - Laravel backend (PHP-FPM)
-- **web** - Nginx reverse proxy to PHP-FPM
-- **ui** - React admin interface
-- **pwa** - Progressive Web App for end users
+## 📁 Directory Structure
 
-Development and staging include:
+```sh
+deploy/
+├── README.md              ← You are here (index)
+├── DEPLOYMENT.md          ← Comprehensive operations guide
+├── QUICK-REFERENCE.md     ← Command cheatsheet
+│
+├── development/           ← Dev environment (auto-deploy via Watchtower)
+│   ├── docker-compose.yml
+│   └── .env.example
+│
+├── staging/               ← Staging environment (auto-deploy via Watchtower)
+│   ├── docker-compose.yml
+│   └── .env.example
+│
+├── production/            ← Legacy tracker (deprecated single-slot compose)
+│   ├── active-slot        ← Tracks active production slot (blue|green)
+│   └── README.md
+│
+├── production-blue/       ← Production blue slot
+│   ├── docker-compose.yml
+│   └── .env.example
+│
+└── production-green/      ← Production green slot
+    ├── docker-compose.yml
+    └── .env.example
+```
 
-- **worker** - Queue worker for asynchronous jobs
-- **scheduler** - Laravel task scheduler (development only)
-
-## External Dependencies
+## 🚀 Deployment Strategy Overview
 
 ### Development
 
-- Database: Shared MySQL via `shared-db-petcare` network
-- Cache: Shared Redis via `shared-cache-petcare` network
-- Proxy: Traefik via `traefik-proxy` network
+- **Trigger**: Push to `develop` branch
+- **Tag**: `dev-{shortsha}` (e.g., `dev-4f31a8c`)
+- **Deploy**: Automated via Watchtower (external service)
+- **Timeline**: ~5-10 minutes
 
 ### Staging
 
-- Database: External MySQL via `shared-db` network
-- Cache: External Redis via `shared-cache` network
+- **Trigger**: Push to `main` branch
+- **Tag**: `staging-{version}` (e.g., `staging-1.2.3`)
+- **Deploy**: Automated via Watchtower (external service)
+- **Timeline**: ~5-10 minutes
 
 ### Production
 
-- Database: External MySQL (configure in `.env`)
-- Cache: External Redis (configure in `.env`)
-- Object Storage: Optional (S3-compatible)
+- **Trigger**: Manual via `scripts/deploy-production.sh`
+- **Tag**: `release-{version}` (e.g., `release-1.2.3`)
+- **Deploy**: Blue/green with health checks and traffic switch
+- **Timeline**: ~3-5 minutes
+- **Key Feature**: Zero downtime, instant rollback
+- **Safety**: Watchtower disabled on production slots (manual promotion only)
 
-## Quick Start
+**Note**: `staging-{version}` and `release-{version}` point to the same image (build once, deploy
+twice).
 
-1. Choose your environment directory
-2. Copy `.env.example` to `.env` (or `.env.staging` for staging)
-3. Generate application key: `docker compose run --rm app php artisan key:generate --show`
-4. Configure database and cache endpoints
-5. Pull images: `docker compose pull`
-6. Start services: `docker compose up -d`
-7. Run migrations: `docker compose exec app php artisan migrate --force`
+## 🟦🟩 Blue/Green Production
 
-## Documentation
+Production uses two identical slots for zero-downtime deployments:
 
-- [Staging Environment Details](../docs/staging-environment.md)
-- [Production Deployment Guide](../docs/production-deployment.md)
-- [CI/CD Setup](../docs/CI_CD_SETUP.md)
+```sh
+┌─────────────────┐
+│  Active: Blue   │ ← Receives traffic (TRAEFIK_ENABLE=true)
+│  Inactive: Green│ ← No traffic (TRAEFIK_ENABLE=false)
+└─────────────────┘
 
-## Notes
+    Deploy v1.2.3 to Green
+    Health check Green
+    Switch traffic to Green
+    Blue becomes rollback option
 
-- The root `docker-compose.yml` is for **local development only** with bind mounts and build
-  contexts
-- All deployment environments pull pre-built images from GHCR
-- Production uses read-only filesystems and runs as non-root for security
-- Development environment requires Traefik and external networks to be pre-configured
+┌─────────────────┐
+│  Inactive: Blue │ ← Previous version (instant rollback)
+│  Active: Green  │ ← New version receiving traffic
+└─────────────────┘
+```
+
+**Benefits**: Zero downtime, instant rollback, safe deployments
+
+📖 Full details: [DEPLOYMENT.md - Blue/Green Architecture](./DEPLOYMENT.md#-bluegreen-production-architecture)
+
+## 🏷️ Image Tags
+
+| Environment | Tag Example | Source Branch | Auto-Deploy |
+| ----------- | ----------- | ------------- | ----------- |
+| Development | `dev-4f31a8c` | `develop` | ✅ Watchtower |
+| Staging | `staging-1.2.3` | `main` | ✅ Watchtower |
+| Production | `release-1.2.3` | `main` | ❌ Manual |
+
+All images in `ghcr.io/slightlyprivate/petcare-companion-*` registry.
+
+## 🔐 Security
+
+Production environments include:
+
+- Non-root containers with minimal tmpfs mounts
+- Read-only filesystems where possible
+- Traefik TLS via Cloudflare DNS challenge
+- Dedicated external networks for DB/Redis
+- Shared storage volume managed on the host
+
+## 🧠 Tips
+
+- Keep `deploy/production/active-slot` accurate; all tooling relies on it.
+- Run migrations on the inactive slot before traffic switch.
+- Use `docker compose ps` and `docker compose logs` with `production-$(cat active-slot)` to inspect
+  the active slot quickly.

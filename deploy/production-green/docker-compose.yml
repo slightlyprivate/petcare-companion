@@ -1,7 +1,8 @@
+name: slightly-better-petcare-production-green
 services:
   app:
     container_name: ${APP_CONTAINER_NAME:-petcare_app_green}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-1.2.3}
     env_file:
       - .env
     healthcheck:
@@ -13,20 +14,20 @@ services:
     entrypoint: /usr/local/bin/entrypoint.sh
     networks:
       - default
-      - shared-db-petcare
-      - shared-cache-petcare
+      - shared-db-petcare-production
+      - shared-cache-petcare-production
     volumes:
       - .env:/var/www/html/.env
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-prod}:/var/www/html/storage
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-prod}'
       - 'petcare.slot=${SLOT:-green}'
 
   web:
     container_name: ${WEB_CONTAINER_NAME:-petcare_web_green}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-release-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-release-1.2.3}
     env_file:
       - .env
     depends_on:
@@ -42,11 +43,13 @@ services:
     networks:
       - default
       - traefik-proxy
+      - shared-db-petcare-production
+      - shared-cache-petcare-production
     volumes:
       - .env:/var/www/html/.env
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-prod}:/var/www/html/storage:ro
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-prod}'
       - 'petcare.slot=${SLOT:-green}'
@@ -58,7 +61,7 @@ services:
 
   ui:
     container_name: ${UI_CONTAINER_NAME:-petcare_ui_green}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-release-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-release-1.2.3}
     environment:
       API_BASE_URL: https://${WEB_DOMAIN}
     depends_on:
@@ -73,7 +76,7 @@ services:
       - default
       - traefik-proxy
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-prod}'
       - 'petcare.slot=${SLOT:-green}'
@@ -85,7 +88,7 @@ services:
 
   pwa:
     container_name: ${PWA_CONTAINER_NAME:-petcare_pwa_green}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-release-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-release-1.2.3}
     environment:
       API_BASE_URL: https://${WEB_DOMAIN}
     depends_on:
@@ -100,7 +103,7 @@ services:
       - default
       - traefik-proxy
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-prod}'
       - 'petcare.slot=${SLOT:-green}'
@@ -112,7 +115,7 @@ services:
 
   worker:
     container_name: ${WORKER_CONTAINER_NAME:-petcare_worker_green}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-1.2.3}
     env_file:
       - .env
     depends_on:
@@ -122,19 +125,19 @@ services:
     entrypoint: /usr/local/bin/worker.sh
     networks:
       - default
-      - shared-db-petcare
-      - shared-cache-petcare
+      - shared-db-petcare-production
+      - shared-cache-petcare-production
     volumes:
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-prod}:/var/www/html/storage
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-prod}'
       - 'petcare.slot=${SLOT:-green}'
 
   scheduler:
     container_name: ${SCHEDULER_CONTAINER_NAME:-petcare_scheduler_green}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-latest}
+    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-1.2.3}
     env_file:
       - .env
     depends_on:
@@ -144,20 +147,20 @@ services:
     entrypoint: /usr/local/bin/scheduler.sh
     networks:
       - default
-      - shared-db-petcare
-      - shared-cache-petcare
+      - shared-db-petcare-production
+      - shared-cache-petcare-production
     volumes:
       - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-prod}:/var/www/html/storage
     labels:
-      - 'com.centurylinklabs.watchtower.enable=true'
+      - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
       - 'petcare.env=${ENV:-prod}'
       - 'petcare.slot=${SLOT:-green}'
 
 networks:
-  shared-db-petcare:
+  shared-db-petcare-production:
     external: true
-  shared-cache-petcare:
+  shared-cache-petcare-production:
     external: true
   traefik-proxy:
     external: true

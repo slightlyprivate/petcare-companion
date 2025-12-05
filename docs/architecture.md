@@ -1357,7 +1357,7 @@ worker:
 - GitHub Actions workflows build images on push to `main` or `develop`
 - Multi-architecture builds using BuildKit
 - Security scanning with Trivy
-- Automatic tagging: `prod`, `latest`, `<branch>-<sha>`
+- Automatic tagging: `staging-{version}`, `release-{version}`, `dev-{sha}`
 - Image size validation (<500MB combined target)
 - Results published to GitHub Container Registry (GHCR)
 

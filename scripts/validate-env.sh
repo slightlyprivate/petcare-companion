@@ -91,12 +91,12 @@ validate_env_keys() {
 # Main execution block
 # ---------------------------
 
-# Default environments and their directories
+# Default environments and their directories (deploy source of truth)
 declare -A ENV_DIRS=(
-    [development]="$PROJECT_ROOT/environments/development"
-    [staging]="$PROJECT_ROOT/environments/staging"
-    [production-blue]="$PROJECT_ROOT/environments/production-blue"
-    [production-green]="$PROJECT_ROOT/environments/production-green"
+    [development]="$PROJECT_ROOT/deploy/development"
+    [staging]="$PROJECT_ROOT/deploy/staging"
+    [production-blue]="$PROJECT_ROOT/deploy/production-blue"
+    [production-green]="$PROJECT_ROOT/deploy/production-green"
 )
 
 ENVIRONMENTS=()

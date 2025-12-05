@@ -7,7 +7,7 @@ The staging environment mirrors the `develop` branch and keeps production isolat
 - Feature work merges into `develop`.
 - `develop` pushes trigger the `build-develop-images` workflow to publish staging images.
 - Release Please manages production: Release PR → merge to `main` → `build-images` workflow
-  publishes versioned/`latest` images.
+  publishes versioned images (no `latest`).
 - Production release cadence and VERSION remain unchanged.
 
 ## Staging workflow behavior
@@ -23,7 +23,8 @@ The staging environment mirrors the `develop` branch and keeps production isolat
 ## Tag strategy
 
 - Staging: `ghcr.io/slightlyprivate/petcare-companion-<service>:develop` and `:develop-${sha}`.
-- Production: unchanged, versioned tags from `VERSION` plus `latest` from `main`.
+- Production: versioned tags from `VERSION` (`staging-{version}` / `release-{version}`), no
+  `latest`.
 - No staging tags cross over to production or release automation.
 
 ## Deploying staging
@@ -45,7 +46,7 @@ Files live in `deploy/staging/`.
 
 ## Keeping staging up to date
 
-- Manual: run `./update.sh` to pull the latest develop images and recreate containers with minimal
+- Manual: run `./update.sh` to pull the newest develop images and recreate containers with minimal
   interruption.
 - Cron example (every hour):
 
