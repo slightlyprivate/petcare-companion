@@ -1,17 +1,21 @@
 # Ignore dependencies and build files
-node_modules/
 **/node_modules
 /public/hot
 /public/storage
 /storage/*.key
 /vendor
 
+# Laravel-specific caches and logs
+/bootstrap/cache/*.php
+/storage/framework/cache/data/*
+/storage/logs/*.log
+
 # Scribe generated output
 /src/.scribe/
 /src/public/docs/
 /src/resources/views/scribe/
 
-# built assets published via vendor:publish
+# Built assets published via vendor:publish
 /src/public/vendor/
 /src/resources/views/vendor
 dist
@@ -20,22 +24,19 @@ tsconfig.tsbuildinfo
 # Ignore environment and configuration files
 .env
 .env.backup
+.env.local
 .env.production
 .phpunit.result.cache
 
 # Ignore IDE and system files
-docker-compose.override.yml
-Homestead.json
-Homestead.yaml
 auth.json
+docker-compose.override.yml
 
 # Ignore log files
-npm-debug.log
+*.log
 yarn-error.log
 
 # Ignore IDE directories
 /.fleet
-/.idea
-/.vscode
 /.history
-/AGENTS.md
+/.idea

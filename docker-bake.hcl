@@ -1,5 +1,5 @@
 target "common" {
-  platforms = ["linux/amd64", "linux/arm64"]
+  platforms = ["linux/amd64"]
 }
 
 target "app" {
@@ -7,28 +7,24 @@ target "app" {
   context    = "."
   dockerfile = "docker/app/Dockerfile"
   target     = "runner"
-  platforms = ["linux/amd64"]
 }
 
 target "web" {
   inherits   = ["common"]
   context    = "."
   dockerfile = "docker/web/Dockerfile"
-  platforms = ["linux/amd64"]
 }
 
 target "ui" {
   inherits   = ["common"]
   context    = "."
   dockerfile = "docker/ui/Dockerfile"
-  platforms = ["linux/amd64"]
 }
 
 target "pwa" {
   inherits   = ["common"]
   context    = "."
   dockerfile = "docker/pwa/Dockerfile"
-  platforms = ["linux/amd64"]
 }
 
 group "all" {
@@ -43,5 +39,5 @@ target "app-dev" {
 }
 
 group "develop" {
-  targets = ["app", "web", "ui", "pwa"]
+  targets = ["app-dev", "web", "ui", "pwa"]
 }

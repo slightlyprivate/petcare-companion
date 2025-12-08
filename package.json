@@ -2,10 +2,17 @@
   "name": "petcare-companion-root",
   "private": true,
   "version": "0.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "workspaces": [
+    "src/ui",
+    "src/pwa"
+  ],
   "scripts": {
     "prepare": "husky install",
-    "format:check": "npm --prefix src/ui run format:check && npm --prefix src/pwa run format:check",
-    "format": "npm --prefix src/ui run format && npm --prefix src/pwa run format"
+    "format:check": "npm run format:check --workspaces",
+    "format": "npm run format --workspaces"
   },
   "devDependencies": {
     "husky": "^9.0.0",

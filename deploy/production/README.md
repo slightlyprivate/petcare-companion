@@ -18,7 +18,6 @@ This directory contains only:
 
 - **`active-slot`** - Tracks which production slot (blue or green) is currently active and receiving
   traffic
-- **`README.md`** - This deprecation notice (you are here)
 
 ## 🟦🟩 Using Blue/Green Deployments
 
@@ -77,7 +76,8 @@ If you have an existing deployment using the old `deploy/prod/` structure:
    cd deploy/prod && docker compose down
    ```
 
-2. **Set up blue/green slots** following [DEPLOYMENT.md - First-Time Setup](../DEPLOYMENT.md#production-first-time-setup)
+2. **Set up blue/green slots** following
+   [DEPLOYMENT.md - First-Time Setup](../DEPLOYMENT.md#production-first-time-setup)
 
 3. **Deploy current version to both slots**
 

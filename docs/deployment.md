@@ -1,10 +1,12 @@
-# Production Deployment Guide
+# Deployment Guide
+
+## Production Environment
 
 This guide captures everything required to run the PetCare Companion stack in production. It assumes
 you are deploying the containers defined in `deploy/prod/docker-compose.yml` and are pulling images
 from GHCR (`ghcr.io/slightlyprivate/petcare-companion-*`).
 
-## Prerequisites
+### Prerequisites
 
 - Access to the production secrets manager (APP_KEY, DB credentials, API keys, Stripe, mail, etc.).
 - Managed MySQL and Redis instances reachable from the Docker host.
@@ -12,7 +14,7 @@ from GHCR (`ghcr.io/slightlyprivate/petcare-companion-*`).
 - HTTPS termination in front of the `web`/`ui` containers (reverse proxy, load balancer, or cloud
   ingress) so Sanctum cookies remain secure.
 
-## Environment Variable Requirements
+### Environment Variable Requirements
 
 Start with `src/.env.production.example`. The table below lists the minimum values you must set
 before booting the stack:
@@ -33,7 +35,7 @@ before booting the stack:
 Inject secrets via your orchestrator (Doppler, 1Password Connect, AWS SSM, etc.). Never commit
 populated `.env` files.
 
-## Deployment Checklist
+### Deployment Checklist
 
 1. **Prep secrets:** Copy `src/.env.production.example` into your secrets store and fill all
    required keys (DB, Redis, mail, Stripe, OAuth providers, etc.).
@@ -56,7 +58,7 @@ populated `.env` files.
     `docker compose -f deploy/prod/docker-compose.yml logs -f web app worker` for warnings before
     handing off.
 
-## Troubleshooting
+### Troubleshooting
 
 - **UI cannot call API (401/CORS):** Ensure `FRONTEND_URL`, `APP_URL`, `SESSION_DOMAIN`, and
   `SANCTUM_STATEFUL_DOMAINS` share the same base domain for both frontends; mismatched values break
@@ -71,7 +73,7 @@ populated `.env` files.
 - **Browser reports CORS errors:** Review `config/cors.php` `allowed_origins` and ensure HTTPS
   termination happens before requests reach Nginx so headers match expectations.
 
-## Backup & Restore
+### Backup & Restore
 
 - **Database:** Schedule `mysqldump --single-transaction` (or managed snapshot) jobs. Encrypt and
   retain at least 7 daily copies plus weekly/monthly archives.
@@ -82,7 +84,7 @@ populated `.env` files.
 - **Restore drills:** Periodically rehearse restoring DB + storage into a staging namespace to
   validate the process before emergencies.
 
-## Monitoring & Logging
+### Monitoring & Logging
 
 - **Logs:** Tail via `docker compose -f deploy/prod/docker-compose.yml logs -f web app worker` or
   forward to a collector (Grafana Loki, Datadog, ELK). Laravel defaults to `stack` → `daily`.
@@ -91,9 +93,67 @@ populated `.env` files.
 - **Metrics:** Track Docker CPU/RAM, Redis memory/latency, MySQL slow queries, queue backlog, and
   failed jobs (`php artisan queue:failed`). Horizon provides additional queue metrics when enabled.
 
+## Staging Environment
+
+The staging environment mirrors the `develop` branch and keeps production isolated.
+
+### Branch and release flow
+
+- Feature work merges into `develop`.
+- `develop` pushes trigger the `build-develop-images` workflow to publish staging images.
+- Release Please manages production: Release PR → merge to `main` → `build-images` workflow
+  publishes versioned images (no `latest`).
+- Production release cadence and VERSION remain unchanged.
+
+### Staging workflow behavior
+
+- Workflow: `.github/workflows/build-develop-images.yml`
+- Trigger: `push` to `develop` touching `src/**`, `docker/**`, `docker-bake.hcl`, or the workflow
+  itself.
+- Build: `docker buildx bake` using the `develop` group targeting `app`, `web`, and `ui`.
+- Tags only: `:develop` and `:develop-${GITHUB_SHA}` for each image (no `latest`, no VERSION reads,
+  no Release Please hook).
+- Cache: GitHub Actions cache (`gha`) for faster rebuilds.
+
+### Tag strategy
+
+- Staging: `ghcr.io/slightlyprivate/petcare-companion-<service>:develop` and `:develop-${sha}`.
+- Production: versioned tags from `VERSION` (`staging-{version}` / `release-{version}`), no
+  `latest`.
+- No staging tags cross over to production or release automation.
+
+### Deploying staging
+
+Files live in `deploy/staging/`.
+
+1. Copy `.env.example` to `.env` and fill secrets (`APP_KEY`, DB credentials, mail sender, etc.).
+2. From the staging host directory (e.g., `/srv/petcare-staging`):
+
+   ```bash
+   docker compose -f docker-compose.yml up -d
+   ```
+
+3. Services exposed on non-production ports:
+   - Web: `9080`
+   - UI: `9081`
+   - MailHog UI/SMTP: `8026` / `1026`
+   - MySQL and Redis bound to loopback (`3308`, `6380`) to avoid collisions.
+
+### Keeping staging up to date
+
+- Manual: run `./update.sh` to pull the newest develop images and recreate containers with minimal
+  interruption.
+- Cron example (every hour):
+
+  ```cron
+  0 * * * * cd /srv/petcare-staging && ./update.sh >> /var/log/petcare-staging.log 2>&1
+  ```
+
+- Webhook: point a GitHub repository dispatch/webhook at `/srv/petcare-staging/update.sh` to refresh
+  after successful `develop` builds.
+
 ## Related Files
 
 - `deploy/prod/docker-compose.yml` — Production services and volumes.
 - `deploy/prod/update.sh` — Helper script for pulling new images with minimal downtime.
 - `docs/CI_CD_SETUP.md` — Build workflows and CI job descriptions.
-- `docs/staging-environment.md` — Reference for staging flow before promoting to production.

@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Laravel Pint",
+      "type": "shell",
+      "command": "docker-compose exec app ./vendor/bin/pint",
+      "group": "build"
+    }
+  ]
+}
