@@ -448,7 +448,7 @@ make image-scan
 - Database connection pools
 - Redis memory usage
 - Storage volume capacity
-- Network throughput markdown
+- Network throughput
 
 ### Shared Storage
 

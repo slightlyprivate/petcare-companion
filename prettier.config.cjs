@@ -1,16 +1,16 @@
 module.exports = {
-  arrowParens: 'avoid',
+  arrowParens: 'always',
   bracketSpacing: true,
   endOfLine: 'lf',
   printWidth: 100,
   semi: true,
   singleQuote: true,
   tabWidth: 2,
-  trailingComma: 'es5',
+  trailingComma: 'all',
   useTabs: false,
   overrides: [
     { files: ['*.md'], options: { proseWrap: 'always' } },
-    { files: ['*.yml', '*.yaml'] },
+    { files: ['*.yml', '*.yaml'], options: { tabWidth: 2 } },
   ],
 };
 
