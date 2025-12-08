@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pets', function (Blueprint $table) {
-            if (!Schema::hasColumn('pets', 'is_public')) {
+            if (! Schema::hasColumn('pets', 'is_public')) {
                 $table->boolean('is_public')->default(false)->after('user_id');
             }
         });
