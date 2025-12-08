@@ -92,11 +92,13 @@ jobs:
             const version = '${{ steps.version.outputs.version }}';
             const appVersion = '${{ steps.version.outputs.app_version }}';
             const isMain = '${{ github.ref }}' === 'refs/heads/main';
-            const platforms = 'linux/amd64, linux/arm64';
+            const platforms = 'linux/amd64 (fast build)';
             let summary = `## Docker Build Summary\n\n`;
             summary += `**Version:** \`${version}\`\n`;
             summary += `**App Version (displayed in UI):** \`${appVersion}\`\n\n`;
-            summary += `**Platforms:** ${platforms}\n\n`;
+            summary += `**Platforms:** ${platforms}\n`;
+            summary += `**Build Type:** Staging build (amd64 only)\n\n`;
+            summary += `For multi-arch releases, trigger the \`release-multiarch.yml\` workflow manually.\n\n`;
             summary += `| Image | Tags |\n|-------|------|\n`;
             for (const img of images) {
               const tags = [

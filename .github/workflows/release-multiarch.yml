@@ -1,0 +1,173 @@
+name: Release Multi-Arch Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (defaults to VERSION file)'
+        required: false
+        type: string
+  schedule:
+    # Nightly build at 2:00 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  release-multiarch:
+    name: Build and Push Multi-Arch Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read version and set build info
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then
+            VERSION=$(cat VERSION)
+          fi
+          SHORT_SHA=${GITHUB_SHA::7}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "app_version=${VERSION}+${SHORT_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/slightlyprivate/petcare-companion-app
+            ghcr.io/slightlyprivate/petcare-companion-web
+            ghcr.io/slightlyprivate/petcare-companion-ui
+            ghcr.io/slightlyprivate/petcare-companion-pwa
+          labels: false
+
+      - name: Build and push multi-arch images
+        uses: docker/bake-action@v5
+        with:
+          files: ./docker-bake.hcl
+          targets: all-multiarch
+          push: true
+          set: |
+            *.cache-from=type=gha
+            *.cache-to=type=gha,mode=max
+            ui-multiarch.args.VITE_APP_VERSION=${{ steps.version.outputs.app_version }}
+            pwa-multiarch.args.VITE_APP_VERSION=${{ steps.version.outputs.app_version }}
+            app-multiarch.tags=ghcr.io/slightlyprivate/petcare-companion-app:latest
+            app-multiarch.tags+=ghcr.io/slightlyprivate/petcare-companion-app:multiarch-${{ steps.version.outputs.version }}
+            web-multiarch.tags=ghcr.io/slightlyprivate/petcare-companion-web:latest
+            web-multiarch.tags+=ghcr.io/slightlyprivate/petcare-companion-web:multiarch-${{ steps.version.outputs.version }}
+            ui-multiarch.tags=ghcr.io/slightlyprivate/petcare-companion-ui:latest
+            ui-multiarch.tags+=ghcr.io/slightlyprivate/petcare-companion-ui:multiarch-${{ steps.version.outputs.version }}
+            pwa-multiarch.tags=ghcr.io/slightlyprivate/petcare-companion-pwa:latest
+            pwa-multiarch.tags+=ghcr.io/slightlyprivate/petcare-companion-pwa:multiarch-${{ steps.version.outputs.version }}
+
+      - name: Add build summary
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const images = [
+              { name: "petcare-companion-app", image: "ghcr.io/slightlyprivate/petcare-companion-app" },
+              { name: "petcare-companion-web", image: "ghcr.io/slightlyprivate/petcare-companion-web" },
+              { name: "petcare-companion-ui", image: "ghcr.io/slightlyprivate/petcare-companion-ui" },
+              { name: "petcare-companion-pwa", image: "ghcr.io/slightlyprivate/petcare-companion-pwa" },
+            ];
+            const version = '${{ steps.version.outputs.version }}';
+            const appVersion = '${{ steps.version.outputs.app_version }}';
+            const platforms = 'linux/amd64, linux/arm64';
+            let summary = `## Multi-Arch Docker Build Summary\n\n`;
+            summary += `**Version:** \`${version}\`\n`;
+            summary += `**App Version (displayed in UI):** \`${appVersion}\`\n\n`;
+            summary += `**Platforms:** ${platforms}\n`;
+            summary += `**Build Type:** Multi-arch release (amd64 + arm64)\n\n`;
+            summary += `| Image | Tags |\n|-------|------|\n`;
+            for (const img of images) {
+              const tags = [
+                `${img.image}:latest`,
+                `${img.image}:multiarch-${version}`,
+              ];
+              summary += `| \`${img.image}\` | ${tags.map(t => `\`${t}\``).join(', ')} |\n`;
+            }
+            summary += `\n✅ **Multi-arch build and push completed successfully.**\n`;
+            await core.summary.addRaw(summary).write();
+
+      ###############################################################
+      # Trivy scan for vulnerabilities (SARIF upload)
+      ###############################################################
+
+      - name: Trivy scan (app)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/slightlyprivate/petcare-companion-app:multiarch-${{ steps.version.outputs.version }}
+          format: sarif
+          output: trivy-app.sarif
+          ignore-unfixed: false
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+
+      - name: Upload SARIF (app)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-app.sarif
+          category: trivy-app-multiarch
+
+      - name: Trivy scan (web)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/slightlyprivate/petcare-companion-web:multiarch-${{ steps.version.outputs.version }}
+          format: sarif
+          output: trivy-web.sarif
+          ignore-unfixed: false
+
+      - name: Upload SARIF (web)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-web.sarif
+          category: trivy-web-multiarch
+
+      - name: Trivy scan (ui)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/slightlyprivate/petcare-companion-ui:multiarch-${{ steps.version.outputs.version }}
+          format: sarif
+          output: trivy-ui.sarif
+          ignore-unfixed: false
+
+      - name: Upload SARIF (ui)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-ui.sarif
+          category: trivy-ui-multiarch
+
+      - name: Trivy scan (pwa)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/slightlyprivate/petcare-companion-pwa:multiarch-${{ steps.version.outputs.version }}
+          format: sarif
+          output: trivy-pwa.sarif
+          ignore-unfixed: false
+
+      - name: Upload SARIF (pwa)
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-pwa.sarif
+          category: trivy-pwa-multiarch
