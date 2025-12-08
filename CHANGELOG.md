@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.1](https://github.com/slightlyprivate/petcare-companion/compare/0.14.0...0.14.1) (2025-12-08)
+
+
+### Bug Fixes
+
+* restore release-please manifest for simple release type ([e0f6093](https://github.com/slightlyprivate/petcare-companion/commit/e0f6093cb54dd481c265d69e80dd369309dbec69))
+
 ## [0.14.0](https://github.com/slightlyprivate/petcare-companion/compare/0.13.0...0.14.0) (2025-12-08)
 
 
