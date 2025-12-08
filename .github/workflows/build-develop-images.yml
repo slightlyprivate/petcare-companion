@@ -9,7 +9,7 @@ on:
       - 'docker-bake.hcl'
       - '.github/workflows/build-develop-images.yml'
   workflow_dispatch:
-    
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -51,8 +51,8 @@ jobs:
           set: |
             *.cache-from=type=gha
             *.cache-to=type=gha,mode=max
-            app.tags=ghcr.io/slightlyprivate/petcare-companion-app:develop
-            app.tags+=ghcr.io/slightlyprivate/petcare-companion-app:dev-${{ steps.shortsha.outputs.SHORT_SHA }}
+            app-dev.tags=ghcr.io/slightlyprivate/petcare-companion-app:develop
+            app-dev.tags+=ghcr.io/slightlyprivate/petcare-companion-app:dev-${{ steps.shortsha.outputs.SHORT_SHA }}
             web.tags=ghcr.io/slightlyprivate/petcare-companion-web:develop
             web.tags+=ghcr.io/slightlyprivate/petcare-companion-web:dev-${{ steps.shortsha.outputs.SHORT_SHA }}
             ui.tags=ghcr.io/slightlyprivate/petcare-companion-ui:develop
