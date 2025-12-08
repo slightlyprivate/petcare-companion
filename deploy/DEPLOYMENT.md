@@ -1,5 +1,12 @@
 # 🚀 Deployment Strategy & Image Tagging
 
+> **⚠️ IMPORTANT: This is an example guide only!**
+>
+> This document provides **educational examples** of deployment strategies. The actual deployments
+> for PetCare Companion are managed in a separate repository:
+> [`homelab-slightly-server`](https://github.com/slightlyprivate/homelab-slightly-server). Paths and
+> commands shown are illustrative; adapt them to your environment.
+
 This document describes the CI/CD pipeline flow and image tagging strategy for PetCare Companion.
 
 ## 📋 Overview
@@ -24,8 +31,8 @@ main branch    → staging environment (staging-{version})
 
 **Deploy:**
 
-- Target: `/srv/stacks/petcare-companion/deploy/development/`
-- Update `.env` with `IMAGE_TAG=dev-{shortsha}` and `DOCKER_REGISTRY=ghcr.io/slightlyprivate`
+- Target: `<your-deploy-path>/deploy/development/`
+- Update `.env` with `IMAGE_TAG=dev-{shortsha}` and `DOCKER_REGISTRY=<your-registry>`
 - Run: `docker compose up -d --pull always`
 
 **Result:**
@@ -58,8 +65,9 @@ docker push ${DOCKER_REGISTRY}/petcare-companion-app:release-1.2.3
 
 **Deploy to Staging:**
 
-- Target: `/srv/stacks/petcare-companion/deploy/staging/`
-- Update `.env` with `IMAGE_TAG=staging` (moving alias) or `staging-1.2.3` and `DOCKER_REGISTRY=ghcr.io/slightlyprivate`
+- Target: `<your-deploy-path>/deploy/staging/`
+- Update `.env` with `IMAGE_TAG=staging` (moving alias) or `staging-1.2.3` and
+  `DOCKER_REGISTRY=<your-registry>`
 - Run: `docker compose up -d --pull always`
 
 **Benefit:**
@@ -293,7 +301,8 @@ TRAEFIK_ENABLE=true|false  # Controls active slot
 ### Post-Deployment
 
 - [ ] Hit primary endpoints/health URLs (set `SMOKE_URL` when running deploy script)
-- [ ] Run migrations on active slot if needed: `docker compose -f deploy/production-$(cat deploy/production/active-slot)/docker-compose.yml exec app php artisan migrate --force`
+- [ ] Run migrations on active slot if needed:
+      `docker compose -f deploy/production-$(cat deploy/production/active-slot)/docker-compose.yml exec app php artisan migrate --force`
 - [ ] Refresh caches if needed: `php artisan config:cache` and `route:cache`
 - [ ] Verify queues/Horizon/worker status
 - [ ] Confirm logs are clean for the first 5–10 minutes

@@ -1,5 +1,13 @@
 # Deployment Documentation
 
+> **⚠️ IMPORTANT: These are example configurations only!**
+>
+> This `./deploy` directory contains **educational examples** of how the PetCare Companion
+> application could be deployed. The actual deployment configurations and infrastructure are managed
+> in a separate repository:
+> [`homelab-slightly-server`](https://github.com/slightlyprivate/homelab-slightly-server). Do not
+> use these files directly for production deployments.
+
 Environment-specific Docker Compose configurations for the PetCare Companion application with
 production-grade CI/CD and blue/green deployment support.
 
@@ -43,15 +51,16 @@ Includes:
 
 ### I want to
 
->**Deploy to production**
+> **Deploy to production**
 
 ```bash
 ./scripts/deploy-production.sh 1.2.3
 ```
 
-📖 Details: [DEPLOYMENT.md - Production Procedures](./DEPLOYMENT.md#-production-deployment-procedures)
+📖 Details:
+[DEPLOYMENT.md - Production Procedures](./DEPLOYMENT.md#-production-deployment-procedures)
 
->**Set up a new environment**
+> **Set up a new environment**
 
 ```bash
 cd deploy/{environment}
@@ -61,7 +70,7 @@ docker compose up -d
 
 📖 Details: [DEPLOYMENT.md - First-Time Setup](./DEPLOYMENT.md#-first-time-environment-setup)
 
->**Check what's running**
+> **Check what's running**
 
 ```bash
 cat deploy/production/active-slot
@@ -70,7 +79,7 @@ docker compose -f deploy/production-$(cat deploy/production/active-slot)/docker-
 
 ⚡ More: [QUICK-REFERENCE.md - Status Checks](./QUICK-REFERENCE.md#-status-checks)
 
->**View logs**
+> **View logs**
 
 ```bash
 ACTIVE=$(cat deploy/production/active-slot)
@@ -79,7 +88,7 @@ docker compose -f deploy/production-$ACTIVE/docker-compose.yml logs -f
 
 ⚡ More: [QUICK-REFERENCE.md - Logs](./QUICK-REFERENCE.md#-logs)
 
->**Rollback production**
+> **Rollback production**
 
 ```bash
 ./scripts/deploy-production.sh 1.2.2  # previous version
@@ -87,8 +96,8 @@ docker compose -f deploy/production-$ACTIVE/docker-compose.yml logs -f
 
 📖 Details: [DEPLOYMENT.md - Emergency Rollback](./DEPLOYMENT.md#emergency-rollback)
 
-**Troubleshoot issues**
-📖 See: [DEPLOYMENT.md - Troubleshooting Guide](./DEPLOYMENT.md#-troubleshooting-guide)
+**Troubleshoot issues** 📖 See:
+[DEPLOYMENT.md - Troubleshooting Guide](./DEPLOYMENT.md#-troubleshooting-guide)
 
 ## 📁 Directory Structure
 
@@ -170,15 +179,16 @@ Production uses two identical slots for zero-downtime deployments:
 
 **Benefits**: Zero downtime, instant rollback, safe deployments
 
-📖 Full details: [DEPLOYMENT.md - Blue/Green Architecture](./DEPLOYMENT.md#-bluegreen-production-architecture)
+📖 Full details:
+[DEPLOYMENT.md - Blue/Green Architecture](./DEPLOYMENT.md#-bluegreen-production-architecture)
 
 ## 🏷️ Image Tags
 
-| Environment | Tag Example | Source Branch | Auto-Deploy |
-| ----------- | ----------- | ------------- | ----------- |
-| Development | `dev-4f31a8c` | `develop` | ✅ Watchtower |
-| Staging | `staging-1.2.3` | `main` | ✅ Watchtower |
-| Production | `release-1.2.3` | `main` | ❌ Manual |
+| Environment | Tag Example     | Source Branch | Auto-Deploy   |
+| ----------- | --------------- | ------------- | ------------- |
+| Development | `dev-4f31a8c`   | `develop`     | ✅ Watchtower |
+| Staging     | `staging-1.2.3` | `main`        | ✅ Watchtower |
+| Production  | `release-1.2.3` | `main`        | ❌ Manual     |
 
 All images in `ghcr.io/slightlyprivate/petcare-companion-*` registry.
 

@@ -1,0 +1,73 @@
+{
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.scss": "tailwindcss"
+  },
+  "makefile.configureOnOpen": false,
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Use Conventional Commits format: <type>(scope): <summary>."
+    },
+    {
+      "text": "Allowed types: feat, fix, docs, style, refactor, perf, test, chore, build, ci."
+    },
+    {
+      "text": "Summary must be imperative, present tense, 72 characters or fewer, and with no trailing period."
+    },
+    {
+      "text": "Include a scope when appropriate (e.g., api, models, controllers, ui, pwa, docker, tests, auth)."
+    },
+    {
+      "text": "Do not include commit bodies unless explicitly asked."
+    },
+    {
+      "text": "Commit messages must reflect PetCare Companion architecture and standards from AGENTS.md."
+    },
+    {
+      "text": "Ensure atomic commits without hard-coded secrets or credentials."
+    },
+    {
+      "text": "Align with educational and demonstrative intent, keeping container memory minimal."
+    }
+  ],
+  "github.copilot.chat.pullRequestDescriptionGeneration.instructions": [
+    {
+      "text": "PR title must be a single line, imperative voice, and may use Conventional Commit style."
+    },
+    {
+      "text": "Include sections: Summary, Changes, Files / Areas Touched, Verification, Checklist."
+    },
+    {
+      "text": "Checklist must include: PSR-12 compliance, Laravel best practices, documentation updates, no architecture drift, consistency with AGENTS.md, tests pass, Docker commands used for Laravel operations."
+    },
+    {
+      "text": "Descriptions must be concise and aligned with PetCare Companion's educational constraints and Dockerized workflows."
+    },
+    {
+      "text": "Ensure branch naming follows feature/*, fix/*, docs/* convention."
+    },
+    {
+      "text": "Highlight any changes to MVC layers, Sanctum auth, Stripe integration, or gift economy features."
+    }
+  ],
+  "github.copilot.chat.reviewSelection.instructions": [
+    {
+      "text": "Check code against PSR-12, Laravel best practices, and AGENTS.md guidelines."
+    },
+    {
+      "text": "Flag banned patterns: hard-coded secrets, third-party packages without instruction, architectural drift from MVC/service layer, no environment variables for configs."
+    },
+    {
+      "text": "Ensure validation in Form Requests, business logic in services, proper Eloquent relationships and policies."
+    },
+    {
+      "text": "Verify atomic commits, branch naming (feature/*, fix/*, docs/*), and PR checklist compliance."
+    },
+    {
+      "text": "Check for proper Sanctum CSRF/auth, Stripe webhook security, and gift economy credit handling."
+    },
+    {
+      "text": "Provide specific actionable improvements, not broad rewrites, focusing on maintainability and educational value."
+    }
+  ]
+}

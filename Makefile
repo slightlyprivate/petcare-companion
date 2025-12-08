@@ -22,9 +22,13 @@ BAKE_TAGS := --set app.tags=$(APP_TAGS) --set web.tags=$(WEB_TAGS) --set ui.tags
 DEV_COMPOSE = docker-compose.yml
 PROD_COMPOSE = docker-compose.prod.yml
 
+.DEFAULT_GOAL := up
+
 .PHONY: up upd down seed migrate logs ps env bash pint stan restart test bump-version
-.PHONY: build-app build-web build-ui-only build-pwa build-all bake-all
-.PHONY: push-app push-web push-ui-only push-pwa push-all prod-up prod-down
+.PHONY: build-app build-web build-ui-only build-pwa build-ui build-all bake-all
+.PHONY: push-app push-web push-ui-only push-pwa push-ui push-all
+.PHONY: prod-up prod-down prod-logs prod-ps
+.PHONY: image-sizes image-scan help
 
 # =============================================================================
 # Development Commands
@@ -146,23 +150,36 @@ prod-ps:
 
 image-sizes:
 	@echo "App Image:"
-	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-app:prod | jq '.manifests[].platform, .manifests[].size'
+	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-app:release-$(VERSION) | jq '.manifests[].platform, .manifests[].size'
 	@echo ""
 	@echo "Web Image:"
-	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-web:prod | jq '.manifests[].platform, .manifests[].size'
+	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-web:release-$(VERSION) | jq '.manifests[].platform, .manifests[].size'
 	@echo ""
 	@echo "UI Image:"
-	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-ui:prod | jq '.manifests[].platform, .manifests[].size'
+	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-ui:release-$(VERSION) | jq '.manifests[].platform, .manifests[].size'
 	@echo ""
 	@echo "PWA Image:"
-	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-pwa:prod | jq '.manifests[].platform, .manifests[].size'
+	@docker manifest inspect ghcr.io/slightlyprivate/petcare-companion-pwa:release-$(VERSION) | jq '.manifests[].platform, .manifests[].size'
 
 image-scan:
 	@echo "Scanning images for vulnerabilities..."
-	trivy image ghcr.io/slightlyprivate/petcare-companion-app:prod
-	trivy image ghcr.io/slightlyprivate/petcare-companion-web:prod
-	trivy image ghcr.io/slightlyprivate/petcare-companion-ui:prod
-	trivy image ghcr.io/slightlyprivate/petcare-companion-pwa:prod
+	trivy image ghcr.io/slightlyprivate/petcare-companion-app:release-$(VERSION)
+	trivy image ghcr.io/slightlyprivate/petcare-companion-web:release-$(VERSION)
+	trivy image ghcr.io/slightlyprivate/petcare-companion-ui:release-$(VERSION)
+	trivy image ghcr.io/slightlyprivate/petcare-companion-pwa:release-$(VERSION)
+
+# =============================================================================
+# Utility Commands
+# =============================================================================
+
+help:
+	@echo "Available targets:"
+	@echo "  Development: up, upd, down, restart, migrate, seed, pint, stan, test, logs, ps, env, bash"
+	@echo "  Builds: build-app, build-web, build-ui-only, build-pwa, build-ui, build-all, bake-all"
+	@echo "  Pushes: push-app, push-web, push-ui-only, push-pwa, push-ui, push-all"
+	@echo "  Production: prod-up, prod-down, prod-logs, prod-ps"
+	@echo "  Images: image-sizes, image-scan"
+	@echo "  Other: bump-version, help"
 
 bump-version:
 	@echo "Usage: make bump-version PART=patch|minor|major"
@@ -172,8 +189,8 @@ bump-version:
 		major) major=$$((major+1)); minor=0; patch=0 ;; \
 		minor) minor=$$((minor+1)); patch=0 ;; \
 		patch) patch=$$((patch+1)) ;; \
-		*) echo "Invalid PART. Use patch, minor, or major."; exit 1 ;; \
+		*) printf "Invalid PART. Use patch, minor, or major.\n" >&2; exit 1 ;; \
 	esac; \
 	new="$$major.$$minor.$$patch"; \
-	echo $$new > VERSION; \
-	echo "Bumped version to $$new"
+	printf "$$new" > VERSION; \
+	printf "Bumped version to $$new\n"

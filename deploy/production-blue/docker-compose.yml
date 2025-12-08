@@ -2,7 +2,7 @@ name: slightly-better-petcare-production-blue
 services:
   app:
     container_name: ${APP_CONTAINER_NAME:-petcare_app_blue}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-1.2.3}
+    image: ${DOCKER_REGISTRY}/petcare-companion-app:${IMAGE_TAG}
     env_file:
       - .env
     healthcheck:
@@ -18,16 +18,15 @@ services:
       - shared-cache-petcare-production
     volumes:
       - .env:/var/www/html/.env
-      - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-prod}:/var/www/html/storage
+      - ${STORAGE_PATH}:/var/www/html/storage
     labels:
       - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
-      - 'petcare.env=${ENV:-prod}'
-      - 'petcare.slot=${SLOT:-blue}'
+      - 'petcare.slot=${SLOT}'
 
   web:
     container_name: ${WEB_CONTAINER_NAME:-petcare_web_blue}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-web:${IMAGE_TAG:-release-1.2.3}
+    image: ${DOCKER_REGISTRY}/petcare-companion-web:${IMAGE_TAG}
     env_file:
       - .env
     depends_on:
@@ -47,21 +46,20 @@ services:
       - shared-cache-petcare-production
     volumes:
       - .env:/var/www/html/.env
-      - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-prod}:/var/www/html/storage:ro
+      - ${STORAGE_PATH}:/var/www/html/storage:ro
     labels:
       - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
-      - 'petcare.env=${ENV:-prod}'
-      - 'petcare.slot=${SLOT:-blue}'
-      - 'traefik.enable=${TRAEFIK_ENABLE:-false}'
-      - 'traefik.http.routers.petcare_web_${ENV:-prod}_${SLOT:-blue}.rule=Host(`${WEB_DOMAIN:-petcare.web.ubuntu.slightlyprivate.com}`)'
-      - 'traefik.http.routers.petcare_web_${ENV:-prod}_${SLOT:-blue}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
-      - 'traefik.http.routers.petcare_web_${ENV:-prod}_${SLOT:-blue}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
-      - 'traefik.http.services.petcare_web_${ENV:-prod}_${SLOT:-blue}.loadbalancer.server.port=80'
+      - 'petcare.slot=${SLOT}'
+      - 'traefik.enable=${TRAEFIK_ENABLE}'
+      - 'traefik.http.routers.petcare_web.rule=Host(`${WEB_DOMAIN}`)'
+      - 'traefik.http.routers.petcare_web.entrypoints=${TRAEFIK_ENTRYPOINT}'
+      - 'traefik.http.routers.petcare_web.tls.certresolver=${TRAEFIK_CERT_RESOLVER}'
+      - 'traefik.http.services.petcare_web.loadbalancer.server.port=80'
 
   ui:
     container_name: ${UI_CONTAINER_NAME:-petcare_ui_blue}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-ui:${IMAGE_TAG:-release-1.2.3}
+    image: ${DOCKER_REGISTRY}/petcare-companion-ui:${IMAGE_TAG}
     environment:
       API_BASE_URL: https://${WEB_DOMAIN}
     depends_on:
@@ -78,17 +76,16 @@ services:
     labels:
       - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
-      - 'petcare.env=${ENV:-prod}'
-      - 'petcare.slot=${SLOT:-blue}'
-      - 'traefik.enable=${TRAEFIK_ENABLE:-false}'
-      - 'traefik.http.routers.petcare_ui_${ENV:-prod}_${SLOT:-blue}.rule=Host(`${UI_DOMAIN:-petcare.ui.ubuntu.slightlyprivate.com}`)'
-      - 'traefik.http.routers.petcare_ui_${ENV:-prod}_${SLOT:-blue}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
-      - 'traefik.http.routers.petcare_ui_${ENV:-prod}_${SLOT:-blue}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
-      - 'traefik.http.services.petcare_ui_${ENV:-prod}_${SLOT:-blue}.loadbalancer.server.port=80'
+      - 'petcare.slot=${SLOT}'
+      - 'traefik.enable=${TRAEFIK_ENABLE}'
+      - 'traefik.http.routers.petcare_ui.rule=Host(`${UI_DOMAIN}`)'
+      - 'traefik.http.routers.petcare_ui.entrypoints=${TRAEFIK_ENTRYPOINT}'
+      - 'traefik.http.routers.petcare_ui.tls.certresolver=${TRAEFIK_CERT_RESOLVER}'
+      - 'traefik.http.services.petcare_ui.loadbalancer.server.port=80'
 
   pwa:
     container_name: ${PWA_CONTAINER_NAME:-petcare_pwa_blue}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-pwa:${IMAGE_TAG:-release-1.2.3}
+    image: ${DOCKER_REGISTRY}/petcare-companion-pwa:${IMAGE_TAG}
     environment:
       API_BASE_URL: https://${WEB_DOMAIN}
     depends_on:
@@ -105,17 +102,16 @@ services:
     labels:
       - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
-      - 'petcare.env=${ENV:-prod}'
-      - 'petcare.slot=${SLOT:-blue}'
-      - 'traefik.enable=${TRAEFIK_ENABLE:-false}'
-      - 'traefik.http.routers.petcare_pwa_${ENV:-prod}_${SLOT:-blue}.rule=Host(`${PWA_DOMAIN:-petcare.pwa.ubuntu.slightlyprivate.com}`)'
-      - 'traefik.http.routers.petcare_pwa_${ENV:-prod}_${SLOT:-blue}.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}'
-      - 'traefik.http.routers.petcare_pwa_${ENV:-prod}_${SLOT:-blue}.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-cfresolver}'
-      - 'traefik.http.services.petcare_pwa_${ENV:-prod}_${SLOT:-blue}.loadbalancer.server.port=80'
+      - 'petcare.slot=${SLOT}'
+      - 'traefik.enable=${TRAEFIK_ENABLE}'
+      - 'traefik.http.routers.petcare_pwa.rule=Host(`${PWA_DOMAIN}`)'
+      - 'traefik.http.routers.petcare_pwa.entrypoints=${TRAEFIK_ENTRYPOINT}'
+      - 'traefik.http.routers.petcare_pwa.tls.certresolver=${TRAEFIK_CERT_RESOLVER}'
+      - 'traefik.http.services.petcare_pwa.loadbalancer.server.port=80'
 
   worker:
     container_name: ${WORKER_CONTAINER_NAME:-petcare_worker_blue}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-1.2.3}
+    image: ${DOCKER_REGISTRY}/petcare-companion-app:${IMAGE_TAG}
     env_file:
       - .env
     depends_on:
@@ -128,16 +124,15 @@ services:
       - shared-db-petcare-production
       - shared-cache-petcare-production
     volumes:
-      - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-prod}:/var/www/html/storage
+      - ${STORAGE_PATH}:/var/www/html/storage
     labels:
       - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
-      - 'petcare.env=${ENV:-prod}'
-      - 'petcare.slot=${SLOT:-blue}'
+      - 'petcare.slot=${SLOT}'
 
   scheduler:
     container_name: ${SCHEDULER_CONTAINER_NAME:-petcare_scheduler_blue}
-    image: ${DOCKER_REGISTRY:-ghcr.io/slightlyprivate}/petcare-companion-app:${IMAGE_TAG:-release-1.2.3}
+    image: ${DOCKER_REGISTRY}/petcare-companion-app:${IMAGE_TAG}
     env_file:
       - .env
     depends_on:
@@ -150,12 +145,11 @@ services:
       - shared-db-petcare-production
       - shared-cache-petcare-production
     volumes:
-      - ${STORAGE_PATH:-/mnt/data/appdata/petcare-storage-prod}:/var/www/html/storage
+      - ${STORAGE_PATH}:/var/www/html/storage
     labels:
       - 'com.centurylinklabs.watchtower.enable=false'
       - 'promtail.scrape=true'
-      - 'petcare.env=${ENV:-prod}'
-      - 'petcare.slot=${SLOT:-blue}'
+      - 'petcare.slot=${SLOT}'
 
 networks:
   shared-db-petcare-production:

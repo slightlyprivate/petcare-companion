@@ -5,8 +5,24 @@ charset = utf-8
 end_of_line = lf
 insert_final_newline = true
 indent_style = space
-indent_size = 2
+indent_size = 4  # For PSR-12 alignment (Laravel/PHP default)
 trim_trailing_whitespace = true
+max_line_length = 120  # For PSR-12 and common JS limits
+
+[*.php]
+indent_size = 4  # Explicit PSR-12 compliance
+
+[*.js]
+indent_size = 2  # Maintain for Node/PWA consistency
+
+[*.ts]
+indent_size = 2  # Maintain for TypeScript in PWA
+
+[*.json]
+indent_size = 2  # Standard for JSON configs
+
+[*.yml]
+indent_size = 2  # Standard for YAML (Docker/Compose)
 
 [*.md]
 trim_trailing_whitespace = false

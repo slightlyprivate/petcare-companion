@@ -3,9 +3,11 @@
 *.blade.php diff=html
 *.css diff=css
 *.html diff=html
+*.js diff=javascript
 *.md diff=markdown
 *.php diff=php
 *.sh text eol=lf
+*.ts diff=typescript
 
 /.github export-ignore
 CHANGELOG.md export-ignore

@@ -1,12 +1,22 @@
-node_modules
+# Build and dependency directories
+**/node_modules
 vendor
+
+# Build outputs
 dist
-build
-coverage
-storage
 public/build
-src/ui/node_modules
+
+# Test and coverage
+coverage
+
+# Laravel-specific
+storage
+
+# UI-specific (if not covered above)
 src/ui/dist
+
+# Documentation assets
 docs/**/*.png
-.git
+
+# Cache and temp
 .vite

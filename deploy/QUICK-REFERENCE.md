@@ -1,5 +1,12 @@
 # 🚀 Quick Deployment Reference
 
+> **⚠️ IMPORTANT: These are example commands only!**
+>
+> This cheatsheet provides **educational examples** of deployment commands. The actual deployments
+> for PetCare Companion are managed in a separate repository:
+> [`homelab-slightly-server`](https://github.com/slightlyprivate/homelab-slightly-server). Paths and
+> registries shown are illustrative; adapt them to your environment.
+
 ## Image Tag Patterns
 
 | Environment | Pattern             | Example         | Registry             |
@@ -16,8 +23,8 @@ provided.
 ### Development
 
 ```bash
-cd /srv/stacks/petcare-companion/deploy/development
-export DOCKER_REGISTRY=ghcr.io/slightlyprivate
+cd <your-deploy-path>/deploy/development
+export DOCKER_REGISTRY=<your-registry>
 export IMAGE_TAG=dev-4f31a8c
 docker compose up -d --pull always
 ```
@@ -25,27 +32,28 @@ docker compose up -d --pull always
 ### Staging
 
 ```bash
-cd /srv/stacks/petcare-companion/deploy/staging
-export DOCKER_REGISTRY=ghcr.io/slightlyprivate
+cd <your-deploy-path>/deploy/staging
+export DOCKER_REGISTRY=<your-registry>
 export IMAGE_TAG=staging
 docker compose up -d --pull always
 ```
 
 ### Production (Blue/Green)
 
-Watchtower is disabled on production slots; use the script below to promote after staging validation.
+Watchtower is disabled on production slots; use the script below to promote after staging
+validation.
 
 ```bash
 # Automated deployment (requires DOCKER_REGISTRY)
-export DOCKER_REGISTRY=ghcr.io/slightlyprivate
-/srv/stacks/petcare-companion/scripts/deploy-production.sh 1.2.3
+export DOCKER_REGISTRY=<your-registry>
+<your-scripts-path>/deploy-production.sh 1.2.3
 
 # Manual deployment
-export DOCKER_REGISTRY=ghcr.io/slightlyprivate
-ACTIVE=$(cat deploy/production/active-slot)
+export DOCKER_REGISTRY=<your-registry>
+ACTIVE=$(cat <your-deploy-path>/deploy/production/active-slot)
 TARGET=$([[ "$ACTIVE" == "blue" ]] && echo "green" || echo "blue")
 
-cd /srv/stacks/petcare-companion/deploy/production-$TARGET
+cd <your-deploy-path>/deploy/production-$TARGET
 export IMAGE_TAG=release-1.2.3
 export TRAEFIK_ENABLE=false
 docker compose up -d --pull always
@@ -70,11 +78,11 @@ echo "$TARGET" > ../production/active-slot
 
 ```bash
 # Quick rollback (swap slots back)
-export DOCKER_REGISTRY=ghcr.io/slightlyprivate
-CURRENT=$(cat deploy/production/active-slot)
+export DOCKER_REGISTRY=<your-registry>
+CURRENT=$(cat <your-deploy-path>/deploy/production/active-slot)
 PREVIOUS=$([[ "$CURRENT" == "blue" ]] && echo "green" || echo "blue")
 
-cd deploy/production-$PREVIOUS
+cd <your-deploy-path>/deploy/production-$PREVIOUS
 export TRAEFIK_ENABLE=true && docker compose up -d
 
 cd ../production-$CURRENT

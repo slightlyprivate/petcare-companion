@@ -26,7 +26,7 @@ Sanctum-based authentication.
 - **Audience:** Developers exploring Laravel + React best practices (PSR-12, typed services,
   CI-ready setup).
 - **Environments:** Development compose stack, staging (`deploy/staging`), and production
-  (`deploy/prod`).
+  (`deploy/production`).
 
 ## Architecture at a Glance
 
@@ -119,27 +119,28 @@ graph LR
 
 ## Documentation
 
-| Topic                   | Location                           | Notes                                  |
-| ----------------------- | ---------------------------------- | -------------------------------------- |
-| API / Laravel           | `src/README.md`                    | Artisan scripts, testing, feature list |
-| UI                      | `src/ui/README.md`                 | Account/billing workspace guidance     |
-| PWA Experience UI       | `src/pwa/README.md`                | Caregiving workflows + Vite scripts    |
-| Architecture & diagrams | `docs/architecture.md`             | Storage, auth, queue deep dives        |
-| Docker / CI             | `docs/CI_CD_SETUP.md`, `DOCKER.md` | Image build strategy, Compose tips     |
-| Demo workflow           | `docs/demo-scenario.md`            | End-to-end caregiver + activity flow   |
-| Production deployment   | `docs/production-deployment.md`    | Env checklist, troubleshooting         |
+| Topic                   | Location                           | Notes                                |
+| ----------------------- | ---------------------------------- | ------------------------------------ |
+| API / Laravel           | `src/README.md`                    | Artisan, tests, features             |
+| UI                      | `src/ui/README.md`                 | Account/billing workspace guidance   |
+| PWA Experience UI       | `src/pwa/README.md`                | Caregiving workflows + Vite scripts  |
+| Architecture & diagrams | `docs/architecture.md`             | Storage, auth, queue deep dives      |
+| Docker / CI             | `docs/CI_CD_SETUP.md`, `DOCKER.md` | Image build strategy, Compose tips   |
+| Demo workflow           | `docs/demo-scenario.md`            | End-to-end caregiver + activity flow |
+| Production deployment   | `docs/production-deployment.md`    | Env checklist, troubleshooting       |
+| Contributing            | `CONTRIBUTING.md`                  | Guidelines for contributors          |
 
 ## Production Deployment
 
-- Production compose and helper scripts live in `deploy/prod/`.
+- Production compose and helper scripts live in `deploy/production/`.
 - Containers expect external MySQL + Redis and prebuilt images from GHCR.
-- Start with `docker compose -f deploy/prod/docker-compose.yml pull` followed by `up -d`, run
+- Start with `docker compose -f deploy/production/docker-compose.yml pull` followed by `up -d`, run
   migrations via `exec app php artisan migrate --force`, then warm caches as needed.
 - Detailed environment variable requirements, manual deployment checklist, troubleshooting tips,
   backup plan, and monitoring suggestions are documented in
   [`docs/production-deployment.md`](docs/production-deployment.md).
 
-## Image Tags
+### Image Tags
 
 - Development: `ghcr.io/slightlyprivate/petcare-companion-{service}:dev-{shortsha}`
 - Staging: `ghcr.io/slightlyprivate/petcare-companion-{service}:staging-{version}`

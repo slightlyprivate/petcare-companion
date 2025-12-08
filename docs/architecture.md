@@ -150,12 +150,305 @@ miscalculations.
 
 ### 12. Infrastructure Layer
 
-- Docker Compose orchestrates three services:
-  - **app** (PHP-FPM)
-  - **web** (Nginx)
-  - **db** (MySQL)
-- Each container runs minimal and reproducible; rebuilds produce identical results.
-- Local volume mounts sync code for immediate development feedback.
+This repo ships with a Docker-first workflow for both development and production images. The
+`docker/` folder is now split by concern:
+
+- PHP API: `docker/app/Dockerfile` with runtime helpers in `docker/app/entrypoints/`
+- Dev Nginx: `docker/web/nginx.prod.conf`
+- Prod Nginx: `docker/web/Dockerfile` + `docker/web/nginx.prod.conf`
+- UI SPA (account/billing): `docker/ui/Dockerfile` + `src/ui/nginx/templates/default.conf.template`
+- PWA Experience UI: `docker/pwa/Dockerfile` + `src/pwa/nginx/templates/default.conf.template`
+- Shared snippets: `docker/shared/nginx/*.conf` (drop-in includes as needed)
+
+#### Local Development (Compose)
+
+- Dev stack: `docker-compose.yml` (bind mounts + hot reload). Bring it up with `docker compose up`.
+- PHP tooling (artisan/pint/phpstan/tests): `docker-compose exec app <command>` for consistency.
+- Nginx in dev reads `docker/nginx.conf`; storage is mounted to both `app` and `web`.
+
+#### Production Images
+
+Targets (GHCR in examples):
+
+- App (PHP-FPM):
+  `ghcr.io/slightlyprivate/petcare-companion-app:{staging-<ver>,release-<ver>,dev-<sha>}`
+- Web (Nginx reverse proxy):
+  `ghcr.io/slightlyprivate/petcare-companion-web:{staging-<ver>,release-<ver>,dev-<sha>}`
+- UI (static React bundle):
+  `ghcr.io/slightlyprivate/petcare-companion-ui:{staging-<ver>,release-<ver>,dev-<sha>}`
+- PWA Experience UI:
+  `ghcr.io/slightlyprivate/petcare-companion-pwa:{staging-<ver>,release-<ver>,dev-<sha>}`
+
+##### Build (multi-arch)
+
+```bash
+# App
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --target runner \
+  --tag ghcr.io/slightlyprivate/petcare-companion-app:staging-1.2.3 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-app:release-1.2.3 \
+  --file docker/app/Dockerfile \
+  .
+
+# Web
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-web:staging-1.2.3 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-web:release-1.2.3 \
+  --file docker/web/Dockerfile \
+  .
+
+# UI
+docker buildx build \
+  --platform linux/amd64 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-ui:staging-1.2.3 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-ui:release-1.2.3 \
+  --file docker/ui/Dockerfile \
+  .
+
+# PWA
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-pwa:staging-1.2.3 \
+  --tag ghcr.io/slightlyprivate/petcare-companion-pwa:release-1.2.3 \
+  --file docker/pwa/Dockerfile \
+  .
+```
+
+##### Push / Pull
+
+```bash
+# Push (after login: docker login ghcr.io)
+docker push ghcr.io/slightlyprivate/petcare-companion-app:release-1.2.3
+docker push ghcr.io/slightlyprivate/petcare-companion-web:release-1.2.3
+docker push ghcr.io/slightlyprivate/petcare-companion-ui:release-1.2.3
+docker push ghcr.io/slightlyprivate/petcare-companion-pwa:release-1.2.3
+
+# Pull prebuilt
+docker pull ghcr.io/slightlyprivate/petcare-companion-app:release-1.2.3
+docker pull ghcr.io/slightlyprivate/petcare-companion-web:release-1.2.3
+docker pull ghcr.io/slightlyprivate/petcare-companion-ui:release-1.2.3
+docker pull ghcr.io/slightlyprivate/petcare-companion-pwa:release-1.2.3
+```
+
+`make build-app`, `make build-web`, and `make build-all` wrap the same buildx flows (see
+`Makefile`). CI mirrors this via `.github/workflows/build-*-image.yml`.
+
+#### Production Run (Compose)
+
+- Use `docker-compose.prod.yml` to deploy prebuilt images (no bind mounts). Pull with
+  `docker compose -f docker-compose.prod.yml pull`.
+- Mount or provision the `storage` volume before starting the stack.
+- Run post-deploy tasks:
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml exec app php artisan migrate --force
+```
+
+- The UI image renders its Nginx config from a template at runtime. Set `API_BASE_URL` on the UI
+  service (e.g., `http://web`) so `/api` requests proxy to the Laravel Nginx service.
+
+Health endpoints:
+
+- Web: `http://<host>:8080/health` (or behind HTTPS)
+- Horizon/queues: healthchecks are baked into the Compose definitions.
+
+#### Docker Image Optimization
+
+##### Production Images
+
+PetCare Companion uses **optimized multi-stage Docker builds** for production deployment:
+
+###### App Image (`ghcr.io/slightlyprivate/petcare-companion-app:prod`)
+
+**Base:** `serversideup/php:8.3-fpm-alpine`
+
+**Build Strategy:**
+
+- **Stage 1 (Builder):** Install Composer dependencies with `--no-dev --optimize-autoloader`,
+  compile frontend assets with npm, run Laravel optimizations (`config:cache`, `route:cache`,
+  `view:cache`)
+- **Stage 2 (Runner):** Copy only production artifacts from builder, configure PHP for production
+  (OPcache enabled, display_errors off), run as non-root `www-data` user
+
+**Size Target:** <450MB
+
+**Features:**
+
+- Multi-architecture support (amd64, arm64)
+- Production PHP configuration with OPcache
+- Healthcheck via `php artisan inspire`
+- Read-only filesystem compatible
+- Minimal attack surface (no build tools)
+
+###### Web Image (`ghcr.io/slightlyprivate/petcare-companion-web:prod`)
+
+**Base:** `nginx:stable-alpine`
+
+**Configuration:**
+
+- Optimized nginx config with gzip compression
+- Security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection)
+- Long-term caching for storage assets (1 year)
+- PHP-FPM proxy with proper buffering
+- Health endpoint at `/health`
+
+**Size Target:** <50MB
+
+**Features:**
+
+- Multi-architecture support (amd64, arm64)
+- Hardened against common web vulnerabilities
+- Efficient static asset serving
+- Container-native logging (stdout/stderr)
+
+##### Development vs Production
+
+| Aspect       | Development            | Production                        |
+| ------------ | ---------------------- | --------------------------------- |
+| Base Image   | `php:8.3-fpm` (Debian) | `serversideup/php:8.3-fpm-alpine` |
+| Build Type   | Single-stage           | Multi-stage                       |
+| Dependencies | Dev + Production       | Production only                   |
+| Optimization | None                   | Full Laravel caching              |
+| Image Size   | ~500MB                 | ~300-350MB                        |
+| User         | Custom UID/GID         | www-data                          |
+| Filesystem   | Read-write bind mounts | Read-only with tmpfs              |
+
+##### Healthchecks
+
+All production services include comprehensive healthchecks:
+
+```yaml
+app:
+  healthcheck:
+    test: ['CMD', 'php', 'artisan', 'inspire']
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
+
+web:
+  healthcheck:
+    test: ['CMD-SHELL', 'wget -qO- http://localhost/health || exit 1']
+    interval: 30s
+    timeout: 5s
+    retries: 3
+    start_period: 10s
+
+worker:
+  healthcheck:
+    test: ['CMD', 'pgrep', '-f', 'artisan queue:work']
+    interval: 30s
+    timeout: 5s
+    retries: 3
+```
+
+##### Build Process
+
+**CI/CD Pipeline:**
+
+- GitHub Actions workflows build images on push to `main` or `develop`
+- Multi-architecture builds using BuildKit
+- Security scanning with Trivy
+- Automatic tagging: `staging-{version}`, `release-{version}`, `dev-{sha}`
+- Image size validation (<500MB combined target)
+- Results published to GitHub Container Registry (GHCR)
+
+**Local Builds:**
+
+```bash
+# Build all production images
+make build-all
+
+# Check image sizes
+make image-sizes
+
+# Scan for vulnerabilities (requires trivy)
+make image-scan
+```
+
+##### Deployment
+
+**Production Stack:**
+
+- Pre-built images pulled from GHCR
+- External MySQL and Redis required
+- Shared storage volume for uploads
+- Network isolation (frontend/backend)
+- Read-only containers with tmpfs mounts
+- Automatic restarts (`unless-stopped`)
+
+**Environment Configuration:**
+
+- Production defaults in `src/.env.production.example`
+- Required secrets: DB credentials, Redis password, Stripe keys, SMTP config
+- Session and Sanctum domains must match frontend
+- HTTPS required (SESSION_SECURE_COOKIE=true)
+
+##### Security Hardening
+
+**Container Security:**
+
+- Non-root user execution (www-data)
+- Read-only root filesystem
+- Minimal base images (Alpine Linux)
+- No shells or unnecessary binaries in production
+- Tmpfs for writable directories
+
+**Network Security:**
+
+- Frontend/backend network separation
+- Services exposed only on localhost (127.0.0.1)
+- CORS properly configured
+- Security headers enforced by nginx
+
+**Image Security:**
+
+- Regular base image updates via Dependabot
+- Vulnerability scanning in CI/CD
+- Signed images (future enhancement)
+- Public registry with version pinning
+
+##### Performance
+
+**Optimization Techniques:**
+
+- Laravel route/config/view caching
+- PHP OPcache with validation disabled
+- Nginx gzip compression
+- Static asset caching (1 year TTL)
+- Redis for cache and queue backend
+- Database connection pooling
+
+**Resource Limits:**
+
+- PHP memory limit: 256MB
+- PHP max execution time: 60s
+- Upload size limit: 10MB
+- Worker memory limit: 256MB
+
+##### Monitoring Recommendations
+
+**Container Health:**
+
+- Monitor healthcheck status
+- Track container restart counts
+- Alert on repeated failures
+
+**Application Metrics:**
+
+- Laravel Horizon for queue monitoring
+- Activity logs via Spatie ActivityLog
+- Error tracking (Sentry, Bugsnag, etc.)
+
+**Infrastructure:**
+
+- Database connection pools
+- Redis memory usage
+- Storage volume capacity
+- Network throughput
 
 ### Shared Storage
 
