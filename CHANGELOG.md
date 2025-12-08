@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0](https://github.com/slightlyprivate/petcare-companion/compare/0.13.0...0.14.0) (2025-12-08)
+
+
+### Features
+
+* **workflows:** add multi-arch release workflow and update docker-bake ([7745689](https://github.com/slightlyprivate/petcare-companion/commit/7745689a8c3dacaf2d2a89bf6487e4d96667b958))
+
 ## [0.13.0](https://github.com/slightlyprivate/petcare-companion/compare/0.12.0...0.13.0) (2025-12-08)
 
 
