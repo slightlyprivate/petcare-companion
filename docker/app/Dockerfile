@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Composer dependencies (PHP 8.3)
 # ==========================================
-FROM php:8.3-cli-alpine3.20 AS vendor
+FROM php:8.3-cli-alpine3.22 AS vendor
 
 WORKDIR /app
 
@@ -38,7 +38,7 @@ RUN --mount=type=cache,target=/root/.composer \
 # ==========================================
 # Stage 2: PHP runtime (Production)
 # ==========================================
-FROM php:8.3-fpm-alpine3.20 AS runner
+FROM php:8.3-fpm-alpine3.22 AS runner
 
 WORKDIR /var/www/html
 

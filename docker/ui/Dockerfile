@@ -1,6 +1,6 @@
 # Build stage
 ARG VITE_APP_VERSION=dev
-FROM node:20-alpine AS build
+FROM node:20-alpine3.22 AS build
 ARG VITE_APP_VERSION
 ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
@@ -13,7 +13,7 @@ COPY src/ui ./
 RUN npm run build
 
 # Runtime stage
-FROM nginx:stable-alpine
+FROM nginx:1.26-alpine3.20
 ARG VITE_APP_VERSION
 ENV VITE_APP_VERSION=${VITE_APP_VERSION}
 
