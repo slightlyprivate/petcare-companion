@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Composer dependencies (PHP 8.3)
 # ==========================================
-FROM php:8.3-cli-alpine3.20 AS vendor
+FROM php:8.3-cli-alpine3.22 AS vendor
 
 WORKDIR /app
 
@@ -17,8 +17,8 @@ RUN apk add --no-cache \
     zlib \
     zlib-dev \
     $PHPIZE_DEPS \
- && docker-php-ext-install zip pcntl \
- && apk del $PHPIZE_DEPS
+    && docker-php-ext-install zip pcntl \
+    && apk del $PHPIZE_DEPS
 
 # Install Composer manually (composer:2 image used PHP 8.5)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -38,7 +38,7 @@ RUN --mount=type=cache,target=/root/.composer \
 # ==========================================
 # Stage 2: PHP runtime (Production)
 # ==========================================
-FROM php:8.3-fpm-alpine3.20 AS runner
+FROM php:8.3-fpm-alpine3.22 AS runner
 
 WORKDIR /var/www/html
 
@@ -53,18 +53,18 @@ RUN apk add --no-cache \
     libzip \
     zlib \
     mysql-client \
- && apk add --no-cache --virtual .build-deps \
+    && apk add --no-cache --virtual .build-deps \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
     libzip-dev \
     zlib-dev \
     $PHPIZE_DEPS \
- && pecl install redis \
- && docker-php-ext-enable redis \
- && docker-php-ext-configure gd --with-freetype --with-jpeg \
- && docker-php-ext-install pdo_mysql pcntl gd zip \
- && apk del .build-deps
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql pcntl gd zip \
+    && apk del .build-deps
 
 # Copy from builder stages
 COPY --from=vendor /app/vendor ./vendor
@@ -89,8 +89,8 @@ FROM runner AS app
 FROM nginx:1.26-alpine3.20
 
 RUN apk update \
- && apk upgrade --no-cache --available \
- && apk add --no-cache curl
+    && apk upgrade --no-cache --available \
+    && apk add --no-cache curl
 
 # Remove default configs
 RUN rm /etc/nginx/conf.d/default.conf
@@ -104,10 +104,10 @@ COPY docker/shared/nginx/security.conf /etc/nginx/conf.d/
 
 # Logging
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \
- && ln -sf /dev/stderr /var/log/nginx/error.log
+    && ln -sf /dev/stderr /var/log/nginx/error.log
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
- CMD curl -f http://localhost/health || exit 1
+    CMD curl -f http://localhost/health || exit 1
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
