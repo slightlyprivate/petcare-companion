@@ -1,14 +1,14 @@
 # Ignore dependencies and build files
 **/node_modules
-/public/hot
-/public/storage
-/storage/*.key
-/vendor
+src/public/hot
+src/public/storage
+src/storage/*.key
+src/vendor
 
 # Laravel-specific caches and logs
-/bootstrap/cache/*.php
-/storage/framework/cache/data/*
-/storage/logs/*.log
+src/bootstrap/cache/*.php
+src/storage/framework/cache/data/*
+src/storage/logs/*.log
 
 # Scribe generated output
 /src/.scribe/

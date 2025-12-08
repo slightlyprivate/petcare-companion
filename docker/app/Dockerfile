@@ -17,8 +17,8 @@ RUN apk add --no-cache \
     zlib \
     zlib-dev \
     $PHPIZE_DEPS \
- && docker-php-ext-install zip pcntl \
- && apk del $PHPIZE_DEPS
+    && docker-php-ext-install zip pcntl \
+    && apk del $PHPIZE_DEPS
 
 # Install Composer manually (composer:2 image used PHP 8.5)
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -54,18 +54,18 @@ RUN apk add --no-cache \
     zlib \
     mysql-client \
     su-exec \
- && apk add --no-cache --virtual .build-deps \
+    && apk add --no-cache --virtual .build-deps \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
     libzip-dev \
     zlib-dev \
     $PHPIZE_DEPS \
- && pecl install redis \
- && docker-php-ext-enable redis \
- && docker-php-ext-configure gd --with-freetype --with-jpeg \
- && docker-php-ext-install pdo_mysql pcntl gd zip \
- && apk del .build-deps
+    && pecl install redis \
+    && docker-php-ext-enable redis \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql pcntl gd zip \
+    && apk del .build-deps
 
 # Copy from builder stages
 COPY --from=vendor /app/vendor ./vendor
