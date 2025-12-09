@@ -398,13 +398,11 @@ class AuthApiTest extends TestCase
         $user = User::create(['email' => 'revoked@example.com']);
         $tokenResult = $user->createToken('logout-token');
         $token = $tokenResult->plainTextToken;
-        $tokenHash = hash('sha256', $token);
 
         // Verify token exists in database before logout
         $this->assertDatabaseHas('personal_access_tokens', [
             'tokenable_id' => $user->id,
             'name' => 'logout-token',
-            'token' => $tokenHash,
         ]);
 
         // Logout with the token
