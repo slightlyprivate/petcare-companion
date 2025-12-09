@@ -417,6 +417,9 @@ class AuthApiTest extends TestCase
             'name' => 'logout-token',
         ]);
 
+        // Clear cached authentication state
+        $this->app['auth']->forgetGuards();
+
         // Try to use revoked token - should fail with 401
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/auth/me');
@@ -452,6 +455,9 @@ class AuthApiTest extends TestCase
             'tokenable_id' => $user->id,
             'name' => 'status-token',
         ]);
+
+        // Clear cached authentication state
+        $this->app['auth']->forgetGuards();
 
         // Try to check status with revoked token - should fail with 401
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
