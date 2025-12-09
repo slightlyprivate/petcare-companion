@@ -411,9 +411,6 @@ class AuthApiTest extends TestCase
             'name' => 'logout-token',
         ]);
 
-        // Create a fresh test instance to clear any session state
-        $this->refreshApplication();
-
         // Try to use revoked token - should fail with 401
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/auth/me');
@@ -437,9 +434,6 @@ class AuthApiTest extends TestCase
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/auth/logout')
             ->assertStatus(204);
-
-        // Refresh application to clear session state
-        $this->refreshApplication();
 
         // Try to check status with revoked token - should fail with 401
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
