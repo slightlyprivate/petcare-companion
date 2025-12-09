@@ -51,6 +51,7 @@ class PetCaregiverInvitationMail extends Mailable implements ShouldQueue
             with: [
                 'petName' => $this->pet->name,
                 'petSpecies' => $this->pet->species,
+                'inviterName' => $this->inviter->name ?? $this->inviter->email,
                 'inviterEmail' => $this->inviter->email,
                 'acceptUrl' => $this->acceptUrl,
                 'expiresAt' => $this->invitation->expires_at,

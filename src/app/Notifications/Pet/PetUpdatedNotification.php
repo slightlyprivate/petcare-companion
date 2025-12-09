@@ -53,7 +53,7 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
         $changedFields = array_keys($this->changes);
 
         return (new MailMessage)
-            ->markdown('emails.pet_updated', [
+            ->view('emails.pet_updated', [
                 'petName' => $this->pet->name,
                 'species' => $this->pet->species,
                 'breed' => $this->pet->breed ?? 'Not specified',

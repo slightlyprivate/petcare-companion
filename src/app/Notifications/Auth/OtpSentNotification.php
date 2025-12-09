@@ -50,7 +50,7 @@ class OtpSentNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->markdown('emails.otp_sent', [
+            ->view('emails.otp_sent', [
                 'code' => $this->code,
             ])
             ->subject(__('auth.otp.email.subject'));

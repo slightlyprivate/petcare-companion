@@ -9,6 +9,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Carbon;
 
 /**
  * Notification sent when user successfully authenticates.
@@ -22,7 +23,14 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
      */
     public function __construct(
         public User $user,
-    ) {}
+        public ?string $ipAddress = null,
+        public ?string $device = null,
+        public ?Carbon $loggedInAt = null,
+    ) {
+        $this->loggedInAt = $loggedInAt ?? now();
+        $this->ipAddress = $ipAddress ?? request()->ip();
+        $this->device = $device ?? $this->normalizeUserAgent(request()->userAgent());
+    }
 
     /**
      * Get the notification's delivery channels.
@@ -50,8 +58,10 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->markdown('emails.login_success', [
-                'time' => now()->format('M d, Y H:i:s'),
+            ->view('emails.login_success', [
+                'time' => $this->loggedInAt?->setTimezone(config('app.timezone'))->format('M d, Y H:i:s T'),
+                'ipAddress' => $this->ipAddress,
+                'device' => $this->device,
             ])
             ->subject(__('auth.login.email.subject'));
     }
@@ -68,7 +78,7 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
             'user_id' => $this->user->id,
             'email' => $this->user->email,
             'message' => __('auth.login.email.intro', [
-                'time' => now()->format('M d, Y H:i:s'),
+                'time' => $this->loggedInAt?->format('M d, Y H:i:s'),
             ]),
         ];
     }
@@ -81,7 +91,7 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
         return new TwilioMessage(
             $notifiable->phone_number ?? '',
             __('auth.login.sms.body', [
-                'time' => now()->format('H:i'),
+                'time' => $this->loggedInAt?->format('H:i'),
             ])
         );
     }
@@ -92,5 +102,10 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
     public function toMarkdown(object $notifiable): string
     {
         return 'emails.login_success';
+    }
+
+    private function normalizeUserAgent(?string $userAgent): ?string
+    {
+        return $userAgent ? trim($userAgent) : null;
     }
 }

@@ -1,15 +1,31 @@
-# New Pet Added
+@extends('emails.layouts.app')
 
-**{{ $petName }}** has been successfully added to your PetCare Companion!
+@section('title', 'New Pet Added')
 
-**Pet Details:**
+@section('content')
+	<h1 style="margin:0 0 12px 0;font-size:24px;line-height:32px;color:#0f172a;">New Pet Added</h1>
+	<p style="margin:0 0 14px 0;font-size:16px;line-height:24px;color:#374151;">{{ $petName }} has been added to your PetCare Companion household.</p>
 
-- Name: {{ $petName }}
-- Species: {{ $species }}
-- Breed: {{ $breed }}
+	<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px 0;border-collapse:collapse;">
+		<tr>
+			<td style="padding:12px 14px;border:1px solid #e5e7eb;border-radius:10px;background-color:#f8fafc;">
+				<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:15px;color:#111827;border-collapse:collapse;">
+					<tr>
+						<td style="padding:6px 0;font-weight:600;color:#374151;width:120px;">Name</td>
+						<td style="padding:6px 0;color:#111827;">{{ $petName }}</td>
+					</tr>
+					<tr>
+						<td style="padding:6px 0;font-weight:600;color:#374151;width:120px;">Species</td>
+						<td style="padding:6px 0;color:#111827;">{{ $species }}</td>
+					</tr>
+					<tr>
+						<td style="padding:6px 0;font-weight:600;color:#374151;width:120px;">Breed</td>
+						<td style="padding:6px 0;color:#111827;">{{ $breed }}</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
 
-You can now start tracking appointments, gifts, and more for {{ $petName }}.
-
----
-
-**PetCare Companion** - Caring for Pets, One Step at a Time
+	<p style="margin:0;font-size:14px;line-height:22px;color:#6b7280;">You can now track appointments, gifts, and routines for {{ $petName }}.</p>
+@endsection

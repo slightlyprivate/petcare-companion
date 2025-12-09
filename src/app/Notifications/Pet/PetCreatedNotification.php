@@ -48,7 +48,7 @@ class PetCreatedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->markdown('emails.pet_created', [
+            ->view('emails.pet_created', [
                 'petName' => $this->pet->name,
                 'species' => $this->pet->species,
                 'breed' => $this->pet->breed ?? 'Not specified',

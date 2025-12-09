@@ -53,7 +53,7 @@ class GiftSuccessNotification extends Notification implements ShouldQueue
         $credits = $this->gift->cost_in_credits;
 
         return (new MailMessage)
-            ->markdown('emails.gift_success', [
+            ->view('emails.gift_success', [
                 'petName' => $petName,
                 'credits' => $credits,
                 'giftId' => $this->gift->id,
