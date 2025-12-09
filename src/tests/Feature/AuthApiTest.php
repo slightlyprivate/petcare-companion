@@ -276,4 +276,54 @@ class AuthApiTest extends TestCase
         $user = User::where('email', $email)->first();
         $this->assertEquals($existingUser->id, $user->id);
     }
+
+    #[Test]
+    public function it_can_logout_authenticated_user(): void
+    {
+        $user = User::create(['email' => 'test@example.com']);
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/auth/logout');
+
+        $response->assertStatus(204);
+
+        // Verify token was deleted
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+        ]);
+    }
+
+    #[Test]
+    public function it_requires_authentication_for_logout(): void
+    {
+        $response = $this->postJson('/api/auth/logout');
+
+        $response->assertStatus(401);
+    }
+
+    #[Test]
+    public function it_only_deletes_current_token_on_logout(): void
+    {
+        $user = User::create(['email' => 'test@example.com']);
+        $token1 = $user->createToken('token-1')->plainTextToken;
+        $token2 = $user->createToken('token-2')->plainTextToken;
+
+        // Logout with first token
+        $response = $this->withHeader('Authorization', 'Bearer '.$token1)
+            ->postJson('/api/auth/logout');
+
+        $response->assertStatus(204);
+
+        // Verify only the first token was deleted
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'token-1',
+        ]);
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'token-2',
+        ]);
+    }
 }

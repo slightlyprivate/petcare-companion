@@ -28,14 +28,11 @@ class AuthController extends Controller
     }
 
     /**
-     * Log out the authenticated user (session-based).
+     * Log out the authenticated user by revoking their current access token.
      */
     public function logout(Request $request): \Illuminate\Http\Response
     {
-        auth()->logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $request->user()->currentAccessToken()->delete();
 
         return response()->noContent();
     }
