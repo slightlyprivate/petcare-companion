@@ -398,6 +398,14 @@ class AuthApiTest extends TestCase
         $user = User::create(['email' => 'revoked@example.com']);
         $tokenResult = $user->createToken('logout-token');
         $token = $tokenResult->plainTextToken;
+        $tokenHash = hash('sha256', $token);
+
+        // Verify token exists in database before logout
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'logout-token',
+            'token' => $tokenHash,
+        ]);
 
         // Logout with the token
         $logoutResponse = $this->withHeader('Authorization', 'Bearer '.$token)
@@ -430,10 +438,22 @@ class AuthApiTest extends TestCase
             ->getJson('/api/auth/status')
             ->assertStatus(200);
 
+        // Verify token exists in database
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'status-token',
+        ]);
+
         // Logout to revoke the token
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/auth/logout')
             ->assertStatus(204);
+
+        // Verify token was deleted from database
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'status-token',
+        ]);
 
         // Try to check status with revoked token - should fail with 401
         $response = $this->withHeader('Authorization', 'Bearer '.$token)
