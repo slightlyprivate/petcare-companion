@@ -52,9 +52,9 @@ Route::prefix('auth')->group(function () {
         ->middleware('auth:sanctum')
         ->name('auth.me');
     // Lightweight status endpoint for auth checks (204 if authenticated; 401 otherwise)
-    Route::get('/status', function () {
-        return response()->noContent();
-    })->middleware('auth:sanctum')->name('auth.status');
+    Route::get('/status', [AuthController::class, 'status'])
+        ->middleware('auth:sanctum')
+        ->name('auth.status');
     Route::post('/logout', [AuthController::class, 'logout'])
         ->middleware('auth:sanctum')
         ->name('auth.logout');

@@ -20,7 +20,7 @@ class MediaUploadTest extends TestCase
 
         $file = UploadedFile::fake()->image('activity.jpg');
 
-        $response = $this->actingAs($user)->postJson('/api/uploads', [
+        $response = $this->actingAs($user, 'sanctum')->postJson('/api/uploads', [
             'file' => $file,
             'context' => 'activities',
         ]);
@@ -43,7 +43,7 @@ class MediaUploadTest extends TestCase
         /** @var User $user */
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->postJson('/api/uploads', [
+        $response = $this->actingAs($user, 'sanctum')->postJson('/api/uploads', [
             'file' => UploadedFile::fake()->create('clip.mov', 20480, 'video/quicktime'),
             'context' => 'not-valid',
         ]);

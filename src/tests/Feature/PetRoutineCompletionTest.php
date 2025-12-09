@@ -43,7 +43,7 @@ class PetRoutineCompletionTest extends TestCase
             'date' => Carbon::today()->toDateString(),
         ]);
 
-        $response = $this->actingAs($owner)->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
+        $response = $this->actingAs($owner, 'sanctum')->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
 
         $response->assertStatus(200)
             ->assertJsonPath('data.completed_at', fn ($value) => $value !== null)
@@ -92,7 +92,7 @@ class PetRoutineCompletionTest extends TestCase
             'date' => Carbon::today()->toDateString(),
         ]);
 
-        $response = $this->actingAs($caregiver)->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
+        $response = $this->actingAs($caregiver, 'sanctum')->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
 
         $response->assertStatus(200)
             ->assertJsonPath('data.completed_by', $caregiver->getKey());
@@ -124,7 +124,7 @@ class PetRoutineCompletionTest extends TestCase
             'date' => Carbon::today()->toDateString(),
         ]);
 
-        $response = $this->actingAs($stranger)->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
+        $response = $this->actingAs($stranger, 'sanctum')->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
 
         $response->assertStatus(403);
 
@@ -164,7 +164,7 @@ class PetRoutineCompletionTest extends TestCase
             'completed_by' => $owner->getKey(),
         ]);
 
-        $response = $this->actingAs($owner)->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
+        $response = $this->actingAs($owner, 'sanctum')->postJson("/api/routine-occurrences/{$occurrence->getKey()}/complete");
 
         $response->assertStatus(200);
 
@@ -212,7 +212,7 @@ class PetRoutineCompletionTest extends TestCase
             'days_of_week' => [$notTodayIndex],
         ]);
 
-        $response = $this->actingAs($owner)->getJson("/api/pets/{$pet->getKey()}/routines/today");
+        $response = $this->actingAs($owner, 'sanctum')->getJson("/api/pets/{$pet->getKey()}/routines/today");
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data');
@@ -247,7 +247,7 @@ class PetRoutineCompletionTest extends TestCase
             'days_of_week' => [$todayIndex],
         ]);
 
-        $response = $this->actingAs($caregiver)->getJson("/api/pets/{$pet->getKey()}/routines/today");
+        $response = $this->actingAs($caregiver, 'sanctum')->getJson("/api/pets/{$pet->getKey()}/routines/today");
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data')
@@ -273,7 +273,7 @@ class PetRoutineCompletionTest extends TestCase
             'days_of_week' => [$todayIndex],
         ]);
 
-        $response = $this->actingAs($stranger)->getJson("/api/pets/{$pet->getKey()}/routines/today");
+        $response = $this->actingAs($stranger, 'sanctum')->getJson("/api/pets/{$pet->getKey()}/routines/today");
 
         $response->assertStatus(403);
     }
@@ -315,7 +315,7 @@ class PetRoutineCompletionTest extends TestCase
             'days_of_week' => [$todayIndex],
         ]);
 
-        $response = $this->actingAs($owner)->getJson("/api/pets/{$pet->getKey()}/routines/today");
+        $response = $this->actingAs($owner, 'sanctum')->getJson("/api/pets/{$pet->getKey()}/routines/today");
 
         $response->assertStatus(200)
             ->assertJsonCount(3, 'data')

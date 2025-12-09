@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->use([\App\Http\Middleware\LogRequests::class]);
-        $middleware->statefulApi();
+        $middleware->api();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\App\Exceptions\Auth\OtpVerificationFailedException $e) {

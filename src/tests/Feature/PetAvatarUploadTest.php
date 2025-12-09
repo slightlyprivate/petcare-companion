@@ -23,7 +23,7 @@ class PetAvatarUploadTest extends TestCase
 
         $avatarFile = UploadedFile::fake()->image('avatar.jpg', 200, 200);
 
-        $response = $this->actingAs($owner)
+        $response = $this->actingAs($owner, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/avatar", [
                 'avatar' => $avatarFile,
             ]);
@@ -62,7 +62,7 @@ class PetAvatarUploadTest extends TestCase
 
         $avatarFile = UploadedFile::fake()->image('avatar.jpg');
 
-        $response = $this->actingAs($otherUser)
+        $response = $this->actingAs($otherUser, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/avatar", [
                 'avatar' => $avatarFile,
             ]);
@@ -78,7 +78,7 @@ class PetAvatarUploadTest extends TestCase
 
         $invalidFile = UploadedFile::fake()->create('document.pdf', 100, 'application/pdf');
 
-        $response = $this->actingAs($owner)
+        $response = $this->actingAs($owner, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/avatar", [
                 'avatar' => $invalidFile,
             ]);
@@ -97,7 +97,7 @@ class PetAvatarUploadTest extends TestCase
 
         // Upload first avatar
         $firstAvatar = UploadedFile::fake()->image('first.jpg');
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/avatar", ['avatar' => $firstAvatar]);
 
         $pet->refresh();
@@ -109,7 +109,7 @@ class PetAvatarUploadTest extends TestCase
 
         // Upload second avatar
         $secondAvatar = UploadedFile::fake()->image('second.jpg');
-        $this->actingAs($owner)
+        $this->actingAs($owner, 'sanctum')
             ->postJson("/api/pets/{$pet->id}/avatar", ['avatar' => $secondAvatar]);
 
         $pet->refresh();

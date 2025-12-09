@@ -37,7 +37,7 @@ class PetRoutineManagementTest extends TestCase
             'days_of_week' => [1, 2, 3, 4, 5], // Mon-Fri
         ];
 
-        $response = $this->actingAs($owner)->postJson("/api/pets/{$pet->getKey()}/routines", $payload);
+        $response = $this->actingAs($owner, 'sanctum')->postJson("/api/pets/{$pet->getKey()}/routines", $payload);
 
         $response->assertStatus(201)
             ->assertJsonStructure(['data' => ['id', 'pet_id', 'name', 'time_of_day', 'days_of_week']]);
@@ -76,7 +76,7 @@ class PetRoutineManagementTest extends TestCase
             'days_of_week' => [1, 2],
         ];
 
-        $response = $this->actingAs($caregiver)->postJson("/api/pets/{$pet->getKey()}/routines", $payload);
+        $response = $this->actingAs($caregiver, 'sanctum')->postJson("/api/pets/{$pet->getKey()}/routines", $payload);
 
         $response->assertStatus(403);
 
@@ -112,7 +112,7 @@ class PetRoutineManagementTest extends TestCase
             'days_of_week' => [1, 2, 3, 4, 5],
         ];
 
-        $response = $this->actingAs($owner)->patchJson("/api/routines/{$routine->getKey()}", $payload);
+        $response = $this->actingAs($owner, 'sanctum')->patchJson("/api/routines/{$routine->getKey()}", $payload);
 
         $response->assertStatus(200)
             ->assertJsonPath('data.name', 'Updated Name');
@@ -160,7 +160,7 @@ class PetRoutineManagementTest extends TestCase
             'name' => 'Unauthorized Update',
         ];
 
-        $response = $this->actingAs($caregiver)->patchJson("/api/routines/{$routine->getKey()}", $payload);
+        $response = $this->actingAs($caregiver, 'sanctum')->patchJson("/api/routines/{$routine->getKey()}", $payload);
 
         $response->assertStatus(403);
 
@@ -192,7 +192,7 @@ class PetRoutineManagementTest extends TestCase
 
         $routineId = $routine->getKey();
 
-        $response = $this->actingAs($owner)->deleteJson("/api/routines/{$routineId}");
+        $response = $this->actingAs($owner, 'sanctum')->deleteJson("/api/routines/{$routineId}");
 
         $response->assertStatus(204);
 
@@ -228,7 +228,7 @@ class PetRoutineManagementTest extends TestCase
             'days_of_week' => [1],
         ]);
 
-        $response = $this->actingAs($caregiver)->deleteJson("/api/routines/{$routine->getKey()}");
+        $response = $this->actingAs($caregiver, 'sanctum')->deleteJson("/api/routines/{$routine->getKey()}");
 
         $response->assertStatus(403);
 
@@ -265,7 +265,7 @@ class PetRoutineManagementTest extends TestCase
             'days_of_week' => [1, 2, 3, 4, 5, 6, 0],
         ]);
 
-        $response = $this->actingAs($owner)->getJson("/api/pets/{$pet->getKey()}/routines");
+        $response = $this->actingAs($owner, 'sanctum')->getJson("/api/pets/{$pet->getKey()}/routines");
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data')
@@ -295,7 +295,7 @@ class PetRoutineManagementTest extends TestCase
             'days_of_week' => [1, 2],
         ]);
 
-        $response = $this->actingAs($caregiver)->getJson("/api/pets/{$pet->getKey()}/routines");
+        $response = $this->actingAs($caregiver, 'sanctum')->getJson("/api/pets/{$pet->getKey()}/routines");
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data')
@@ -318,7 +318,7 @@ class PetRoutineManagementTest extends TestCase
             'days_of_week' => [1],
         ]);
 
-        $response = $this->actingAs($stranger)->getJson("/api/pets/{$pet->getKey()}/routines");
+        $response = $this->actingAs($stranger, 'sanctum')->getJson("/api/pets/{$pet->getKey()}/routines");
 
         $response->assertStatus(403);
     }
@@ -345,7 +345,7 @@ class PetRoutineManagementTest extends TestCase
             'days_of_week' => [$todayIndex], // Include today
         ];
 
-        $response = $this->actingAs($owner)->postJson("/api/pets/{$pet->getKey()}/routines", $payload);
+        $response = $this->actingAs($owner, 'sanctum')->postJson("/api/pets/{$pet->getKey()}/routines", $payload);
 
         $response->assertStatus(201);
 
