@@ -2,7 +2,6 @@
 
 namespace App\Notifications;
 
-use App\Messages\TwilioMessage;
 use Illuminate\Notifications\Notification as BaseNotification;
 
 /**
@@ -11,14 +10,10 @@ use Illuminate\Notifications\Notification as BaseNotification;
 class Notification extends BaseNotification
 {
     /**
-     * Get the Twilio representation of the notification.
+     * Get the SMS representation of the notification.
      */
-    public function toTwilio(mixed $notifiable): ?TwilioMessage
+    public function toSms(mixed $notifiable): ?string
     {
-        // Customize the Twilio message for the notification
-        return new TwilioMessage(
-            phoneNumber: $notifiable->phone_number,
-            content: 'Your notification content here'
-        );
+        return null;
     }
 }

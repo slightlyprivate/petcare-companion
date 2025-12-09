@@ -2,8 +2,8 @@
 
 namespace App\Notifications\Pet;
 
+use App\Channels\SmsChannel;
 use App\Helpers\NotificationHelper;
-use App\Messages\TwilioMessage;
 use App\Models\Pet;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -39,7 +39,7 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
         }
 
         if (NotificationHelper::isChannelEnabled($notifiable, 'sms')) {
-            $channels[] = 'twilio';
+            $channels[] = SmsChannel::class;
         }
 
         return $channels;
@@ -82,16 +82,11 @@ class PetUpdatedNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the Twilio SMS representation of the notification.
+     * Get the SMS representation of the notification.
      */
-    public function toTwilio(object $notifiable): ?TwilioMessage
+    public function toSms(object $notifiable): ?string
     {
-        $changedFields = array_keys($this->changes);
-
-        return new TwilioMessage(
-            $notifiable->phone_number ?? '',
-            __('pets.updated.sms.body', ['pet_name' => $this->pet->name])
-        );
+        return __('pets.updated.sms.body', ['pet_name' => $this->pet->name]);
     }
 
     /**

@@ -2,9 +2,7 @@
 
 namespace App\Providers;
 
-use App\Channels\TwilioChannel;
 use App\Helpers\RateLimitHelper;
-use Illuminate\Notifications\ChannelManager;
 use Illuminate\Notifications\Events\NotificationSending;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -69,8 +67,5 @@ class AppServiceProvider extends ServiceProvider
             return null;
         });
 
-        $this->app->make(ChannelManager::class)->extend('twilio', function ($app) {
-            return $app->make(TwilioChannel::class);
-        });
     }
 }

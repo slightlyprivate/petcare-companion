@@ -167,4 +167,12 @@ class User extends Authenticatable
     {
         $this->notify(new ResetPasswordNotification($token, $this->email));
     }
+
+    /**
+     * Route SMS notifications to the stored phone number.
+     */
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->phone_number ?? null;
+    }
 }

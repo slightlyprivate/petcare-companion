@@ -2,8 +2,8 @@
 
 namespace App\Notifications\Gift;
 
+use App\Channels\SmsChannel;
 use App\Helpers\NotificationHelper;
-use App\Messages\TwilioMessage;
 use App\Models\Gift;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -38,7 +38,7 @@ class GiftSuccessNotification extends Notification implements ShouldQueue
         }
 
         if (NotificationHelper::isChannelEnabled($notifiable, 'sms')) {
-            $channels[] = 'twilio';
+            $channels[] = SmsChannel::class;
         }
 
         return $channels;
@@ -85,20 +85,17 @@ class GiftSuccessNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the Twilio SMS representation of the notification.
+     * Get the SMS representation of the notification.
      */
-    public function toTwilio(object $notifiable): ?TwilioMessage
+    public function toSms(object $notifiable): ?string
     {
         $credits = $this->gift->cost_in_credits;
 
-        return new TwilioMessage(
-            $notifiable->phone_number ?? '',
-            __('gifts.created.sms.body', [
-                'credits' => $credits,
-                'pet_name' => $this->gift->pet->name,
-                'gift_id' => $this->gift->id,
-            ])
-        );
+        return __('gifts.created.sms.body', [
+            'credits' => $credits,
+            'pet_name' => $this->gift->pet->name,
+            'gift_id' => $this->gift->id,
+        ]);
     }
 
     /**

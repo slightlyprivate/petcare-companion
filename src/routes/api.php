@@ -24,7 +24,21 @@ use App\Http\Controllers\Pet\PetRoutineOccurrenceController;
 use App\Http\Controllers\Public\PetDirectory\PetDirectoryController;
 use App\Http\Controllers\Public\PetReport\PetReportController;
 use App\Http\Controllers\Webhooks\StripeWebhookController;
+use App\Models\User;
+use App\Notifications\TestSmsNotification;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/sms-test', function () {
+    $user = User::first();
+
+    if (! $user) {
+        return response()->json(['status' => 'no user found'], 404);
+    }
+
+    $user->notify(new TestSmsNotification);
+
+    return ['status' => 'sms sent'];
+});
 
 // Auth endpoints - with rate limiting for sensitive operations
 Route::prefix('auth')->group(function () {

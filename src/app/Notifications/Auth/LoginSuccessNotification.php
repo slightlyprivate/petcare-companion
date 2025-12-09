@@ -2,8 +2,8 @@
 
 namespace App\Notifications\Auth;
 
+use App\Channels\SmsChannel;
 use App\Helpers\NotificationHelper;
-use App\Messages\TwilioMessage;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -46,7 +46,7 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
         }
 
         if (NotificationHelper::isChannelEnabled($notifiable, 'sms')) {
-            $channels[] = 'twilio';
+            $channels[] = SmsChannel::class;
         }
 
         return $channels;
@@ -84,16 +84,13 @@ class LoginSuccessNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the Twilio SMS representation of the notification.
+     * Get the SMS representation of the notification.
      */
-    public function toTwilio(object $notifiable): ?TwilioMessage
+    public function toSms(object $notifiable): ?string
     {
-        return new TwilioMessage(
-            $notifiable->phone_number ?? '',
-            __('auth.login.sms.body', [
-                'time' => $this->loggedInAt?->format('H:i'),
-            ])
-        );
+        return __('auth.login.sms.body', [
+            'time' => $this->loggedInAt?->format('H:i'),
+        ]);
     }
 
     /**

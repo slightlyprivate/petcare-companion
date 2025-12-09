@@ -2,8 +2,8 @@
 
 namespace App\Notifications\Auth;
 
+use App\Channels\SmsChannel;
 use App\Helpers\NotificationHelper;
-use App\Messages\TwilioMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -38,7 +38,7 @@ class OtpSentNotification extends Notification implements ShouldQueue
         }
 
         if (NotificationHelper::isChannelEnabled($notifiable, 'sms')) {
-            $channels[] = 'twilio';
+            $channels[] = SmsChannel::class;
         }
 
         return $channels;
@@ -72,14 +72,11 @@ class OtpSentNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Get the Twilio SMS representation of the notification.
+     * Get the SMS representation of the notification.
      */
-    public function toTwilio(object $notifiable): ?TwilioMessage
+    public function toSms(object $notifiable): ?string
     {
-        return new TwilioMessage(
-            $notifiable->phone_number ?? '',
-            __('auth.otp.sms.body', ['code' => $this->code])
-        );
+        return __('auth.otp.sms.body', ['code' => $this->code]);
     }
 
     /**
