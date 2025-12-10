@@ -58,6 +58,9 @@ export async function verifyOtp(payload: {
  * Clears the stored auth token.
  */
 export async function logout() {
-  await api('/auth/logout', { method: 'POST' });
-  clearAuthToken();
+  try {
+    await api('/auth/logout', { method: 'POST' });
+  } finally {
+    clearAuthToken();
+  }
 }

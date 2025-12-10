@@ -18,7 +18,7 @@ export function useAuthStatus() {
     // Only check status if we have a token; otherwise we know we're not authenticated
     enabled: hasToken,
     // If no token, return false immediately
-    initialData: hasToken ? undefined : false,
+    placeholderData: hasToken ? undefined : false,
   });
 }
 

@@ -251,9 +251,12 @@ web:
 
 The API exposes the following health check endpoints for monitoring:
 
-- `GET /health` - Basic health check (returns 200 OK)
-- `GET /up` - Laravel's built-in health check
-- `GET /api/auth/status` - Authenticated status check (requires valid Bearer token)
+- `GET /health` - Basic health check (returns 200 OK; unauthenticated)
+- `GET /up` - Laravel's built-in health check (unauthenticated)
+- `GET /api/health` - Recommended API health probe for load balancers/monitors (returns 200 OK;
+  unauthenticated)
+- `GET /api/auth/status` - Authenticated status (requires valid Bearer token). NOT a public health
+  endpoint — do not use for Traefik/monitoring probes unless you can supply tokens.
 
 Configure Traefik health checks:
 
@@ -268,9 +271,11 @@ labels:
 
 Token-based API (Sanctum guard => [])
 
-This project uses pure Bearer-token API authentication (Sanctum `'guard' => []`). Do not configure cookie/session-based Sanctum settings — they are removed from the recommended configuration.
+This project uses pure Bearer-token API authentication (Sanctum `'guard' => []`). Do not configure
+cookie/session-based Sanctum settings — they are removed from the recommended configuration.
 
 Backend .env (recommended)
+
 ```bash
 APP_URL=https://api.petcare.slightlybetter.io
 FRONTEND_URL=https://ui.petcare.slightlybetter.io,https://pwa.petcare.slightlybetter.io
@@ -283,14 +288,17 @@ FRONTEND_URL=https://ui.petcare.slightlybetter.io,https://pwa.petcare.slightlybe
 ```
 
 Notes
+
 - Use Bearer tokens for all API clients.
 - Keep FRONTEND_URL (and CORS) so browsers can contact the API.
-- If you intentionally add SPA cookie auth in the future, document that separately and reintroduce stateful/session settings only then.
-- Remove any references or examples of SANCTUM_STATEFUL_DOMAINS and session cookie configuration from docs and templates.
+- If you intentionally add SPA cookie auth in the future, document that separately and reintroduce
+  stateful/session settings only then.
+- Remove any references or examples of SANCTUM_STATEFUL_DOMAINS and session cookie configuration
+  from docs and templates.
 - Verify authenticated endpoints using Bearer tokens (Authorization: Bearer <token>).
 
-
 Optional: Stateful SPA mode (legacy / only if you re-enable the web guard)
+
 ```bash
 # Only required when using Sanctum cookie-based SPA auth (web guard enabled)
 SANCTUM_STATEFUL_DOMAINS=ui.petcare.slightlybetter.io,pwa.petcare.slightlybetter.io
@@ -300,9 +308,14 @@ SESSION_SAME_SITE=lax
 ```
 
 Notes
-- FRONTEND_URL (and CORS) remain relevant to allow browsers to contact the API even when using token auth.
-- If you plan to support both modes, document the dual configuration and ensure SANCTUM_STATEFUL_DOMAINS and session settings are enabled only when the web guard/cookie auth is active.
-- Review the active Sanctum `guards` setting; when it is empty (`[]`), treat the session settings as legacy and remove them to avoid confusion.
+
+- FRONTEND_URL (and CORS) remain relevant to allow browsers to contact the API even when using token
+  auth.
+- If you plan to support both modes, document the dual configuration and ensure
+  SANCTUM_STATEFUL_DOMAINS and session settings are enabled only when the web guard/cookie auth is
+  active.
+- Review the active Sanctum `guards` setting; when it is empty (`[]`), treat the session settings as
+  legacy and remove them to avoid confusion.
 
 ### Verification Steps
 
@@ -351,8 +364,8 @@ After deploying with Traefik labels:
 **CORS Errors:**
 
 - Verify `FRONTEND_URL` includes all frontend domains
-- Ensure your backend CORS configuration allows requests from all relevant frontend origins  
-- Confirm that your API returns the correct CORS headers for token-based authentication 
+- Ensure your backend CORS configuration allows requests from all relevant frontend origins
+- Confirm that your API returns the correct CORS headers for token-based authentication
 
 ## Related Files
 
