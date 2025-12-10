@@ -67,6 +67,28 @@ class PetCaregiverInvitationTest extends TestCase
     }
 
     #[Test]
+    public function it_does_not_email_caregivers_who_opt_out(): void
+    {
+        Mail::fake();
+
+        /** @var Authenticatable $owner */
+        $owner = User::factory()->create(['email' => 'owner@test.localhost']);
+        /** @var Authenticatable $caregiver */
+        $caregiver = User::factory()->create(['email' => 'caregiver@test.localhost']);
+        $caregiver->notificationPreferences()->update(['caregiver_invitation' => false]);
+
+        $pet = Pet::factory()->for($owner)->create();
+
+        $response = $this->actingAs($owner, 'sanctum')->postJson("/api/pets/{$pet->id}/caregiver-invitations", [
+            'invitee_email' => $caregiver->email,
+        ]);
+
+        $response->assertStatus(201);
+
+        Mail::assertNotQueued(PetCaregiverInvitationMail::class);
+    }
+
+    #[Test]
     public function non_owner_cannot_send_caregiver_invitation()
     {
         /** @var Authenticatable $owner */

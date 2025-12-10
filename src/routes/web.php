@@ -25,3 +25,13 @@ if (app()->environment('testing')) {
         return response($yaml, 200)->header('Content-Type', 'text/yaml');
     });
 }
+
+if (app()->environment('local') || config('app.debug')) {
+    \Illuminate\Support\Facades\Route::get('/postmark-test', function () {
+        \Illuminate\Support\Facades\Mail::raw('Postmark integration test OK', function ($msg) {
+            $msg->to('contact@slightlyprivate.com')->subject('Postmark Test');
+        });
+
+        return ['status' => 'sent'];
+    });
+}

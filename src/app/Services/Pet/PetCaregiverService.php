@@ -29,14 +29,23 @@ class PetCaregiverService
 
         $acceptUrl = config('services.frontend_url', env('FRONTEND_URL')).'/caregiver-invitations/accept?token='.$invitation->token;
 
-        Mail::to($invitation->invitee_email)->queue(
-            new PetCaregiverInvitationMail(
-                $invitation,
-                $pet,
-                $inviter,
-                $acceptUrl
-            )
-        );
+        $shouldSendMail = true;
+        $inviteeUser = User::where('email', $inviteeEmail)->first();
+
+        if ($inviteeUser && $inviteeUser->notificationPreferences && ! $inviteeUser->notificationPreferences->caregiver_invitation) {
+            $shouldSendMail = false;
+        }
+
+        if ($shouldSendMail) {
+            Mail::to($invitation->invitee_email)->queue(
+                new PetCaregiverInvitationMail(
+                    $invitation,
+                    $pet,
+                    $inviter,
+                    $acceptUrl
+                )
+            );
+        }
 
         activity()
             ->performedOn($invitation)

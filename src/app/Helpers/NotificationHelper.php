@@ -23,7 +23,7 @@ class NotificationHelper
         $key = self::normalizeNotificationKey($notificationType);
 
         // Get preferences if they exist, otherwise default to true
-        $preferences = $user->notificationPreference;
+        $preferences = $user->notificationPreferences;
 
         if (! $preferences) {
             $defaults = config('notifications.defaults.notifications', []);
@@ -46,7 +46,7 @@ class NotificationHelper
         }
 
         // Get preferences if they exist, otherwise default to true
-        $preferences = $user->notificationPreference;
+        $preferences = $user->notificationPreferences;
 
         if (! $preferences) {
             $channelDefaults = config('notifications.defaults.channels', []);
@@ -63,14 +63,13 @@ class NotificationHelper
     private static function normalizeNotificationKey(string $notificationType): string
     {
         return match ($notificationType) {
-            'otp_notifications' => 'otp',
-            'login_notifications' => 'login',
-            'gift_notifications' => 'gift',
-            'gift_send_notifications' => 'gift_send',
-            'pet_update_notifications' => 'pet_update',
-            'pet_create_notifications' => 'pet_create',
-            'pet_delete_notifications' => 'pet_delete',
-            'otp', 'login', 'gift', 'gift_send', 'pet_update', 'pet_create', 'pet_delete' => $notificationType,
+            'otp_notifications', 'otp' => 'otp',
+            'login_notifications', 'login' => 'login',
+            'gift_notifications', 'gift_send_notifications', 'gift', 'gift_send', 'gift_received' => 'gift_received',
+            'pet_create_notifications', 'pet_update_notifications', 'pet_delete_notifications', 'pet_activity', 'pet_create', 'pet_update', 'pet_delete' => 'pet_activity',
+            'appointment_created', 'appointment' => 'appointment_created',
+            'caregiver_invitation' => 'caregiver_invitation',
+            'routine_reminder', 'routine' => 'routine_reminder',
             default => $notificationType,
         };
     }

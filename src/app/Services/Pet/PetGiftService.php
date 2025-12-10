@@ -73,7 +73,7 @@ class PetGiftService
             $gift->markAsPaid();
 
             // Send notification after gift is successfully paid
-            if (\App\Helpers\NotificationHelper::isNotificationEnabled($user, 'gift_send')) {
+            if (\App\Helpers\NotificationHelper::isNotificationEnabled($user, 'gift_received')) {
                 \Illuminate\Support\Facades\Notification::send($user, new \App\Notifications\Gift\GiftSuccessNotification($gift));
             }
 

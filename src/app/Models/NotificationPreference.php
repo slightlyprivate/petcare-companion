@@ -27,6 +27,11 @@ class NotificationPreference extends Model
         'pet_update_notifications',
         'pet_create_notifications',
         'pet_delete_notifications',
+        'pet_activity',
+        'appointment_created',
+        'caregiver_invitation',
+        'gift_received',
+        'routine_reminder',
         'sms_enabled',
         'email_enabled',
     ];
@@ -43,6 +48,11 @@ class NotificationPreference extends Model
         'pet_update_notifications' => 'boolean',
         'pet_create_notifications' => 'boolean',
         'pet_delete_notifications' => 'boolean',
+        'pet_activity' => 'boolean',
+        'appointment_created' => 'boolean',
+        'caregiver_invitation' => 'boolean',
+        'gift_received' => 'boolean',
+        'routine_reminder' => 'boolean',
         'sms_enabled' => 'boolean',
         'email_enabled' => 'boolean',
     ];
@@ -60,6 +70,11 @@ class NotificationPreference extends Model
                 'pet_update_notifications',
                 'pet_create_notifications',
                 'pet_delete_notifications',
+                'pet_activity',
+                'appointment_created',
+                'caregiver_invitation',
+                'gift_received',
+                'routine_reminder',
                 'sms_enabled',
                 'email_enabled',
             ]);
@@ -78,9 +93,15 @@ class NotificationPreference extends Model
      */
     public function isNotificationEnabled(string $type): bool
     {
-        $attribute = "{$type}_notifications";
+        $column = $this->mapNotificationColumn($type);
 
-        return $this->getAttribute($attribute) ?? true;
+        if (! $column) {
+            $defaults = config('notifications.defaults.notifications', []);
+
+            return (bool) ($defaults[$type] ?? true);
+        }
+
+        return (bool) $this->getAttribute($column);
     }
 
     /**
@@ -105,6 +126,11 @@ class NotificationPreference extends Model
             'pet_update_notifications' => false,
             'pet_create_notifications' => false,
             'pet_delete_notifications' => false,
+            'pet_activity' => false,
+            'appointment_created' => false,
+            'caregiver_invitation' => false,
+            'gift_received' => false,
+            'routine_reminder' => false,
         ]);
     }
 
@@ -120,6 +146,29 @@ class NotificationPreference extends Model
             'pet_update_notifications' => true,
             'pet_create_notifications' => true,
             'pet_delete_notifications' => true,
+            'pet_activity' => true,
+            'appointment_created' => true,
+            'caregiver_invitation' => true,
+            'gift_received' => true,
+            'routine_reminder' => true,
         ]);
+    }
+
+    private function mapNotificationColumn(string $type): ?string
+    {
+        return match ($type) {
+            'otp', 'otp_notifications' => 'otp_notifications',
+            'login', 'login_notifications' => 'login_notifications',
+            'gift', 'gift_notifications', 'gift_send', 'gift_send_notifications' => 'gift_notifications',
+            'pet_update', 'pet_update_notifications' => 'pet_update_notifications',
+            'pet_create', 'pet_create_notifications' => 'pet_create_notifications',
+            'pet_delete', 'pet_delete_notifications' => 'pet_delete_notifications',
+            'pet_activity' => 'pet_activity',
+            'appointment_created', 'appointment' => 'appointment_created',
+            'caregiver_invitation' => 'caregiver_invitation',
+            'gift_received' => 'gift_received',
+            'routine_reminder', 'routine' => 'routine_reminder',
+            default => null,
+        };
     }
 }

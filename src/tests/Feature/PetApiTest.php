@@ -345,6 +345,7 @@ class PetApiTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
+        $user->notificationPreferences()->update(['pet_activity' => true]);
         $petData = [
             'name' => 'Buddy',
             'species' => 'Dog',
@@ -367,7 +368,7 @@ class PetApiTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $user->notificationPreference()->create(['pet_create_notifications' => false]);
+        $user->notificationPreferences()->update(['pet_activity' => false]);
 
         $petData = [
             'name' => 'Buddy',
@@ -392,6 +393,7 @@ class PetApiTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
+        $user->notificationPreferences()->update(['pet_activity' => true]);
         $pet = Pet::factory()->for($user)->create();
 
         $response = $this->actingAs($user, 'sanctum')->deleteJson("/api/pets/{$pet->id}");
@@ -408,7 +410,7 @@ class PetApiTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $user->notificationPreference()->create(['pet_delete_notifications' => false]);
+        $user->notificationPreferences()->update(['pet_activity' => false]);
         $pet = Pet::factory()->for($user)->create();
 
         $response = $this->actingAs($user, 'sanctum')->deleteJson("/api/pets/{$pet->id}");
@@ -426,6 +428,7 @@ class PetApiTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
+        $user->notificationPreferences()->update(['pet_activity' => true]);
         $pet = Pet::factory()->for($user)->create([
             'name' => 'Original',
             'species' => 'Dog',
@@ -480,7 +483,7 @@ class PetApiTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
-        $user->notificationPreference()->create(['pet_update_notifications' => false]);
+        $user->notificationPreferences()->update(['pet_activity' => false]);
         $pet = Pet::factory()->for($user)->create([
             'name' => 'Original',
             'species' => 'Dog',

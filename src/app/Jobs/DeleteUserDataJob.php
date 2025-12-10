@@ -67,7 +67,7 @@ class DeleteUserDataJob implements ShouldQueue
             }
 
             // Hard delete user notification preferences
-            $this->user->notificationPreference()?->forceDelete();
+            $this->user->notificationPreferences?->forceDelete();
 
             // Anonymize sensitive data before final deletion
             $this->anonymizeUser();

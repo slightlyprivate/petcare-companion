@@ -87,6 +87,7 @@ class StripeWebhookTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
+        $user->notificationPreferences()->update(['gift_received' => true]);
         $pet = Pet::factory()->create();
 
         $gift = Gift::factory()->create([
@@ -135,11 +136,11 @@ class StripeWebhookTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
+        $user->notificationPreferences()->update(['gift_received' => true]);
         $pet = Pet::factory()->create();
 
-        NotificationPreference::create([
-            'user_id' => $user->id,
-            'gift_notifications' => false,
+        $user->notificationPreferences()->update([
+            'gift_received' => false,
         ]);
 
         $gift = Gift::factory()->create([
@@ -184,6 +185,7 @@ class StripeWebhookTest extends TestCase
     public function test_webhook_checkout_expired_marks_gift_failed(): void
     {
         $user = User::factory()->create();
+        $user->notificationPreferences()->update(['gift_received' => true]);
         $pet = Pet::factory()->create();
 
         $gift = Gift::factory()->create([
@@ -289,6 +291,7 @@ class StripeWebhookTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $user->notificationPreferences()->update(['gift_received' => true]);
         $pet = Pet::factory()->create();
 
         $gift = Gift::factory()->create([
@@ -340,6 +343,7 @@ class StripeWebhookTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
+        $user->notificationPreferences()->update(['gift_received' => true]);
         $pet = Pet::factory()->create();
 
         $gift = Gift::factory()->create([
@@ -390,6 +394,7 @@ class StripeWebhookTest extends TestCase
 
         /** @var Authenticatable $user */
         $user = User::factory()->create();
+        $user->notificationPreferences()->update(['gift_received' => true]);
         $pet = Pet::factory()->create();
 
         $gift = Gift::factory()->create([

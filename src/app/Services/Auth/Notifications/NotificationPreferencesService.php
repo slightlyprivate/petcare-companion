@@ -24,20 +24,24 @@ class NotificationPreferencesService
         }
 
         // Retrieve existing preferences or create default ones
-        $preferences = $user->notificationPreference;
+        $preferences = $user->notificationPreferences;
 
         if (! $preferences) {
             $notificationDefaults = config('notifications.defaults.notifications', []);
             $channelDefaults = config('notifications.defaults.channels', []);
 
-            $preferences = NotificationPreference::create([
-                'user_id' => $user->id,
+            $preferences = $user->notificationPreferences()->create([
                 'otp_notifications' => $notificationDefaults['otp'] ?? true,
                 'login_notifications' => $notificationDefaults['login'] ?? true,
                 'gift_notifications' => $notificationDefaults['gift'] ?? true,
                 'pet_update_notifications' => $notificationDefaults['pet_update'] ?? true,
                 'pet_create_notifications' => $notificationDefaults['pet_create'] ?? true,
                 'pet_delete_notifications' => $notificationDefaults['pet_delete'] ?? true,
+                'pet_activity' => $notificationDefaults['pet_activity'] ?? false,
+                'appointment_created' => $notificationDefaults['appointment_created'] ?? false,
+                'caregiver_invitation' => $notificationDefaults['caregiver_invitation'] ?? false,
+                'gift_received' => $notificationDefaults['gift_received'] ?? false,
+                'routine_reminder' => $notificationDefaults['routine_reminder'] ?? false,
                 'sms_enabled' => $channelDefaults['sms'] ?? true,
                 'email_enabled' => $channelDefaults['email'] ?? true,
             ]);
@@ -60,12 +64,11 @@ class NotificationPreferencesService
 
         // Map user-friendly type names to database column names
         $typeMapping = [
-            'otp' => 'otp_notifications',
-            'login' => 'login_notifications',
-            'gift' => 'gift_notifications',
-            'pet_update' => 'pet_update_notifications',
-            'pet_create' => 'pet_create_notifications',
-            'pet_delete' => 'pet_delete_notifications',
+            'pet_activity' => 'pet_activity',
+            'appointment_created' => 'appointment_created',
+            'caregiver_invitation' => 'caregiver_invitation',
+            'gift_received' => 'gift_received',
+            'routine_reminder' => 'routine_reminder',
             'sms' => 'sms_enabled',
             'email' => 'email_enabled',
         ];
@@ -73,12 +76,11 @@ class NotificationPreferencesService
         $columnName = $typeMapping[$type] ?? null;
 
         if (! $columnName || ! in_array($columnName, [
-            'otp_notifications',
-            'login_notifications',
-            'gift_notifications',
-            'pet_update_notifications',
-            'pet_create_notifications',
-            'pet_delete_notifications',
+            'pet_activity',
+            'appointment_created',
+            'caregiver_invitation',
+            'gift_received',
+            'routine_reminder',
             'sms_enabled',
             'email_enabled',
         ])) {

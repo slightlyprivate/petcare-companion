@@ -12,6 +12,7 @@
     "php": "^8.2",
     "aws/aws-sdk-php": "^3.366",
     "barryvdh/laravel-dompdf": "^3.1",
+    "coconutcraig/laravel-postmark": "^3.3",
     "knuckleswtf/scribe": "^5.5",
     "laravel/framework": "^12.0",
     "laravel/horizon": "^5.23",
