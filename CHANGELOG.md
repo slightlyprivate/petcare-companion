@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0](https://github.com/slightlyprivate/petcare-companion/compare/0.14.1...0.15.0) (2025-12-10)
+
+
+### Features
+
+* **auth:** add user status endpoint and enhance token management ([#45](https://github.com/slightlyprivate/petcare-companion/issues/45)) ([cd2d967](https://github.com/slightlyprivate/petcare-companion/commit/cd2d967067e1af430592b2b17b93ad562fb3e70e))
+* **emails:** enhance email templates and notifications for user actions ([9771af6](https://github.com/slightlyprivate/petcare-companion/commit/9771af631f372a63eb63909f08a65923c071a00d))
+* **env:** add SES email configuration for notifications ([0f14729](https://github.com/slightlyprivate/petcare-companion/commit/0f14729bf42f70d7403f9f139058f6ac3111acdf))
+* **sms:** implement SMS notification channel using AWS SNS ([ab78231](https://github.com/slightlyprivate/petcare-companion/commit/ab782314722f83fb3caa9e590576f41346620089))
+
+
+### Bug Fixes
+
+* **notifications:** set default timeout for toast notifications ([9312770](https://github.com/slightlyprivate/petcare-companion/commit/9312770d19c64c39341af84be02d50802a0d944a))
+
 ## [0.14.1](https://github.com/slightlyprivate/petcare-companion/compare/0.14.0...0.14.1) (2025-12-08)
 
 
