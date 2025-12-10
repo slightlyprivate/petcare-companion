@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Gift;
-use App\Models\NotificationPreference;
 use App\Models\Pet;
 use App\Models\User;
 use App\Notifications\Gift\GiftSuccessNotification;
