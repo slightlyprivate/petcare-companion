@@ -289,20 +289,6 @@ Notes
 - Remove any references or examples of SANCTUM_STATEFUL_DOMAINS and session cookie configuration from docs and templates.
 - Verify authenticated endpoints using Bearer tokens (Authorization: Bearer <token>).
 
-Token-based API (recommended for this branch)
-```bash
-# Backend .env
-APP_URL=https://api.petcare.slightlybetter.io
-FRONTEND_URL=https://ui.petcare.slightlybetter.io,https://pwa.petcare.slightlybetter.io
-
-# Do NOT set SANCTUM_STATEFUL_DOMAINS for pure Bearer-token auth (leave empty or omit)
-# SANCTUM_STATEFUL_DOMAINS=
-
-# Session cookie settings are unnecessary for token auth (omit)
-# SESSION_DOMAIN=
-# SESSION_SECURE_COOKIE=
-# SESSION_SAME_SITE=
-```
 
 Optional: Stateful SPA mode (legacy / only if you re-enable the web guard)
 ```bash
@@ -365,9 +351,8 @@ After deploying with Traefik labels:
 **CORS Errors:**
 
 - Verify `FRONTEND_URL` includes all frontend domains
-- Check `SANCTUM_STATEFUL_DOMAINS` configuration
-- Ensure `SESSION_DOMAIN` has leading dot for subdomain support
-- Confirm `SESSION_SECURE_COOKIE=true` for HTTPS environments
+- Ensure your backend CORS configuration allows requests from all relevant frontend origins  
+- Confirm that your API returns the correct CORS headers for token-based authentication 
 
 ## Related Files
 
