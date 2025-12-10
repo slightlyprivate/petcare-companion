@@ -280,24 +280,21 @@ Backend .env (recommended)
 APP_URL=https://api.petcare.slightlybetter.io
 FRONTEND_URL=https://ui.petcare.slightlybetter.io,https://pwa.petcare.slightlybetter.io
 
-# Do NOT set the following for token-based auth:
+# Not needed for token-based auth (kept for reference only):
 # SANCTUM_STATEFUL_DOMAINS=
 # SESSION_DOMAIN=
 # SESSION_SECURE_COOKIE=
 # SESSION_SAME_SITE=
 ```
 
-Notes
+- Use Bearer tokens for all API clients (Authorization: Bearer <token>).
+- Keep FRONTEND_URL and CORS so browsers can contact the API.
+- If you re-enable SPA cookie auth in the future, document it separately and reintroduce these
+  settings only then.
+- When Sanctum `guards` is empty (`[]`), treat stateful/session settings as legacy — do not enable
+  them.
 
-- Use Bearer tokens for all API clients.
-- Keep FRONTEND_URL (and CORS) so browsers can contact the API.
-- If you intentionally add SPA cookie auth in the future, document that separately and reintroduce
-  stateful/session settings only then.
-- Remove any references or examples of SANCTUM_STATEFUL_DOMAINS and session cookie configuration
-  from docs and templates.
-- Verify authenticated endpoints using Bearer tokens (Authorization: Bearer <token>).
-
-Optional: Stateful SPA mode (legacy / only if you re-enable the web guard)
+LEGACY — Stateful SPA mode (NOT used in current implementation)
 
 ```bash
 # Only required when using Sanctum cookie-based SPA auth (web guard enabled)
@@ -306,16 +303,6 @@ SESSION_DOMAIN=.petcare.slightlybetter.io
 SESSION_SECURE_COOKIE=true
 SESSION_SAME_SITE=lax
 ```
-
-Notes
-
-- FRONTEND_URL (and CORS) remain relevant to allow browsers to contact the API even when using token
-  auth.
-- If you plan to support both modes, document the dual configuration and ensure
-  SANCTUM_STATEFUL_DOMAINS and session settings are enabled only when the web guard/cookie auth is
-  active.
-- Review the active Sanctum `guards` setting; when it is empty (`[]`), treat the session settings as
-  legacy and remove them to avoid confusion.
 
 ### Verification Steps
 

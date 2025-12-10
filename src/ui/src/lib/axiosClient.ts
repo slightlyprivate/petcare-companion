@@ -36,7 +36,7 @@ const client: AxiosInstance = axios.create({
 // Request interceptor: attach Bearer token and CSRF for unsafe methods; light logging
 client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const cfg = config as InterceptConfig;
-  if (cfg.withCredentials === undefined) cfg.withCredentials = true;
+  if (cfg.withCredentials === undefined) cfg.withCredentials = false;
 
   // Attach Bearer token if available
   const authToken = getAuthToken();

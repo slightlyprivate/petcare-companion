@@ -44,6 +44,7 @@ export async function requestOtp(payload: { email: string }) {
 export async function verifyOtp(payload: {
   email: string;
   code: string;
+  device_name?: string;
 }): Promise<VerifyOtpResponse> {
   const response = await api<VerifyOtpResponse>('/auth/verify', { method: 'POST', body: payload });
   // Store the token for future requests

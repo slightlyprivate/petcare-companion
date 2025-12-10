@@ -30,7 +30,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Return the authenticated user's status payload for health checks.
+     * Return the authenticated user's status payload.
+     * Note: This endpoint requires authentication and is not suitable for unauthenticated health checks.
+     * For public health checks, use /health or /api/health instead.
      */
     public function status(Request $request): JsonResponse
     {
