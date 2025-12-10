@@ -51,7 +51,7 @@ Route::prefix('auth')->group(function () {
     Route::get('/me', [AuthController::class, 'show'])
         ->middleware('auth:sanctum')
         ->name('auth.me');
-    // Lightweight status endpoint for auth checks (204 if authenticated; 401 otherwise)
+    // Status endpoint for auth checks (returns JSON with user data if authenticated; 401 otherwise)
     Route::get('/status', [AuthController::class, 'status'])
         ->middleware('auth:sanctum')
         ->name('auth.status');

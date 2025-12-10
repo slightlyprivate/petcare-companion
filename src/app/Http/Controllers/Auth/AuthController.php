@@ -44,12 +44,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request): \Illuminate\Http\Response
     {
-        $token = $request->user()?->currentAccessToken();
-
-        if (! $token) {
-            abort(401, 'Missing or invalid access token.');
-        }
-
+        $token = $request->user()->currentAccessToken();
         $token->delete();
 
         return response()->noContent();

@@ -41,13 +41,8 @@ class AuthVerificationController extends AuthController
     {
         $user = $this->userService->validate($request->email, $request->code);
 
-        // Session login is retained temporarily for any legacy session-based flows.
-        auth()->login($user);
-
-        // Regenerate session to prevent session fixation attacks (if session is available)
-        if ($request->hasSession()) {
-            $request->session()->regenerate();
-        }
+        // Pure token-based authentication: do not perform session login or regenerate session.
+        // Session-based flows have been removed to avoid issuing session cookies alongside API tokens.
 
         $deviceName = trim((string) $request->input('device_name', '')) ?: 'petcare-client';
 

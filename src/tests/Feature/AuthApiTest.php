@@ -105,6 +105,63 @@ class AuthApiTest extends TestCase
     }
 
     #[Test]
+    public function it_uses_custom_device_name_for_token(): void
+    {
+        $email = 'device@example.com';
+        $code = '123456';
+
+        Otp::create([
+            'email' => $email,
+            'code' => $code,
+            'expires_at' => now()->addMinutes(5),
+        ]);
+
+        $response = $this->postJson('/api/auth/verify', [
+            'email' => $email,
+            'code' => $code,
+            'device_name' => 'my-ios-app',
+        ]);
+
+        $response->assertStatus(200);
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user);
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'my-ios-app',
+        ]);
+    }
+
+    #[Test]
+    public function it_uses_default_device_name_when_omitted(): void
+    {
+        $email = 'default@example.com';
+        $code = '123456';
+
+        Otp::create([
+            'email' => $email,
+            'code' => $code,
+            'expires_at' => now()->addMinutes(5),
+        ]);
+
+        $response = $this->postJson('/api/auth/verify', [
+            'email' => $email,
+            'code' => $code,
+        ]);
+
+        $response->assertStatus(200);
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user);
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'petcare-client',
+        ]);
+    }
+
+    #[Test]
     public function it_allows_authenticated_requests_with_created_token(): void
     {
         $email = 'token-client@example.com';
