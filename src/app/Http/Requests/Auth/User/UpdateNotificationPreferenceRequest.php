@@ -28,7 +28,7 @@ class UpdateNotificationPreferenceRequest extends FormRequest
             'type' => [
                 'required',
                 'string',
-                'in:otp,login,gift,pet_update,pet_create,pet_delete,sms,email',
+                'in:pet_activity,appointment_created,caregiver_invitation,gift_received,routine_reminder,sms,email',
             ],
             'enabled' => [
                 'required',
@@ -44,7 +44,7 @@ class UpdateNotificationPreferenceRequest extends FormRequest
     {
         return [
             'type' => [
-                'description' => 'Notification type (e.g., otp, login, gift, pet_update, sms, email)',
+                'description' => 'Notification type (e.g., pet_activity, appointment_created, sms, email)',
                 'example' => 'email',
             ],
             'enabled' => [

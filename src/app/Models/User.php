@@ -23,6 +23,30 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, HasUuids, LogsActivity, Notifiable;
 
+    protected static function booted(): void
+    {
+        static::created(function (self $user) {
+            $notificationDefaults = config('notifications.defaults.notifications', []);
+            $channelDefaults = config('notifications.defaults.channels', []);
+
+            $user->notificationPreferences()->create([
+                'otp_notifications' => $notificationDefaults['otp'] ?? true,
+                'login_notifications' => $notificationDefaults['login'] ?? true,
+                'gift_notifications' => $notificationDefaults['gift'] ?? true,
+                'pet_update_notifications' => $notificationDefaults['pet_update'] ?? true,
+                'pet_create_notifications' => $notificationDefaults['pet_create'] ?? true,
+                'pet_delete_notifications' => $notificationDefaults['pet_delete'] ?? true,
+                'pet_activity' => $notificationDefaults['pet_activity'] ?? false,
+                'appointment_created' => $notificationDefaults['appointment_created'] ?? false,
+                'caregiver_invitation' => $notificationDefaults['caregiver_invitation'] ?? false,
+                'gift_received' => $notificationDefaults['gift_received'] ?? false,
+                'routine_reminder' => $notificationDefaults['routine_reminder'] ?? false,
+                'sms_enabled' => $channelDefaults['sms'] ?? true,
+                'email_enabled' => $channelDefaults['email'] ?? true,
+            ]);
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -88,6 +112,11 @@ class User extends Authenticatable
      * Get the user's notification preferences.
      */
     public function notificationPreference()
+    {
+        return $this->notificationPreferences();
+    }
+
+    public function notificationPreferences()
     {
         return $this->hasOne(NotificationPreference::class);
     }

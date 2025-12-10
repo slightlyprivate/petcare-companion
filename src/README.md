@@ -62,9 +62,13 @@ docker-compose exec app tail -n 20 -f storage/logs/laravel.log
 
 Mail Configuration Details
 
-- Driver: Log (writes to `storage/logs/laravel.log`)
+- Driver: Log (writes to `storage/logs/laravel.log`) by default
+- Override `MAIL_MAILER` per environment (`smtp` for Mailhog, `ses` for staging, `postmark` in
+  production)
 - From Address: `noreply@petcare.local`
-- No external mail server required for development
+- Set `POSTMARK_TOKEN` in `.env` when using the Postmark transport
+- Local debug endpoint `/postmark-test` (enabled when `APP_DEBUG=true` or `APP_ENV=local`) triggers
+  a one-off test email using the currently active mailer
 
 ## 💳 Payment & Gift Economy
 

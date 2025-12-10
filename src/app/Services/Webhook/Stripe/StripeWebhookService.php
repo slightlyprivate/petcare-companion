@@ -167,7 +167,7 @@ class StripeWebhookService
         // are handled at creation time via PetGiftService and do the deduction there.
 
         // Send gift success notification to user if enabled
-        if (NotificationHelper::isNotificationEnabled($gift->user, 'gift')) {
+        if (NotificationHelper::isNotificationEnabled($gift->user, 'gift_received')) {
             Notification::send($gift->user, new GiftSuccessNotification($gift));
         }
 

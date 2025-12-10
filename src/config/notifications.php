@@ -21,6 +21,11 @@ return [
             'pet_update' => true,
             'pet_create' => true,
             'pet_delete' => true,
+            'pet_activity' => false,
+            'appointment_created' => false,
+            'caregiver_invitation' => false,
+            'gift_received' => false,
+            'routine_reminder' => false,
         ],
         'channels' => [
             'sms' => false,

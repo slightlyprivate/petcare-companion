@@ -200,13 +200,12 @@ class NotificationTest extends TestCase
 
         /** @var User $user */
         $user = User::factory()->create();
-        $user->notificationPreference()->create([
-            'otp_notifications' => true,
-            'login_notifications' => true,
-            'gift_notifications' => false,
-            'pet_update_notifications' => false,
-            'pet_create_notifications' => false,
-            'pet_delete_notifications' => false,
+        $user->notificationPreferences()->update([
+            'pet_activity' => false,
+            'appointment_created' => false,
+            'caregiver_invitation' => false,
+            'gift_received' => false,
+            'routine_reminder' => false,
             'sms_enabled' => false,
             'email_enabled' => true,
         ]);
@@ -242,12 +241,11 @@ class NotificationTest extends TestCase
         NotificationPreference::updateOrCreate(
             ['user_id' => $user->id],
             [
-                'otp_notifications' => true,
-                'login_notifications' => true,
-                'gift_notifications' => true,
-                'pet_update_notifications' => true,
-                'pet_create_notifications' => true,
-                'pet_delete_notifications' => true,
+                'pet_activity' => true,
+                'appointment_created' => true,
+                'caregiver_invitation' => true,
+                'gift_received' => true,
+                'routine_reminder' => true,
                 'sms_enabled' => false,
                 'email_enabled' => true,
             ]
@@ -411,14 +409,13 @@ class NotificationTest extends TestCase
             'status' => 'pending',
         ]);
 
-        // Create notification preference with gift notifications disabled
-        \App\Models\NotificationPreference::create([
-            'user_id' => $user->id,
-            'gift_notifications' => false,
+        // Disable gift notifications
+        $user->notificationPreferences()->update([
+            'gift_received' => false,
         ]);
 
         // Verify notification is not sent due to disabled preference
-        $isEnabled = \App\Helpers\NotificationHelper::isNotificationEnabled($user, 'gift');
+        $isEnabled = \App\Helpers\NotificationHelper::isNotificationEnabled($user, 'gift_received');
         $this->assertFalse($isEnabled);
 
         // No notification should be sent
@@ -442,10 +439,9 @@ class NotificationTest extends TestCase
             'completed_at' => now(),
         ]);
 
-        // Create notification preference enabled
-        \App\Models\NotificationPreference::create([
-            'user_id' => $user->id,
-            'gift_notifications' => true,
+        // Ensure gift notifications remain enabled
+        $user->notificationPreferences()->update([
+            'gift_received' => true,
         ]);
 
         // Attempt to mark as paid again (status already paid)
@@ -532,10 +528,9 @@ class NotificationTest extends TestCase
             'completed_at' => now(),
         ]);
 
-        // Create notification preference enabled
-        \App\Models\NotificationPreference::create([
-            'user_id' => $user->id,
-            'gift_notifications' => true,
+        // Ensure gift notifications remain enabled
+        $user->notificationPreferences()->update([
+            'gift_received' => true,
         ]);
 
         // Verify no success notification would be sent for failed gifts

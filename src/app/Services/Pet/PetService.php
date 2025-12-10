@@ -32,7 +32,7 @@ class PetService
         $pet = Pet::create($data);
 
         // Send pet created notification to owner if preference is enabled
-        if ($pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_create')) {
+        if ($pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_activity')) {
             Notification::send($pet->user, new PetCreatedNotification($pet));
         }
 
@@ -51,7 +51,7 @@ class PetService
         $pet->save();
 
         // Send pet updated notification to owner if there are changes and preference is enabled
-        if (! empty($changes) && $pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_update')) {
+        if (! empty($changes) && $pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_activity')) {
             Notification::send($pet->user, new PetUpdatedNotification($pet, $changes));
         }
 
@@ -64,7 +64,7 @@ class PetService
     public function delete(Pet $pet): void
     {
         // Send pet deleted notification to owner if preference is enabled
-        if ($pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_delete')) {
+        if ($pet->user && NotificationHelper::isNotificationEnabled($pet->user, 'pet_activity')) {
             Notification::send($pet->user, new PetDeletedNotification($pet));
         }
 
