@@ -27,6 +27,7 @@ class AuthVerificationRequest extends \Illuminate\Foundation\Http\FormRequest
         return [
             'email' => 'required|email',
             'code' => 'required|string',
+            'device_name' => 'sometimes|string|max:255',
         ];
     }
 
@@ -45,6 +46,10 @@ class AuthVerificationRequest extends \Illuminate\Foundation\Http\FormRequest
             'code' => [
                 'description' => 'The 6-digit OTP code received via email.',
                 'example' => '123456',
+            ],
+            'device_name' => [
+                'description' => 'Optional label for the client or device requesting a token.',
+                'example' => 'react-web',
             ],
         ];
     }

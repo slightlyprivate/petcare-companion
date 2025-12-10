@@ -152,8 +152,213 @@ Files live in `deploy/staging/`.
 - Webhook: point a GitHub repository dispatch/webhook at `/srv/petcare-staging/update.sh` to refresh
   after successful `develop` builds.
 
+## API Infrastructure Exposure
+
+### Overview
+
+The PetCare Companion API is exposed via the **`web` container** (Nginx reverse proxy) which
+forwards requests to the **`app` container** (PHP-FPM Laravel application). For production and
+staging deployments using Traefik as the edge reverse proxy, the `web` container must be properly
+configured with Traefik labels to enable external access.
+
+### Container Architecture
+
+```
+Internet → Traefik → web (Nginx) → app (PHP-FPM Laravel)
+```
+
+- **Traefik**: Edge reverse proxy handling TLS termination, routing, and load balancing
+- **web**: Nginx container serving as the Laravel API gateway (port 80 internally)
+- **app**: PHP-FPM container running the Laravel application
+
+### Domain Mapping
+
+The API should be exposed on a subdomain following the pattern:
+
+| Environment | Recommended Domain                                    | Example                                         |
+| ----------- | ----------------------------------------------------- | ----------------------------------------------- |
+| Development | `web.develop.petcare.<your-domain>`                   | `web.develop.petcare.slightlybetter.io`         |
+| Staging     | `web.staging.petcare.<your-domain>`                   | `web.staging.petcare.slightlybetter.io`         |
+| Production  | `api.petcare.<your-domain>` or `web.petcare.<domain>` | `api.petcare.slightlybetter.io` (user-facing)   |
+| Blue/Green  | Same domain (both slots), only active slot enabled    | Both use `api.petcare.slightlybetter.io` router |
+
+**Note:** For cleaner production URLs, consider using `api.petcare.*` instead of `web.petcare.*` in
+the `WEB_DOMAIN` environment variable.
+
+### Required Traefik Labels
+
+Add the following labels to the `web` service in your deployment's `docker-compose.yml`:
+
+```yaml
+services:
+  web:
+    # ... other configuration ...
+    networks:
+      - default
+      - traefik-proxy # Required: External network where Traefik discovers services
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.petcare_web_${ENV}.rule=Host(`${WEB_DOMAIN}`)'
+      - 'traefik.http.routers.petcare_web_${ENV}.entrypoints=${TRAEFIK_ENTRYPOINT}'
+      - 'traefik.http.routers.petcare_web_${ENV}.tls.certresolver=${TRAEFIK_CERT_RESOLVER}'
+      - 'traefik.http.services.petcare_web_${ENV}.loadbalancer.server.port=80'
+
+networks:
+  traefik-proxy:
+    external: true
+```
+
+### Environment Variables for Traefik
+
+Set these in your deployment `.env` file:
+
+```bash
+# Domain Configuration
+WEB_DOMAIN=api.petcare.slightlybetter.io
+
+# Traefik Configuration
+TRAEFIK_ENTRYPOINT=websecure        # Use 'web' for HTTP, 'websecure' for HTTPS
+TRAEFIK_CERT_RESOLVER=cfresolver    # Your Traefik certificate resolver name
+ENV=prod                             # Environment identifier (dev, staging, prod)
+```
+
+### Blue/Green Deployment Considerations
+
+For production blue/green deployments, both slots share the same router name and domain:
+
+**Slot-specific Configuration:**
+
+```yaml
+# production-blue/docker-compose.yml and production-green/docker-compose.yml
+web:
+  labels:
+    - 'traefik.enable=${TRAEFIK_ENABLE}' # Toggled between true/false
+    - 'traefik.http.routers.petcare_web.rule=Host(`${WEB_DOMAIN}`)' # No ${ENV} suffix
+    - 'traefik.http.routers.petcare_web.entrypoints=${TRAEFIK_ENTRYPOINT}'
+    - 'traefik.http.routers.petcare_web.tls.certresolver=${TRAEFIK_CERT_RESOLVER}'
+    - 'traefik.http.services.petcare_web_${SLOT}.loadbalancer.server.port=80' # Slot-specific service
+```
+
+**Key Points:**
+
+- Only ONE slot has `TRAEFIK_ENABLE=true` at any time
+- Both slots use the SAME router name (`petcare_web` without environment suffix)
+- Service name includes `${SLOT}` (blue/green) to differentiate backend targets
+- Traefik automatically routes traffic to the enabled slot
+- Deployment script toggles `TRAEFIK_ENABLE` between slots for zero-downtime switching
+
+### Health Check Endpoints
+
+The API exposes the following health check endpoints for monitoring:
+
+- `GET /health` - Basic health check (returns 200 OK; unauthenticated)
+- `GET /up` - Laravel's built-in health check (unauthenticated)
+- `GET /api/health` - Recommended API health probe for load balancers/monitors (returns 200 OK;
+  unauthenticated)
+- `GET /api/auth/status` - Authenticated status (requires valid Bearer token). NOT a public health
+  endpoint — do not use for Traefik/monitoring probes unless you can supply tokens.
+
+Configure Traefik health checks:
+
+```yaml
+labels:
+  - 'traefik.http.services.petcare_web_${ENV}.loadbalancer.healthcheck.path=/health'
+  - 'traefik.http.services.petcare_web_${ENV}.loadbalancer.healthcheck.interval=10s'
+  - 'traefik.http.services.petcare_web_${ENV}.loadbalancer.healthcheck.timeout=3s'
+```
+
+### CORS and Sanctum Configuration
+
+Token-based API (Sanctum guard => [])
+
+This project uses pure Bearer-token API authentication (Sanctum `'guard' => []`). Do not configure
+cookie/session-based Sanctum settings — they are removed from the recommended configuration.
+
+Backend .env (recommended)
+
+```bash
+APP_URL=https://api.petcare.slightlybetter.io
+FRONTEND_URL=https://ui.petcare.slightlybetter.io,https://pwa.petcare.slightlybetter.io
+
+# Not needed for token-based auth (kept for reference only):
+# SANCTUM_STATEFUL_DOMAINS=
+# SESSION_DOMAIN=
+# SESSION_SECURE_COOKIE=
+# SESSION_SAME_SITE=
+```
+
+- Use Bearer tokens for all API clients (Authorization: Bearer <token>).
+- Keep FRONTEND_URL and CORS so browsers can contact the API.
+- If you re-enable SPA cookie auth in the future, document it separately and reintroduce these
+  settings only then.
+- When Sanctum `guards` is empty (`[]`), treat stateful/session settings as legacy — do not enable
+  them.
+
+LEGACY — Stateful SPA mode (NOT used in current implementation)
+
+```bash
+# Only required when using Sanctum cookie-based SPA auth (web guard enabled)
+SANCTUM_STATEFUL_DOMAINS=ui.petcare.slightlybetter.io,pwa.petcare.slightlybetter.io
+SESSION_DOMAIN=.petcare.slightlybetter.io
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=lax
+```
+
+### Verification Steps
+
+After deploying with Traefik labels:
+
+1. **DNS Resolution**: Ensure `WEB_DOMAIN` resolves to your Traefik instance
+   ```bash
+   dig api.petcare.slightlybetter.io
+   ```
+2. **Traefik Discovery**: Check Traefik dashboard to confirm service is discovered
+3. **TLS Certificate**: Verify certificate is issued and valid
+   ```bash
+   curl -I https://api.petcare.slightlybetter.io/health
+   ```
+4. **API Response**: Test an unauthenticated endpoint
+   ```bash
+   curl https://api.petcare.slightlybetter.io/api/public/pets
+   ```
+5. **Authentication**: Test authenticated endpoint with token
+   ```bash
+   curl -H "Authorization: Bearer YOUR_TOKEN" \
+        https://api.petcare.slightlybetter.io/api/auth/me
+   ```
+
+### Troubleshooting
+
+**503 Service Unavailable:**
+
+- Check if `web` container is healthy: `docker ps`
+- Verify `traefik-proxy` network exists and `web` is connected
+- Confirm `traefik.enable=true` label is set
+- Check Traefik logs for routing errors
+
+**404 Not Found:**
+
+- Verify `WEB_DOMAIN` matches the domain in your request
+- Check router rule syntax in labels
+- Ensure Traefik entrypoint is correct (`websecure` for HTTPS)
+
+**Certificate Errors:**
+
+- Verify `TRAEFIK_CERT_RESOLVER` matches your Traefik configuration
+- Check Traefik logs for ACME challenge failures
+- Ensure DNS records are correct for Let's Encrypt validation
+
+**CORS Errors:**
+
+- Verify `FRONTEND_URL` includes all frontend domains
+- Ensure your backend CORS configuration allows requests from all relevant frontend origins
+- Confirm that your API returns the correct CORS headers for token-based authentication
+
 ## Related Files
 
 - `deploy/prod/docker-compose.yml` — Production services and volumes.
 - `deploy/prod/update.sh` — Helper script for pulling new images with minimal downtime.
+- `deploy/staging/docker-compose.yml` — Staging environment with Traefik labels configured.
+- `deploy/production-blue/docker-compose.yml` — Blue slot with Traefik labels.
+- `deploy/production-green/docker-compose.yml` — Green slot with Traefik labels.
 - `docs/CI_CD_SETUP.md` — Build workflows and CI job descriptions.

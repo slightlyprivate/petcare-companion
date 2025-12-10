@@ -71,13 +71,15 @@ class AuthApiTest extends TestCase
             'expires_at' => now()->addMinutes(5),
         ]);
 
-        $response = $this->withSession([])->postJson('/api/auth/verify', [
+        $response = $this->postJson('/api/auth/verify', [
             'email' => $email,
             'code' => $code,
         ]);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
+                'token',
+                'token_type',
                 'user' => [
                     'id',
                     'email',
@@ -89,8 +91,103 @@ class AuthApiTest extends TestCase
             'email' => $email,
         ]);
 
-        // Verify user is authenticated via session
-        $this->assertAuthenticated();
+        $payload = $response->json();
+        $this->assertSame('Bearer', $payload['token_type']);
+        $this->assertNotEmpty($payload['token']);
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user);
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'petcare-client',
+        ]);
+    }
+
+    #[Test]
+    public function it_uses_custom_device_name_for_token(): void
+    {
+        $email = 'device@example.com';
+        $code = '123456';
+
+        Otp::create([
+            'email' => $email,
+            'code' => $code,
+            'expires_at' => now()->addMinutes(5),
+        ]);
+
+        $response = $this->postJson('/api/auth/verify', [
+            'email' => $email,
+            'code' => $code,
+            'device_name' => 'my-ios-app',
+        ]);
+
+        $response->assertStatus(200);
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user);
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'my-ios-app',
+        ]);
+    }
+
+    #[Test]
+    public function it_uses_default_device_name_when_omitted(): void
+    {
+        $email = 'default@example.com';
+        $code = '123456';
+
+        Otp::create([
+            'email' => $email,
+            'code' => $code,
+            'expires_at' => now()->addMinutes(5),
+        ]);
+
+        $response = $this->postJson('/api/auth/verify', [
+            'email' => $email,
+            'code' => $code,
+        ]);
+
+        $response->assertStatus(200);
+
+        $user = User::where('email', $email)->first();
+        $this->assertNotNull($user);
+
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'petcare-client',
+        ]);
+    }
+
+    #[Test]
+    public function it_allows_authenticated_requests_with_created_token(): void
+    {
+        $email = 'token-client@example.com';
+        $code = '123456';
+
+        Otp::create([
+            'email' => $email,
+            'code' => $code,
+            'expires_at' => now()->addMinutes(5),
+        ]);
+
+        $loginResponse = $this->postJson('/api/auth/verify', [
+            'email' => $email,
+            'code' => $code,
+        ]);
+
+        $token = $loginResponse->json('token');
+        $this->assertNotEmpty($token);
+
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/auth/me');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'email' => $email,
+            ]);
     }
 
     #[Test]
@@ -178,6 +275,31 @@ class AuthApiTest extends TestCase
                 'id' => $user->id,
                 'email' => $user->email,
             ]);
+    }
+
+    #[Test]
+    public function it_returns_status_payload_when_authenticated(): void
+    {
+        $user = User::create(['email' => 'status@example.com']);
+        $token = $user->createToken('status-client')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/auth/status');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'authenticated' => true,
+                'user' => [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                ],
+            ]);
+    }
+
+    #[Test]
+    public function it_requires_authentication_for_status_endpoint(): void
+    {
+        $this->getJson('/api/auth/status')->assertStatus(401);
     }
 
     #[Test]
@@ -325,5 +447,79 @@ class AuthApiTest extends TestCase
             'tokenable_id' => $user->id,
             'name' => 'token-2',
         ]);
+    }
+
+    #[Test]
+    public function it_rejects_requests_with_revoked_tokens(): void
+    {
+        $user = User::create(['email' => 'revoked@example.com']);
+        $tokenResult = $user->createToken('logout-token');
+        $token = $tokenResult->plainTextToken;
+
+        // Verify token exists in database before logout
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'logout-token',
+        ]);
+
+        // Logout with the token
+        $logoutResponse = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/auth/logout');
+
+        $logoutResponse->assertStatus(204);
+
+        // Verify token was deleted from database
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'logout-token',
+        ]);
+
+        // Clear cached authentication state
+        $this->app['auth']->forgetGuards();
+
+        // Try to use revoked token - should fail with 401
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/auth/me');
+
+        $response->assertStatus(401);
+    }
+
+    #[Test]
+    public function it_rejects_status_check_with_revoked_tokens(): void
+    {
+        $user = User::create(['email' => 'status-revoked@example.com']);
+        $tokenResult = $user->createToken('status-token');
+        $token = $tokenResult->plainTextToken;
+
+        // First verify the token works
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/auth/status')
+            ->assertStatus(200);
+
+        // Verify token exists in database
+        $this->assertDatabaseHas('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'status-token',
+        ]);
+
+        // Logout to revoke the token
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/auth/logout')
+            ->assertStatus(204);
+
+        // Verify token was deleted from database
+        $this->assertDatabaseMissing('personal_access_tokens', [
+            'tokenable_id' => $user->id,
+            'name' => 'status-token',
+        ]);
+
+        // Clear cached authentication state
+        $this->app['auth']->forgetGuards();
+
+        // Try to check status with revoked token - should fail with 401
+        $response = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/auth/status');
+
+        $response->assertStatus(401);
     }
 }

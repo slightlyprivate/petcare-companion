@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\AuthShowRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /**
  * Controller handling authentication-related actions.
@@ -18,7 +20,7 @@ class AuthController extends Controller
     /**
      * Display the authenticated user's information.
      */
-    public function show(AuthShowRequest $request): \Illuminate\Http\JsonResponse
+    public function show(AuthShowRequest $request): JsonResponse
     {
         $user = $request->user();
 
@@ -28,11 +30,27 @@ class AuthController extends Controller
     }
 
     /**
+     * Return the authenticated user's status payload.
+     * Note: This endpoint requires authentication and is not suitable for unauthenticated health checks.
+     * For public health checks, use /health or /api/health instead.
+     */
+    public function status(Request $request): JsonResponse
+    {
+        return response()->json([
+            'authenticated' => true,
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
      * Log out the authenticated user by revoking their current access token.
      */
-    public function logout(Request $request): \Illuminate\Http\Response
+    public function logout(Request $request): Response
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()->currentAccessToken();
+        if ($token) {
+            $token->delete();
+        }
 
         return response()->noContent();
     }

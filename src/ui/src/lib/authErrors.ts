@@ -3,6 +3,7 @@ import { PATHS } from '../routes/paths';
 import type { ApiError } from './fetch';
 import { getQueryClient } from './queryClient';
 import { resetOnLogout } from './queryUtils';
+import { clearAuthToken } from './tokenStore';
 
 let redirecting = false;
 
@@ -16,6 +17,9 @@ export function handleAuthError(err: ApiError) {
   const status = err?.status;
   // Only force logout + redirect on 401 (Unauthenticated)
   if (status !== 401) return;
+
+  // Clear auth token
+  clearAuthToken();
 
   // Clear client caches/tokens to ensure a clean state
   try {
