@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom';
 import DashboardNavigation from '../components/DashboardNavigation';
-import { AppVersionFooter } from '../components/AppVersionFooter';
 
 /**
  * Dashboard layout component
@@ -15,7 +14,6 @@ export default function DashboardLayout() {
       <main className="p-4">
         <Outlet />
       </main>
-      <AppVersionFooter />
     </div>
   );
 }

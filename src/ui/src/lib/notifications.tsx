@@ -28,7 +28,8 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   const push = useCallback(
     (toast: Omit<Toast, 'id'>) => {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const entry: Toast = { id, type: 'info', timeoutMs: 4000, ...toast };
+      const { timeoutMs, ...rest } = toast;
+      const entry: Toast = { id, type: 'info', timeoutMs: timeoutMs ?? 3000, ...rest };
       setToasts((t) => [entry, ...t]);
       if (entry.timeoutMs && entry.timeoutMs > 0) {
         setTimeout(() => remove(id), entry.timeoutMs);
