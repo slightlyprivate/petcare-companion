@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { clearCsrfToken } from './csrfStore';
+import { clearAuthToken } from './tokenStore';
 
 // Clears auth-derived caches and tokens on logout to prevent stale data.
 export function resetOnLogout(qc: QueryClient) {
@@ -7,6 +8,11 @@ export function resetOnLogout(qc: QueryClient) {
     qc.clear();
   } catch (err) {
     if (import.meta.env.DEV) console.warn('[queryUtils] Clear failed:', err);
+  }
+  try {
+    clearAuthToken();
+  } catch (err) {
+    if (import.meta.env.DEV) console.warn('[queryUtils] clearAuthToken failed:', err);
   }
   try {
     clearCsrfToken();

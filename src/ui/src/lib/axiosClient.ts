@@ -6,6 +6,7 @@ import axios, {
 } from 'axios';
 import { isDev } from './config';
 import { getCsrfToken, isStorageAvailable } from './csrfStore';
+import { getAuthToken } from './tokenStore';
 import { ensureCsrf } from './csrf';
 import { handleAuthError } from './authErrors';
 
@@ -32,10 +33,16 @@ const client: AxiosInstance = axios.create({
   headers: { Accept: 'application/json' },
 });
 
-// Request interceptor: attach CSRF for unsafe methods; light logging
+// Request interceptor: attach Bearer token and CSRF for unsafe methods; light logging
 client.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const cfg = config as InterceptConfig;
   if (cfg.withCredentials === undefined) cfg.withCredentials = true;
+
+  // Attach Bearer token if available
+  const authToken = getAuthToken();
+  if (authToken) {
+    cfg.headers.set('Authorization', `Bearer ${authToken}`);
+  }
 
   const method = (cfg.method || 'GET').toUpperCase();
   if (isUnsafe(method)) {
