@@ -1,4 +1,4 @@
-# PetCare Companion — Monorepo
+# PetCare Companion
 
 [![CI](https://github.com/slightlyprivate/petcare-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/ci.yml)
 [![Build Images (main)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-images.yml/badge.svg)](https://github.com/slightlyprivate/petcare-companion/actions/workflows/build-images.yml)
@@ -6,8 +6,20 @@
 
 <img src="./assets/petcare-companion.png" alt="PetCare Companion Logo" width="250">
 
-Educational Laravel API + React UI stack with Dockerized workflows, shared caregiving features, and
-Sanctum-based authentication.
+**Status:** Public portfolio / educational reference project
+
+PetCare Companion is a Dockerized Laravel + React monorepo demonstrating API-first application architecture, Sanctum authentication, queued workflows, uploads, CI/CD, and multi-surface frontend development.
+
+It uses a lightweight pet/caregiving domain as the example product surface, but the main purpose of the repo is to demonstrate maintainable full-stack application structure.
+
+## What it demonstrates
+
+- Laravel API architecture with service-oriented boundaries
+- Sanctum-based authentication
+- Docker Compose development workflows
+- MySQL + Redis-backed application services
+- React/Vite frontend surfaces
+- CI image builds and deployment-oriented repository structure
 
 ## Table of Contents
 
