@@ -1,2 +1,5 @@
+#!/bin/sh
+set -e
+
 # Run Prettier on staged files only
 npx lint-staged
