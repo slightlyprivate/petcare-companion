@@ -156,7 +156,7 @@ jobs:
       ###############################################################
 
       - name: Install Trivy
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.24.0
         with:
           scan-type: image
           image-ref: ghcr.io/slightlyprivate/petcare-companion-web:staging-${{ steps.version.outputs.version }}
@@ -173,7 +173,7 @@ jobs:
 
       # OPTIONAL: Scan app
       - name: Trivy scan (app)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.24.0
         with:
           scan-type: image
           image-ref: ghcr.io/slightlyprivate/petcare-companion-app:staging-${{ steps.version.outputs.version }}
@@ -189,7 +189,7 @@ jobs:
 
       # OPTIONAL: Scan Utility UI
       - name: Trivy scan (ui)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.24.0
         with:
           scan-type: image
           image-ref: ghcr.io/slightlyprivate/petcare-companion-ui:staging-${{ steps.version.outputs.version }}
@@ -205,7 +205,7 @@ jobs:
 
       # OPTIONAL: Scan PWA
       - name: Trivy scan (pwa)
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.24.0
         with:
           scan-type: image
           image-ref: ghcr.io/slightlyprivate/petcare-companion-pwa:staging-${{ steps.version.outputs.version }}
