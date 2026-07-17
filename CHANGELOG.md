@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0](https://github.com/slightlyprivate/petcare-companion/compare/0.16.0...0.17.0) (2026-07-17)
+
+
+### Features
+
+* **markdown:** add markdownlint configuration file ([3dba8af](https://github.com/slightlyprivate/petcare-companion/commit/3dba8af81b5d9ff2e6b99766aad7b783ae1d549d))
+* **ui, pwa:** enhance app icons and update HTML for better PWA support ([764f1d2](https://github.com/slightlyprivate/petcare-companion/commit/764f1d21f8b467dbae992483065e776a33e9572f))
+
 ## [0.16.0](https://github.com/slightlyprivate/petcare-companion/compare/0.15.0...0.16.0) (2025-12-10)
 
 
