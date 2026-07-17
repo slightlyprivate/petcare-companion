@@ -31,7 +31,5 @@
   },
   "MD034": true,
   "MD040": true,
-  "MD041": true,
-  "no-hard-tabs": true,
-  "whitespace": true
+  "MD041": true
 }

@@ -304,7 +304,7 @@ class ApiResponseShapeVerificationTest extends TestCase
             ['GET', '/api/pets'],
             ['POST', '/api/pets', ['name' => 'Test', 'species' => 'Dog', 'owner_name' => 'Owner']],
             ['GET', '/api/pets/1/appointments'],
-            ['POST', '/api/pets/1/appointments', ['title' => 'Test', 'scheduled_at' => '2025-12-15 14:30:00']],
+            ['POST', '/api/pets/1/appointments', ['title' => 'Test', 'scheduled_at' => Carbon::now()->addMonth()->setTime(14, 30)]],
         ];
 
         foreach ($endpoints as $endpoint) {
