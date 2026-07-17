@@ -188,7 +188,7 @@ class ApiResponseShapeVerificationTest extends TestCase
 
         $appointmentData = [
             'title' => 'New Appointment',
-            'scheduled_at' => '2025-12-15 14:30:00',
+            'scheduled_at' => Carbon::now()->addMonth()->setTime(14, 30),
             'notes' => 'New appointment notes',
         ];
 

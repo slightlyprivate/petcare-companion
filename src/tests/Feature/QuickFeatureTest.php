@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Pet;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\Fluent\AssertableJson;
@@ -79,7 +80,7 @@ class QuickFeatureTest extends TestCase
 
         $appointmentData = [
             'title' => 'Wellness Check',
-            'scheduled_at' => '2025-12-15 14:30:00',
+            'scheduled_at' => Carbon::now()->addMonth()->setTime(14, 30),
             'notes' => 'Annual health examination and vaccinations',
         ];
 
